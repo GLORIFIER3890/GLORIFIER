@@ -48,7 +48,7 @@ export async function initializeInternetDiscoveryFabric() {
       endpoint TEXT,
       observed_at TIMESTAMPTZ NOT NULL,
       lifecycle TEXT NOT NULL,
-      authorization TEXT NOT NULL,
+      "authorization" TEXT NOT NULL,
       availability TEXT NOT NULL,
       capabilities JSONB NOT NULL DEFAULT '[]'::jsonb,
       evidence_refs JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -80,7 +80,7 @@ async function persist(observation: Omit<WorldGraphObservation, 'id' | 'observat
   const observationHash = hashObservation(observation);
   await getPostgresPool().query(
     `INSERT INTO ${TABLE}
-      (id,subject_id,subject_type,name,source,endpoint,observed_at,lifecycle,authorization,availability,capabilities,evidence_refs,metadata,observation_hash)
+      (id,subject_id,subject_type,name,source,endpoint,observed_at,lifecycle,"authorization",availability,capabilities,evidence_refs,metadata,observation_hash)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12::jsonb,$13::jsonb,$14)`,
     [
       id, observation.subjectId, observation.subjectType, observation.name, observation.source,
