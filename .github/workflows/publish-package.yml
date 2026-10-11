@@ -1,9 +1,8 @@
 name: Publish GLORIFIER to npmjs
 
 on:
-  push:
-    tags:
-      - 'v*'
+  # Publish only once when a GitHub Release is published. Release creation also
+  # creates a tag; listening to both events can cause duplicate npm publishes.
   release:
     types: [published]
   pull_request:
@@ -16,6 +15,7 @@ on:
       - 'index.html'
       - 'vite.config.*'
       - 'tsconfig*.json'
+  # Manual dispatch validates only; it never publishes a package.
   workflow_dispatch:
 
 permissions:
@@ -71,7 +71,9 @@ jobs:
   publish:
     name: Publish npm package
     needs: validate
-    if: ${{ github.event_name == 'release' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') }}
+    # A published GitHub Release is the single publication event.
+    # Pull requests and manual dispatches can validate but cannot publish.
+    if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
