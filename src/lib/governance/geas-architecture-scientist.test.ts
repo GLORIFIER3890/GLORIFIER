@@ -1,9 +1,12 @@
-import { createGovernedActionEvidencePackage, createAgentIdentityContract, createTokenLifecycleContract, getGeasArchitectureModel, isClaimSupportedEvidence, isSourceObservationDue, stripHtml } from './geas-architecture-scientist';
+import { createGovernedActionEvidencePackage, createAgentIdentityContract, createTokenLifecycleContract, getGeasArchitectureModel, isClaimSupportedEvidence, classifyArchitectureEvidence, isSourceObservationDue, stripHtml } from './geas-architecture-scientist';
 
 const model = getGeasArchitectureModel();
 
 if (isClaimSupportedEvidence('content-matched')) throw new Error('keyword match must not count as claim verification');
 if (!isClaimSupportedEvidence('claim-supported')) throw new Error('claim-supported evidence state missing');
+if (classifyArchitectureEvidence('content-matched') !== 'analysis') throw new Error('keyword matches must remain analysis');
+if (classifyArchitectureEvidence('source-available') !== 'analysis') throw new Error('source availability must remain analysis');
+if (classifyArchitectureEvidence('claim-supported') !== 'observed-fact') throw new Error('claim-supported evidence should be classified as observed fact');
 if (isSourceObservationDue(24, new Date(0).toISOString(), 24 * 60 * 60 * 1000 - 1)) throw new Error('source cadence should reuse fresh observations');
 if (!isSourceObservationDue(24, new Date(0).toISOString(), 24 * 60 * 60 * 1000)) throw new Error('source cadence should refresh expired observations');
 if (stripHtml('<main>  alpha &amp; beta </main>') !== 'alpha and beta') throw new Error('HTML normalization failed');
