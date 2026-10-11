@@ -816,6 +816,7 @@ export async function initializeGeasArchitectureScientist() {
       etag TEXT,
       last_modified TEXT
     );
+    ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS evidence_excerpt TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS final_url TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS etag TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS last_modified TEXT;
