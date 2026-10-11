@@ -568,6 +568,10 @@ export function isClaimSupportedEvidence(status: EvidenceStatus): boolean {
   return status === 'claim-supported';
 }
 
+export function classifyArchitectureEvidence(status: EvidenceStatus): EvidenceClass {
+  return status === 'claim-supported' ? 'observed-fact' : 'analysis';
+}
+
 export function isSourceObservationDue(cadenceHours: number, observedAt: string | null | undefined, nowMs = Date.now()): boolean {
   if (!Number.isFinite(cadenceHours) || cadenceHours <= 0 || !observedAt) return true;
   const observedMs = Date.parse(observedAt);
@@ -673,7 +677,7 @@ function buildEvidence(results: SourceObservation[], patterns: ArchitecturePatte
       observedAt: result.observedAt,
       contentHash: result.contentHash ?? 'unknown',
       excerpt: result.evidenceExcerpt,
-      evidenceClass: result.evidenceStatus === 'claim-supported' ? 'observed-fact' : 'analysis',
+      evidenceClass: classifyArchitectureEvidence(result.evidenceStatus),
       sourceStatus: result.status ?? 0,
       patternIds: ids.get(result.sourceId) ?? [],
     }];
