@@ -9,10 +9,10 @@
   "theme_color": "#020617",
   "icons": [
     {
-      "src": "./favicon.svg",
+      "src": "https://1.gravatar.com/avatar/2debdba15d0c08ab78691048092e465dc74c530e3447e3f584a23e7165272c33?size=512",
       "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "orientation": "portrait-primary",
