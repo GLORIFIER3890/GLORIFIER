@@ -150,27 +150,11 @@ jobs:
               done
             fi
 
-            # GitHub may retain open alert records after their obsolete analysis
-            # history is deleted. Close only main-branch records from the retired
-            # category after the exact current main commit has a clean active scan.
+            # Do not bulk-dismiss security alerts automatically. Removing obsolete
+            # analysis history can leave alert records open; keep them visible for
+            # review rather than misclassifying a vulnerability as mitigated.
             dismissed_count=0
-            while IFS=$'\x09' read -r alert_number alert_rule alert_path; do
-              [[ -n "$alert_number" ]] || continue
-              if [[ "$alert_path" == tests/* ]]; then
-                dismissal_reason="used in tests"
-              else
-                dismissal_reason="mitigated"
-              fi
-              dismissal_comment="Retired CodeQL category only. Main commit ${main_sha} passed active category ${active_category} with zero open alerts. Source remediation in PR #261; dismissed as ${dismissal_reason}."
-              gh api --method PATCH \
-                --field state=dismissed \
-                --field "dismissed_reason=${dismissal_reason}" \
-                --field "dismissed_comment=${dismissal_comment}" \
-                "repos/${GITHUB_REPOSITORY}/code-scanning/alerts/${alert_number}" >/dev/null
-              dismissed_count=$((dismissed_count + 1))
-            done < <(jq -r --arg cat "$legacy_category" --arg ref "$main_ref" 'select(.ref == $ref and .category == $cat) | [.number, .rule, .path] | @tsv' "$report")
-
-            cleanup_status="completed: removed $deleted_count obsolete main-only analyses and dismissed $dismissed_count open alert records from the retired category; active category and PR refs preserved"
+            cleanup_status="obsolete analysis history removed; $legacy_open historical alert records retained open for review; active category and PR refs preserved"
             # Re-query after cleanup so the published inventory reflects live state.
             fetch_alerts
             fetch_analyses
