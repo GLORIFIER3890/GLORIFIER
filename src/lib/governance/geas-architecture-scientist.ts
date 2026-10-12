@@ -610,10 +610,24 @@ async function fetchSource(source: ArchitectureSource): Promise<SourceObservatio
     if (finalUrl.protocol !== 'https:' || (finalUrl.hostname !== requestedUrl.hostname && !finalUrl.hostname.endsWith('.' + requestedUrl.hostname))) {
       throw new Error('source redirect left the approved HTTPS host boundary');
     }
+    const maxBodyBytes = 2_000_000;
     const declaredLength = Number(response.headers.get('content-length') ?? 0);
-    if (declaredLength > 2_000_000) throw new Error('source response exceeded 2 MB limit');
-    const body = await response.text();
-    if (Buffer.byteLength(body, 'utf8') > 2_000_000) throw new Error('source response exceeded 2 MB limit');
+    if (declaredLength > maxBodyBytes) throw new Error('source response exceeded 2 MB limit');
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error('source response body is unavailable');
+    const chunks: Uint8Array[] = [];
+    let receivedBytes = 0;
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      receivedBytes += chunk.value.byteLength;
+      if (receivedBytes > maxBodyBytes) {
+        await reader.cancel();
+        throw new Error('source response exceeded 2 MB limit');
+      }
+      chunks.push(chunk.value);
+    }
+    const body = Buffer.concat(chunks.map((chunk) => Buffer.from(chunk))).toString('utf8');
     const normalizedText = stripHtml(body).replace(/\s+/g, ' ').trim();
     const hash = createHash('sha256').update(normalizedText).digest('hex');
     const keywords = PATTERN_DEFINITIONS.filter((pattern) => pattern.sourceId === source.id).flatMap((pattern) => pattern.keywords);
