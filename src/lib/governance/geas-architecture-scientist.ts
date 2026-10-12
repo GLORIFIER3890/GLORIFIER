@@ -434,6 +434,12 @@ const SOURCES: ArchitectureSource[] = [
     patternIds: ['provenance-graph'],
     cadenceHours: 168,
   },
+  { id: 'opengroup-togaf', authority: 'The Open Group', domain: 'enterprise-architecture', url: 'https://www.opengroup.org/togaf', patternIds: ['enterprise-architecture-traceability'], cadenceHours: 336 },
+  { id: 'ietf-oauth-security', authority: 'IETF', domain: 'cybersecurity', url: 'https://datatracker.ietf.org/doc/html/rfc9700', patternIds: ['oauth-security-best-practice'], cadenceHours: 336 },
+  { id: 'ietf-http-problem-details', authority: 'IETF', domain: 'integration', url: 'https://datatracker.ietf.org/doc/html/rfc9457', patternIds: ['standard-api-error-contracts'], cadenceHours: 336 },
+  { id: 'slsa-v1-2', authority: 'SLSA', domain: 'software', url: 'https://slsa.dev/spec/v1.2/', patternIds: ['build-provenance'], cadenceHours: 336 },
+  { id: 'openssf-scorecard', authority: 'OpenSSF', domain: 'software', url: 'https://securityscorecards.dev/', patternIds: ['open-source-supply-chain-risk'], cadenceHours: 336 },
+  { id: 'google-sre-workbook', authority: 'Google SRE', domain: 'reliability', url: 'https://sre.google/workbook/table-of-contents/', patternIds: ['slo-error-budget-release-gates'], cadenceHours: 336 }
 ];
 
 const P = (
@@ -482,6 +488,12 @@ const PATTERN_DEFINITIONS: PatternDefinition[] = [
   P('genai-agent-telemetry', 'GenAI agent telemetry semantics', 'observability', 'otel-genai-agents', 'Use common spans and attributes for agent creation, invocation, planning and tool execution.', 'Versioned GEAS agent telemetry contract', ['OBS-01', 'EVID-01'], ['agent', 'invoke', 'tool', 'span']),
   P('zero-trust-resource-access', 'Resource-centric zero trust access', 'networking', 'nist-zero-trust', 'Authenticate and authorize subjects and devices before resource access without implicit trust from network location.', 'Per-resource GEAS capability and authorization gates', ['SEC-01', 'AUTH-01'], ['zero trust', 'resource', 'authorization', 'authentication']),
   P('federated-data-access', 'Federated data access', 'data', 'google-architecture', 'Use fit-for-purpose governed data access rather than assuming all workloads require centralized movement.', 'Data governance + provider-neutral connectors', ['DATA-01'], ['data', 'access', 'architecture']),
+  P('enterprise-architecture-traceability', 'Enterprise architecture traceability', 'enterprise-architecture', 'opengroup-togaf', 'Link business, information, application and technology architecture decisions to governed outcomes and traceable change.', 'GEAS architecture baseline and five-state reconciliation', ['TRACE-01', 'GOV-01'], ['architecture', 'capability', 'governance', 'traceability']),
+  P('oauth-security-best-practice', 'OAuth security best current practice', 'cybersecurity', 'ietf-oauth-security', 'Apply current OAuth security guidance including constrained authorization flows, secure redirect handling and token misuse defenses.', 'GEAS identity, delegation, audience and token lifecycle controls', ['AUTH-01', 'SEC-01'], ['OAuth', 'authorization', 'token', 'security']),
+  P('standard-api-error-contracts', 'Standard API error contracts', 'integration', 'ietf-http-problem-details', 'Use a consistent machine-readable HTTP API error representation without exposing sensitive implementation details.', 'Versioned API adapters and sanitized operational diagnostics', ['FED-01', 'OBS-01'], ['problem details', 'HTTP API', 'status', 'error']),
+  P('build-provenance', 'Verifiable build provenance', 'software', 'slsa-v1-2', 'Generate and verify provenance that identifies how software artifacts were built and which trusted process produced them.', 'Release evidence graph and artifact provenance gates', ['SUPPLY-01', 'EVID-01'], ['provenance', 'build', 'artifact', 'builder']),
+  P('open-source-supply-chain-risk', 'Open-source supply-chain risk signals', 'software', 'openssf-scorecard', 'Use transparent, repeatable security health checks as one signal in dependency and repository risk assessment.', 'Dependency review and repository security posture evidence', ['SUPPLY-01', 'SEC-01'], ['scorecard', 'security', 'dependency', 'branch protection']),
+  P('slo-error-budget-release-gates', 'SLO and error-budget release gates', 'reliability', 'google-sre-workbook', 'Use service-level objectives and error-budget policy to balance reliability with release velocity.', 'Release gates tied to verified service health and reliability evidence', ['REL-01', 'GOV-01'], ['SLO', 'error budget', 'release', 'reliability']),
 ];
 
 const CONTROLS: ArchitectureControl[] = [
@@ -594,29 +606,109 @@ function extractEvidence(body: string, keywords: string[]) {
   return text.slice(start, end).trim();
 }
 
+const SOURCE_MAX_BYTES = 2 * 1024 * 1024;
+const SOURCE_REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+
+async function fetchCuratedSource(
+  sourceUrl: string,
+  signal: AbortSignal,
+): Promise<{ response: Response; finalUrl: URL; body: string }> {
+  const originalUrl = new URL(sourceUrl);
+  if (originalUrl.protocol !== 'https:' || originalUrl.username || originalUrl.password) {
+    throw new Error('curated source URL must use HTTPS without embedded credentials');
+  }
+
+  let requestUrl = originalUrl;
+  let response: Response | undefined;
+  for (let redirects = 0; redirects <= 10; redirects += 1) {
+    response = await fetch(requestUrl, {
+      redirect: 'manual',
+      headers: {
+        'User-Agent': 'GLORIFIER-GEAS-Architecture-Scientist/2.0',
+        Accept: 'text/html,application/xhtml+xml,text/plain',
+      },
+      signal,
+    });
+    if (!SOURCE_REDIRECT_STATUSES.has(response.status)) break;
+
+    const location = response.headers.get('location');
+    await response.body?.cancel();
+    if (!location) throw new Error('source redirect is missing a Location header');
+    if (redirects === 10) throw new Error('source redirect limit exceeded');
+
+    const nextUrl = new URL(location, requestUrl);
+    const unsafeTarget =
+      nextUrl.protocol !== 'https:' ||
+      nextUrl.hostname !== originalUrl.hostname ||
+      Boolean(nextUrl.username || nextUrl.password) ||
+      Boolean(nextUrl.port && nextUrl.port !== '443');
+    if (unsafeTarget) {
+      throw new Error('source redirect rejected: target must remain HTTPS on the curated hostname');
+    }
+    requestUrl = nextUrl;
+  }
+
+  if (!response || SOURCE_REDIRECT_STATUSES.has(response.status)) {
+    await response?.body?.cancel();
+    throw new Error('source redirect limit exceeded or no response returned');
+  }
+
+  const finalUrl = new URL(response.url || requestUrl.toString());
+  if (finalUrl.protocol !== 'https:' || finalUrl.hostname !== originalUrl.hostname) {
+    await response.body?.cancel();
+    throw new Error('source redirect rejected: final host/protocol differs from curated source');
+  }
+
+  const declaredLength = Number(response.headers.get('content-length') ?? 0);
+  if (declaredLength > SOURCE_MAX_BYTES) {
+    await response.body?.cancel();
+    throw new Error('source response exceeds 2 MiB limit');
+  }
+
+  const reader = response.body?.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  if (reader) {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > SOURCE_MAX_BYTES) {
+        await reader.cancel();
+        throw new Error('source response exceeds 2 MiB limit');
+      }
+      chunks.push(value);
+    }
+  }
+
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { response, finalUrl, body: new TextDecoder().decode(bytes) };
+}
+
 async function fetchSource(source: ArchitectureSource): Promise<SourceObservation> {
   const observedAt = new Date().toISOString();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12000);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12000);
-    const response = await fetch(source.url, {
-      redirect: 'follow',
-      headers: { 'User-Agent': 'GLORIFIER-GEAS-Architecture-Scientist/2.0', Accept: 'text/html,application/xhtml+xml,text/plain' },
-      signal: controller.signal,
-    });
-    clearTimeout(timer);
-    const body = await response.text();
-    const normalizedText = stripHtml(body).replace(/\s+/g, ' ').trim();
-    const hash = createHash('sha256').update(normalizedText).digest('hex');
-    const keywords = PATTERN_DEFINITIONS.filter((pattern) => pattern.sourceId === source.id).flatMap((pattern) => pattern.keywords);
+    const { response, finalUrl, body } = await fetchCuratedSource(source.url, controller.signal);
+    const normalizedText = stripHtml(body);
+    const contentHash = createHash('sha256').update(normalizedText).digest('hex');
+    const keywords = PATTERN_DEFINITIONS
+      .filter((pattern) => pattern.sourceId === source.id)
+      .flatMap((pattern) => pattern.keywords);
     const excerpt = response.ok ? extractEvidence(body, keywords) : null;
     return {
       sourceId: source.id,
       ok: response.ok,
       status: response.status,
-      contentHash: hash,
+      contentHash,
       observedAt,
-      finalUrl: response.url || source.url,
+      finalUrl: finalUrl.toString(),
       etag: response.headers.get('etag'),
       lastModified: response.headers.get('last-modified'),
       evidenceExcerpt: excerpt,
@@ -634,10 +726,12 @@ async function fetchSource(source: ArchitectureSource): Promise<SourceObservatio
       evidenceStatus: 'unavailable',
       error: error instanceof Error ? error.message : 'source fetch failed',
     };
+  } finally {
+    clearTimeout(timer);
   }
 }
 
-function observedPatterns(results: SourceObservation[], reviewedAt: string): ArchitecturePattern[] {
+function observedPatterns(results: SourceObservation[], _scanCompletedAt: string): ArchitecturePattern[] {
   const map = new Map(results.map((result) => [result.sourceId, result]));
   return PATTERN_DEFINITIONS.flatMap((pattern) => {
     const source = map.get(pattern.sourceId);
@@ -655,7 +749,7 @@ function observedPatterns(results: SourceObservation[], reviewedAt: string): Arc
       pattern: pattern.pattern,
       GLORIFIERMapping: pattern.GLORIFIERMapping,
       controlIds: pattern.controlIds,
-      lastReviewed: reviewedAt,
+      lastReviewed: source.observedAt,
     }];
   });
 }
@@ -833,10 +927,13 @@ export async function initializeGeasArchitectureScientist() {
       observed_at TIMESTAMPTZ NOT NULL,
       content_hash TEXT NOT NULL,
       excerpt TEXT NOT NULL,
-      evidence_class TEXT NOT NULL DEFAULT 'observed-fact',
+      evidence_class TEXT NOT NULL DEFAULT 'analysis',
       source_status INTEGER NOT NULL,
       pattern_ids JSONB NOT NULL DEFAULT '[]'::jsonb
     );
+
+    ALTER TABLE geas_architecture_evidence ALTER COLUMN evidence_class SET DEFAULT 'analysis';
+    UPDATE geas_architecture_evidence SET evidence_class = 'analysis' WHERE evidence_class = 'observed-fact';
 
     CREATE TABLE IF NOT EXISTS geas_agent_identity_contracts (
       subject TEXT PRIMARY KEY,
@@ -932,6 +1029,7 @@ export async function runGeasArchitectureScan(): Promise<ArchitectureScanResult>
   const leaseAcquired = persist ? await acquireArchitectureScanLease(ownerId) : true;
   if (!leaseAcquired) throw new Error('GEAS architecture scan lease is held by another instance');
 
+  try {
   const scanId = `geas-scan-${randomUUID()}`;
   const startedAt = new Date().toISOString();
   const previous = new Map<string, { observed_at: string; ok: boolean; status: number | null; content_hash: string | null; evidence_excerpt: string | null; evidence_status: EvidenceStatus; error: string | null; final_url?: string | null; etag?: string | null; last_modified?: string | null }>();
@@ -1004,8 +1102,10 @@ export async function runGeasArchitectureScan(): Promise<ArchitectureScanResult>
     console.warn('[GEAS] architecture scan persistence deferred:', error instanceof Error ? error.message : error);
   }
 
-  if (persist) await releaseArchitectureScanLease(ownerId);
   return result;
+  } finally {
+    if (persist) await releaseArchitectureScanLease(ownerId);
+  }
 }
 
 export async function persistEvidenceGovernance(evidenceId: string, governance: EvidenceGovernance) {
