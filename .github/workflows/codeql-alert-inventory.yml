@@ -129,7 +129,7 @@ jobs:
             # If only one obsolete analysis remains, GitHub requires explicit
             # confirmation because deleting it removes this retired analysis set.
             if [[ "$legacy_analysis_count" -eq 1 ]]; then
-              delete_target+="?confirm_delete"
+              delete_target+="?confirm_delete=true"
             fi
             iterations=0
 
