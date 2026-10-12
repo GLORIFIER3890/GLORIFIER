@@ -11,19 +11,19 @@ on:
 
 permissions:
   contents: read
-  security-events: write
   actions: read
+  security-events: read
 
 jobs:
   inventory:
-    name: Inventory CodeQL alerts and clean obsolete default-branch results
+    name: Report current CodeQL alert and analysis inventory
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
-      security-events: write
       actions: read
+      security-events: read
     steps:
       - name: Checkout default branch
         uses: actions/checkout@v7
@@ -31,192 +31,93 @@ jobs:
           ref: main
           persist-credentials: false
 
-      - name: Inventory and guarded cleanup of obsolete CodeQL category
-        id: inventory
-        continue-on-error: true
+      - name: Inventory CodeQL alerts and analysis categories
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-
           report="codeql-open-alerts.jsonl"
           analyses="codeql-analyses.jsonl"
-          legacy_category=".github/workflows/codeql.yml:analyze"
-          active_category="/language:javascript-typescript"
-          main_ref="refs/heads/main"
           main_sha="$(git rev-parse HEAD)"
-          cleanup_status="not needed"
-          deleted_count=0
 
-          fetch_alerts() {
-            gh api --paginate \
-              "repos/${GITHUB_REPOSITORY}/code-scanning/alerts?tool_name=CodeQL&state=open&per_page=100" \
-              --jq '.[] | {
-                number: .number,
-                severity: .rule.severity,
-                rule: .rule.id,
-                description: .rule.description,
-                html_url: .html_url,
-                path: .most_recent_instance.location.path,
-                start_line: .most_recent_instance.location.start_line,
-                message: .most_recent_instance.message.text,
-                analysis_key: .most_recent_instance.analysis_key,
-                category: .most_recent_instance.category,
-                ref: .most_recent_instance.ref,
-                commit_sha: .most_recent_instance.commit_sha,
-                environment: .most_recent_instance.environment
-              }' > "$report"
-          }
+          gh api --paginate \
+            "repos/${GITHUB_REPOSITORY}/code-scanning/alerts?tool_name=CodeQL&state=open&per_page=100" \
+            --jq '.[] | {
+              number: .number,
+              severity: .rule.severity,
+              rule: .rule.id,
+              description: .rule.description,
+              html_url: .html_url,
+              path: .most_recent_instance.location.path,
+              start_line: .most_recent_instance.location.start_line,
+              message: .most_recent_instance.message.text,
+              analysis_key: .most_recent_instance.analysis_key,
+              category: .most_recent_instance.category,
+              ref: .most_recent_instance.ref,
+              commit_sha: .most_recent_instance.commit_sha,
+              environment: .most_recent_instance.environment
+            }' > "$report"
 
-          fetch_analyses() {
-            gh api --paginate \
-              "repos/${GITHUB_REPOSITORY}/code-scanning/analyses?tool_name=CodeQL&per_page=100" \
-              --jq '.[] | {
-                analysis_id: .id,
-                analysis_key: .analysis_key,
-                category: .category,
-                ref: .ref,
-                commit_sha: .commit_sha,
-                created_at: .created_at,
-                results_count: .results_count,
-                rules_count: .rules_count,
-                deletable: .deletable,
-                warning: .warning,
-                environment: .environment,
-                tool_name: .tool.name
-              }' > "$analyses"
-          }
+          gh api --paginate \
+            "repos/${GITHUB_REPOSITORY}/code-scanning/analyses?tool_name=CodeQL&per_page=100" \
+            --jq '.[] | {
+              analysis_id: .id,
+              analysis_key: .analysis_key,
+              category: .category,
+              ref: .ref,
+              commit_sha: .commit_sha,
+              created_at: .created_at,
+              results_count: .results_count,
+              rules_count: .rules_count,
+              deletable: .deletable,
+              warning: .warning,
+              environment: .environment,
+              tool_name: .tool.name
+            }' > "$analyses"
 
-          count_alerts() { awk 'END { print NR+0 }' "$report"; }
-
-          fetch_alerts
-          fetch_analyses
-          count="$(count_alerts)"
-
-          # Only remove legacy analyses if the active category has a successful
-          # analysis for the exact checked-out main commit, the active category has
-          # no open main alerts, and every open main alert belongs to the retired
-          # category. Never touch PR refs or any currently configured category.
-          active_analysis="$(jq -s --arg cat "$active_category" --arg ref "$main_ref" --arg sha "$main_sha" '
-            [.[] | select(.ref == $ref and .category == $cat and .commit_sha == $sha)]
-            | sort_by(.created_at) | last // {}
-          ' "$analyses")"
-          active_analysis_id="$(jq -r '.analysis_id // empty' <<< "$active_analysis")"
-          active_open="$(jq -s --arg cat "$active_category" --arg ref "$main_ref" '[.[] | select(.ref == $ref and .category == $cat)] | length' "$report")"
-          legacy_open="$(jq -s --arg cat "$legacy_category" --arg ref "$main_ref" '[.[] | select(.ref == $ref and .category == $cat)] | length' "$report")"
-          other_open="$(jq -s --arg legacy "$legacy_category" --arg active "$active_category" --arg ref "$main_ref" '[.[] | select(.ref == $ref and .category != $legacy and .category != $active)] | length' "$report")"
-          legacy_analysis_count="$(jq -s --arg cat "$legacy_category" --arg ref "$main_ref" '[.[] | select(.ref == $ref and .category == $cat)] | length' "$analyses")"
-          legacy_latest="$(jq -s --arg cat "$legacy_category" --arg ref "$main_ref" '
-            [.[] | select(.ref == $ref and .category == $cat and .deletable == true)]
-            | sort_by(.created_at) | last // {}
-          ' "$analyses")"
-          legacy_latest_id="$(jq -r '.analysis_id // empty' <<< "$legacy_latest")"
-          codeql_workflow_has_active_category=false
-          if grep -Fq 'category: "/language:javascript-typescript"' .github/workflows/codeql.yml; then
-            codeql_workflow_has_active_category=true
-          fi
-
-          if [[ -n "$active_analysis_id" &&
-                "$active_open" -eq 0 &&
-                "$legacy_open" -eq "$count" &&
-                "$other_open" -eq 0 &&
-                "$codeql_workflow_has_active_category" == "true" ]]; then
-            deleted_count=0
-            # Preserve the final legacy analysis so GitHub cannot erase the
-            # only historical evidence associated with retained alert records.
-            # Delete obsolete history only when at least two records exist.
-            if [[ "$legacy_analysis_count" -gt 1 && -n "$legacy_latest_id" ]]; then
-              delete_target="repos/${GITHUB_REPOSITORY}/code-scanning/analyses/${legacy_latest_id}"
-              iterations=0
-              while [[ -n "$delete_target" ]]; do
-                response="$(gh api --method DELETE "$delete_target")"
-                deleted_count=$((deleted_count + 1))
-                iterations=$((iterations + 1))
-                if (( iterations > 120 )); then
-                  echo "Refusing to delete more than 120 obsolete main-category analyses in one run." >&2
-                  exit 1
-                fi
-                next_url="$(jq -r '.next_analysis_url // empty' <<< "$response")"
-                confirm_url="$(jq -r '.confirm_delete_url // empty' <<< "$response")"
-                if [[ -n "$confirm_url" ]]; then
-                  delete_target="${confirm_url#https://api.github.com/}"
-                elif [[ -n "$next_url" ]]; then
-                  delete_target="${next_url#https://api.github.com/}"
-                else
-                  delete_target=""
-                fi
-              done
-            elif [[ "$legacy_analysis_count" -eq 1 ]]; then
-              cleanup_status="skipped: preserving the final obsolete-category analysis as historical evidence"
-            fi
-
-            # Do not bulk-dismiss security alerts automatically. Removing obsolete
-            # analysis history can leave alert records open; keep them visible for
-            # review rather than misclassifying a vulnerability as mitigated.
-            dismissed_count=0
-            cleanup_status="obsolete analysis history removed; $legacy_open historical alert records retained open for review; active category and PR refs preserved"
-            # Re-query after cleanup so the published inventory reflects live state.
-            fetch_alerts
-            fetch_analyses
-            count="$(count_alerts)"
-          else
-            cleanup_status="skipped: current-scan/category guard did not pass"
-          fi
-
+          alert_count="$(awk 'END { print NR+0 }' "$report")"
           analysis_count="$(awk 'END { print NR+0 }' "$analyses")"
-          active_open="$(jq -s --arg cat "$active_category" --arg ref "$main_ref" '[.[] | select(.ref == $ref and .category == $cat)] | length' "$report")"
-          legacy_open="$(jq -s --arg cat "$legacy_category" --arg ref "$main_ref" '[.[] | select(.ref == $ref and .category == $cat)] | length' "$report")"
+
           {
-            echo "## Open CodeQL alert inventory"
+            echo "## CodeQL alert inventory"
             echo ""
             echo "- Repository: ${GITHUB_REPOSITORY}"
-            echo "- Main commit scanned: ${main_sha}"
-            echo "- Current active category: ${active_category}"
-            echo "- Obsolete-category cleanup: ${cleanup_status}"
-            echo "- Open CodeQL alerts on main: **$count**"
-            echo "- Open alerts in active category: **$active_open**"
-            echo "- Open alerts in obsolete category: **$legacy_open**"
-            echo "- CodeQL analysis records after cleanup: **$analysis_count**"
+            echo "- Main commit: ${main_sha}"
+            echo "- Open CodeQL alerts: **${alert_count}**"
+            echo "- CodeQL analysis records: **${analysis_count}**"
             echo ""
-            echo "### Main-branch analysis categories"
+            echo "### Open alerts"
             echo ""
-            echo "| Category | Analyses | Most recent | Deletable records |"
-            echo "|---|---:|---|---:|"
-            jq -s -r --arg ref "$main_ref" '
-              map(select(.ref == $ref))
+            if [[ "$alert_count" -eq 0 ]]; then
+              echo "No open CodeQL alerts were returned by GitHub."
+            else
+              echo "| Alert | Severity | Rule | Location | Category | Ref |"
+              echo "|---:|---|---|---|---|---|"
+              jq -r '"| \(.number) | \(.severity // "unknown") | `\(.rule // "unknown")` | `\(.path // "?"):\(.start_line // 0)` | `\(.category // "?")` | `\(.ref // "?")` |"' "$report"
+            fi
+            echo ""
+            echo "### Analysis categories on main"
+            echo ""
+            echo "| Category | Analyses | Latest analysis |"
+            echo "|---|---:|---|"
+            jq -s -r '
+              map(select(.ref == "refs/heads/main"))
               | group_by(.category)
               | .[]
-              | "| `\(.[0].category // "unknown")` | \(length) | \((map(.created_at) | max) // "?") | \(map(select(.deletable == true)) | length) |"
+              | "| `\(.[0].category // "unknown")` | \(length) | \((map(.created_at) | max) // "?") |"
             ' "$analyses"
-            echo ""
-            if [[ "$count" -eq 0 ]]; then
-              echo "No open CodeQL alerts were returned by GitHub for the default branch."
-            else
-              echo "| Alert | Severity | Rule | Location | Category | GitHub |"
-              echo "|---:|---|---|---|---|---|"
-              jq -r '"| \(.number) | \(.severity // "unknown") | `\(.rule // "unknown")` | `\(.path // "?"):\(.start_line // 0)` | `\(.category // "?")` | [Open alert](\(.html_url)) |"' "$report"
-            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-          echo "Open CodeQL alerts on main: $count"
-          echo "Obsolete-category cleanup: $cleanup_status"
+          echo "Open CodeQL alerts: $alert_count"
           cat "$report"
 
-      - name: Upload CodeQL alert inventory and analyses
-        if: always()
+      - name: Upload CodeQL inventory
         uses: actions/upload-artifact@v4
         with:
           name: codeql-open-alert-inventory
           path: |
             codeql-open-alerts.jsonl
             codeql-analyses.jsonl
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
-
-      - name: Fail inventory job if cleanup failed
-        if: steps.inventory.outcome == 'failure'
-        shell: bash
-        run: |
-          echo "CodeQL cleanup failed; see the inventory step logs and uploaded artifact."
-          exit 1
