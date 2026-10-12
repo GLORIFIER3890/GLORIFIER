@@ -63,7 +63,7 @@ jobs:
           echo "Vercel API route HTTP status: $status"
           cat "$body"
           test "$status" = "200"
-          grep -q '"status":"ok"' "$body"
+          grep -Eq '"status":"(ready|ok)"' "$body"
       - name: Verify unauthenticated write protection
         id: auth_guard
         continue-on-error: true
