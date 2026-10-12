@@ -45,7 +45,7 @@ jobs:
           report="codeql-open-alerts.jsonl"
           gh api --paginate \
             "repos/${GITHUB_REPOSITORY}/code-scanning/alerts?tool_name=CodeQL&state=open&per_page=100" \
-            --jq '{
+            --jq '.[] | {
               number: .number,
               severity: .rule.severity,
               rule: .rule.id,
