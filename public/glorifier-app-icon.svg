@@ -1,19 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">GLORIFIER SERVICES</title>
-  <desc id="desc">Circular GLORIFIER SERVICES app icon with preserved gold laurel wreaths and a centered three-color orbital emblem.</desc>
+  <desc id="desc">Circular GLORIFIER SERVICES app icon with gold laurel wreaths, gently curved responsive lettering, and a centered three-color orbital emblem.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#2563eb"/>
       <stop offset="1" stop-color="#06133f"/>
     </linearGradient>
     <clipPath id="circle-clip"><circle cx="256" cy="256" r="250"/></clipPath>
+    <path id="title-arc" d="M 143 119 Q 256 82 369 119"/>
+    <path id="services-arc" d="M 177 420 Q 256 397 335 420"/>
   </defs>
   <g clip-path="url(#circle-clip)">
     <circle cx="256" cy="256" r="250" fill="url(#bg)"/>
     <circle cx="256" cy="256" r="225" fill="#06133f" stroke="#fff" stroke-width="10"/>
     <circle cx="256" cy="256" r="207" fill="none" stroke="#22d3ee" stroke-width="3" opacity=".45"/>
-    <text x="256" y="112" text-anchor="middle" font-family="Georgia,serif" font-size="39" font-weight="700" letter-spacing="1.5" fill="#fff">GLORIFIER</text>
-    <!-- Gold laurel wreaths: kept to the sides so they do not collide with the title or emblem. -->
+    <text font-family="Georgia,serif" font-size="35" font-weight="700" letter-spacing="1.2" fill="#fff" text-anchor="middle">
+      <textPath href="#title-arc" startOffset="50%" textLength="246" lengthAdjust="spacingAndGlyphs">GLORIFIER</textPath>
+    </text>
+    <!-- Gold laurel wreaths preserved on both sides of the emblem. -->
     <g fill="none" stroke="#d9b45b" stroke-width="3.5" stroke-linecap="round">
       <path d="M157 365 C126 324 119 274 126 231 C131 201 143 178 159 159"/>
       <path d="M355 365 C386 324 393 274 386 231 C381 201 369 178 353 159"/>
@@ -43,6 +47,8 @@
     <circle cx="174" cy="230" r="8" fill="#f1ff00"/>
     <circle cx="338" cy="230" r="8" fill="#f1ff00"/>
     <circle cx="256" cy="349" r="8" fill="#f1ff00"/>
-    <text x="256" y="414" text-anchor="middle" font-family="Georgia,serif" font-size="32" font-weight="700" letter-spacing="1.5" fill="#fff">SERVICES</text>
+    <text font-family="Georgia,serif" font-size="29" font-weight="700" letter-spacing="1.1" fill="#fff" text-anchor="middle">
+      <textPath href="#services-arc" startOffset="50%" textLength="183" lengthAdjust="spacingAndGlyphs">SERVICES</textPath>
+    </text>
   </g>
 </svg>
