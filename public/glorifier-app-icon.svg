@@ -8,7 +8,7 @@
     </linearGradient>
     <clipPath id="circle-clip"><circle cx="256" cy="256" r="250"/></clipPath>
     <path id="title-arc" d="M 143 119 Q 256 82 369 119"/>
-    <path id="services-arc" d="M 177 435 Q 256 407 335 435"/>
+    <path id="services-arc" d="M 177 410 Q 256 465 335 410"/>
   </defs>
   <g clip-path="url(#circle-clip)">
     <circle cx="256" cy="256" r="250" fill="url(#bg)"/>
