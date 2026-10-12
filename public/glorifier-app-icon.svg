@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">GLORIFIER SERVICES</title>
-  <desc id="desc">Circular GLORIFIER SERVICES app icon with a centered three-color orbital emblem.</desc>
+  <desc id="desc">Circular GLORIFIER SERVICES app icon with preserved gold laurel wreaths and a centered three-color orbital emblem.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#2563eb"/>
@@ -13,6 +13,27 @@
     <circle cx="256" cy="256" r="225" fill="#06133f" stroke="#fff" stroke-width="10"/>
     <circle cx="256" cy="256" r="207" fill="none" stroke="#22d3ee" stroke-width="3" opacity=".45"/>
     <text x="256" y="112" text-anchor="middle" font-family="Georgia,serif" font-size="39" font-weight="700" letter-spacing="1.5" fill="#fff">GLORIFIER</text>
+    <!-- Gold laurel wreaths: kept to the sides so they do not collide with the title or emblem. -->
+    <g fill="none" stroke="#d9b45b" stroke-width="3.5" stroke-linecap="round">
+      <path d="M157 365 C126 324 119 274 126 231 C131 201 143 178 159 159"/>
+      <path d="M355 365 C386 324 393 274 386 231 C381 201 369 178 353 159"/>
+    </g>
+    <g fill="#e7c66f" stroke="#9c7731" stroke-width="1">
+      <ellipse cx="133" cy="326" rx="7" ry="17" transform="rotate(-38 133 326)"/>
+      <ellipse cx="124" cy="299" rx="7" ry="17" transform="rotate(-20 124 299)"/>
+      <ellipse cx="122" cy="270" rx="7" ry="17" transform="rotate(-4 122 270)"/>
+      <ellipse cx="127" cy="242" rx="7" ry="17" transform="rotate(12 127 242)"/>
+      <ellipse cx="136" cy="216" rx="7" ry="17" transform="rotate(26 136 216)"/>
+      <ellipse cx="148" cy="192" rx="7" ry="17" transform="rotate(38 148 192)"/>
+      <ellipse cx="161" cy="174" rx="7" ry="16" transform="rotate(48 161 174)"/>
+      <ellipse cx="379" cy="326" rx="7" ry="17" transform="rotate(38 379 326)"/>
+      <ellipse cx="388" cy="299" rx="7" ry="17" transform="rotate(20 388 299)"/>
+      <ellipse cx="390" cy="270" rx="7" ry="17" transform="rotate(4 390 270)"/>
+      <ellipse cx="385" cy="242" rx="7" ry="17" transform="rotate(-12 385 242)"/>
+      <ellipse cx="376" cy="216" rx="7" ry="17" transform="rotate(-26 376 216)"/>
+      <ellipse cx="364" cy="192" rx="7" ry="17" transform="rotate(-38 364 192)"/>
+      <ellipse cx="351" cy="174" rx="7" ry="16" transform="rotate(-48 351 174)"/>
+    </g>
     <g fill="none" stroke-width="8" stroke-linecap="round">
       <ellipse cx="256" cy="258" rx="39" ry="91" stroke="#18d8ee"/>
       <ellipse cx="256" cy="258" rx="94" ry="34" stroke="#18e58b" transform="rotate(-28 256 258)"/>
