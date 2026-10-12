@@ -663,7 +663,7 @@ async function fetchSource(source: ArchitectureSource): Promise<SourceObservatio
   }
 }
 
-function observedPatterns(results: SourceObservation[], reviewedAt: string): ArchitecturePattern[] {
+function observedPatterns(results: SourceObservation[], _scanCompletedAt: string): ArchitecturePattern[] {
   const map = new Map(results.map((result) => [result.sourceId, result]));
   return PATTERN_DEFINITIONS.flatMap((pattern) => {
     const source = map.get(pattern.sourceId);
@@ -681,7 +681,7 @@ function observedPatterns(results: SourceObservation[], reviewedAt: string): Arc
       pattern: pattern.pattern,
       GLORIFIERMapping: pattern.GLORIFIERMapping,
       controlIds: pattern.controlIds,
-      lastReviewed: reviewedAt,
+      lastReviewed: source.observedAt,
     }];
   });
 }
@@ -960,6 +960,7 @@ export async function runGeasArchitectureScan(): Promise<ArchitectureScanResult>
   const leaseAcquired = persist ? await acquireArchitectureScanLease(ownerId) : true;
   if (!leaseAcquired) throw new Error('GEAS architecture scan lease is held by another instance');
 
+  try {
   const scanId = `geas-scan-${randomUUID()}`;
   const startedAt = new Date().toISOString();
   const previous = new Map<string, { observed_at: string; ok: boolean; status: number | null; content_hash: string | null; evidence_excerpt: string | null; evidence_status: EvidenceStatus; error: string | null; final_url?: string | null; etag?: string | null; last_modified?: string | null }>();
@@ -1032,8 +1033,10 @@ export async function runGeasArchitectureScan(): Promise<ArchitectureScanResult>
     console.warn('[GEAS] architecture scan persistence deferred:', error instanceof Error ? error.message : error);
   }
 
-  if (persist) await releaseArchitectureScanLease(ownerId);
   return result;
+  } finally {
+    if (persist) await releaseArchitectureScanLease(ownerId);
+  }
 }
 
 export async function persistEvidenceGovernance(evidenceId: string, governance: EvidenceGovernance) {
