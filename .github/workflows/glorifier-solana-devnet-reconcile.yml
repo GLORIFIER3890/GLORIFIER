@@ -8,11 +8,9 @@ on:
     paths:
       - ".github/workflows/glorifier-solana-devnet-reconcile.yml"
       - ".github/workflows/glorifier-solana-devnet.yml"
-      - "solana/deploy-token2022-devnet.sh"
-      - "solana/reconcile-token2022-devnet.sh"
-      - "solana/recover-deployment-provenance.sh"
-      - "solana/publish-verified-devnet-identity.sh"
+      - "solana/**/*.sh"
       - "solana/token-config.json"
+      - "solana/token.json"
   workflow_dispatch:
     inputs:
       confirm:
