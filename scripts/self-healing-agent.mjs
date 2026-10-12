@@ -11,7 +11,7 @@ const run = (cmd, args = []) => {
   try {
     return { ok: true, output: execFileSync(cmd, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }) };
   } catch (error) {
-    return { ok: false, output: String(error.stdout || "") + "\\n" + String(error.stderr || error.message || error) };
+    return { ok: false, output: String(error.stdout || "") + "\n" + String(error.stderr || error.message || error) };
   }
 };
 
