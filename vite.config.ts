@@ -7,11 +7,11 @@ export default defineConfig(() => {
 
   return {
     // Railway serves GLORIFIER from the domain root.
-    // GitHub Pages project-site builds retain the repository subpath.
+    // GitHub Pages project-site builds use this repository's project subpath.
     base: process.env.CAPACITOR_BUILD === 'true'
       ? './'
       : githubPagesBuild
-        ? '/glorifier-artificial-intelligence/'
+        ? '/GLORIFIER/'
         : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
