@@ -149,7 +149,7 @@ export async function executeThroughProviderRegistry(
   };
   const ordered = [...connected].filter((provider) => {
     const discovered = discovery.get(provider.id);
-    return !request.capability || Boolean(discovered?.capabilities.includes(request.capability));
+    return discovered?.authorization === 'configured' && (!request.capability || Boolean(discovered.capabilities.includes(request.capability)));
   }).sort((a, b) => {
     const da = discovery.get(a.id);
     const db = discovery.get(b.id);
@@ -217,7 +217,7 @@ export async function executeThroughProviderRegistry(
       await refreshDiscovery();
       const refreshedEligible = getConnectedProviders().filter((provider) => {
         const discovered = discovery.get(provider.id);
-        return discovered?.availability === 'available' && discovered.authenticated && (!request.capability || discovered.capabilities.includes(request.capability)) && !isCoolingDown(provider.id) && !attemptedProviders.includes(provider.id);
+        return discovered?.availability === 'available' && discovered.authenticated && discovered.authorization === 'configured' && (!request.capability || discovered.capabilities.includes(request.capability)) && !isCoolingDown(provider.id) && !attemptedProviders.includes(provider.id);
       });
       for (const provider of refreshedEligible) {
         if (attempts >= policy.maxAttempts) break;
