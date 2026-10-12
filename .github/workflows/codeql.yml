@@ -39,11 +39,14 @@ jobs:
       - name: Inventory open CodeQL alerts on the default branch
         env:
           GH_TOKEN: ${{ github.token }}
+          ALERT_REF: ${{ github.event.pull_request.number && format('refs/pull/{0}/merge', github.event.pull_request.number) || 'refs/heads/main' }}
         shell: bash
         run: |
           set -euo pipefail
           report="codeql-open-alerts.jsonl"
+          alert_ref="$ALERT_REF"
           gh api --paginate \
+            --field "ref=${alert_ref}" \
             "repos/${GITHUB_REPOSITORY}/code-scanning/alerts?tool_name=CodeQL&state=open&per_page=100" \
             --jq '.[] | {
               number: .number,
@@ -60,8 +63,8 @@ jobs:
           {
             echo "## Open CodeQL alert inventory"
             echo ""
-            echo "- Repository: `$GITHUB_REPOSITORY`"
-            echo "- Reference: default branch (queried after the scan upload)"
+            echo "- Repository: ${GITHUB_REPOSITORY}"
+            echo "- Reference: ${alert_ref} (queried after the scan upload)"
             echo "- Open CodeQL alerts returned by GitHub: **$count**"
             echo ""
             if [ "$count" -eq 0 ]; then
