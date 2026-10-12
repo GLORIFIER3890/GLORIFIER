@@ -1,6 +1,6 @@
 {
   "name": "GLORIFIER SERVICES — Official Logo #001",
-  "description": "Official GLORIFIER SERVICES logo artwork. Intended to preserve the original circular logo, including EST 2022, without redesign. Previously recorded source-file SHA-256: 0a0d5b0e485dbd4a5ed7383a7bfd288c893b22d8834680b641475c33dd9c8513. The hash is a historical integrity record and has not been independently rechecked in this publication step.",
+  "description": "Owner-designated GLORIFIER SERVICES logo artwork, preserving the original circular logo, atom symbol, colors, lettering, and EST 2022 details without redesign. The user-provided PNG was independently hashed during this review: 512 × 512 PNG RGBA, 151445 bytes, SHA-256 0a0d5b0e485dbd4a5ed7383a7bfd288c893b22d8834680b641475c33dd9c8513; this matches the previously recorded NFT artwork hash. This confirms the uploaded file's integrity against that record, not public IPFS retrieval or metadata publication. NFT minting has not occurred. Copyright, licensing, and trademark clearance remain pending and are not asserted by this metadata.",
   "image": "ipfs://bafkreiakbvnq4sc5xvff5vzyhj572kemre5sfwedi2almqkhlqz53hefcm",
   "attributes": [
     {
@@ -9,11 +9,31 @@
     },
     {
       "trait_type": "Artwork",
-      "value": "Official Logo"
+      "value": "Uploaded PNG hash matches historical NFT artwork hash"
+    },
+    {
+      "trait_type": "Artwork SHA-256",
+      "value": "0a0d5b0e485dbd4a5ed7383a7bfd288c893b22d8834680b641475c33dd9c8513"
     },
     {
       "trait_type": "Edition",
       "value": "001"
+    },
+    {
+      "trait_type": "Mint status",
+      "value": "NOT MINTED"
+    },
+    {
+      "trait_type": "Public IPFS retrieval",
+      "value": "PENDING"
+    },
+    {
+      "trait_type": "Metadata publication",
+      "value": "PENDING"
+    },
+    {
+      "trait_type": "Legal review",
+      "value": "PENDING"
     }
   ]
 }
