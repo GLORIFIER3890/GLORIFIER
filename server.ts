@@ -1,4 +1,6 @@
 import express, { Request, Response } from 'express';
+import { isIP } from 'node:net';
+import { ipKeyGenerator, rateLimit } from 'express-rate-limit';
 import path from 'path';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
@@ -122,36 +124,54 @@ const geasRateLimit = (req: Request, res: Response, next: express.NextFunction) 
 
 
 
-app.disable('x-powered-by');
-app.use(express.json({ limit: '10mb' }));
-app.use((req: Request, res: Response, next) => {
-  const windowMs = 60_000;
-  const maxRequests = 60;
-  const now = Date.now();
-  const key = `${req.ip}:${req.method}:${req.path}`;
-  const store = (globalThis as typeof globalThis & { __glorifierRateLimits?: Map<string, { start: number; count: number }> }).__glorifierRateLimits
-    ?? ((globalThis as typeof globalThis & { __glorifierRateLimits?: Map<string, { start: number; count: number }> }).__glorifierRateLimits = new Map());
-  const current = store.get(key);
-  if (!current || now - current.start >= windowMs) {
-    store.set(key, { start: now, count: 1 });
-    return next();
-  }
-  current.count += 1;
-  if (current.count > maxRequests) {
-    const retryAfter = Math.max(1, Math.ceil((windowMs - (now - current.start)) / 1000));
-    res.setHeader('Retry-After', String(retryAfter));
-    return res.status(429).json(problemDetails({
-      title: 'Rate limit exceeded',
-      status: 429,
-      detail: 'Too many requests for this endpoint.',
-      code: 'rate-limit-exceeded',
-      instance: req.originalUrl,
-      retryable: true,
-    }));
-  }
-  next();
+const rateLimitKeyGenerator = (req: Request): string => {
+  // Railway public ingress overwrites X-Real-IP. Prefer the validated address without
+  // trusting an arbitrary X-Forwarded-For chain or enabling Express trust proxy globally.
+  const platformClientIp = req.get('x-real-ip')?.trim();
+  const clientIp = platformClientIp && isIP(platformClientIp)
+    ? platformClientIp
+    : req.ip || req.socket.remoteAddress || 'unknown';
+  return ipKeyGenerator(clientIp);
+};
+
+const rateLimitProblem = (detail: string) => (req: Request, res: Response) => {
+  res.setHeader('Retry-After', '60');
+  return res.status(429).json(problemDetails({
+    type: 'urn:glorifier:problem:rate-limit-exceeded',
+    title: 'Rate limit exceeded',
+    status: 429,
+    detail,
+    code: 'rate-limit-exceeded',
+    instance: req.originalUrl,
+    retryable: true,
+  }));
+};
+
+// Recognized rate-limiting middleware runs before body parsing and all route handlers.
+const appWideRateLimit = rateLimit({
+  windowMs: 60_000,
+  limit: 1_200,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  keyGenerator: rateLimitKeyGenerator,
+  skip: (req) => req.method === 'OPTIONS',
+  handler: rateLimitProblem('Too many requests from this client.'),
 });
 
+const apiRateLimit = rateLimit({
+  windowMs: 60_000,
+  limit: 300,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  keyGenerator: rateLimitKeyGenerator,
+  skip: (req) => req.method === 'OPTIONS',
+  handler: rateLimitProblem('Too many API requests from this client.'),
+});
+
+app.disable('x-powered-by');
+app.use(appWideRateLimit);
+app.use('/api', apiRateLimit);
+app.use(express.json({ limit: '10mb' }));
 
 app.use((req: Request, res: Response, next) => {
   const configured = String(process.env.GLORIFIER_ALLOWED_ORIGINS || '').split(',').map((origin) => origin.trim()).filter(Boolean);
