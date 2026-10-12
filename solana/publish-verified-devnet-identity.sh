@@ -216,17 +216,16 @@ cat > solana/verified-publication.json <<EOF
 }
 EOF
 
-BRANCH="automation/glorifier-solana-devnet-verified-${GITHUB_RUN_ID}"
+# Keep a single publication PR instead of opening one PR per reconciliation run.
+BRANCH="automation/glorifier-solana-devnet-verified"
 git config user.name "github-actions[bot]"
 git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 git fetch origin main
 
 EXISTING_PR="$(gh pr list --base main --head "${BRANCH}" --state open --json url --jq '.[0].url' | head -n1 || true)"
-if [[ -n "${EXISTING_PR}" ]]; then
-  echo "Verified identity publication PR already exists: ${EXISTING_PR}"
-  exit 0
-fi
 
+# Rebuild the bot-owned branch from current main and update an existing open PR
+# when present. The push below uses force-with-lease to prevent a stale overwrite.
 git checkout -b "${BRANCH}"
 # Reconciliation may legitimately finish without transaction JSON files when immutable
 # artifact provenance is sufficient; never let an unmatched glob break publication.
@@ -280,11 +279,15 @@ EOF
   exit 0
 fi
 
-PR_URL="$(gh pr create --base main --head "${BRANCH}" --title "chore(solana): publish verified GLR Devnet identity" --body "Automated governed publication after independent Solana Devnet reconciliation and deployment-provenance verification.
+if [[ -n "${EXISTING_PR}" ]]; then
+  echo "Updated existing verified identity publication PR: ${EXISTING_PR}"
+else
+  PR_URL="$(gh pr create --base main --head "${BRANCH}" --title "chore(solana): publish verified GLR Devnet identity" --body "Automated governed publication after independent Solana Devnet reconciliation and deployment-provenance verification.
 
 - GLR mint: ${MINT}
 - Verification run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
 - Deployment provenance was independently checked before this PR.
 - No token creation, minting, transfer, or authority mutation occurs in this publication step.
 - Human/protected-branch approval remains required for canonical identity publication.")"
-echo "Verified identity publication PR: ${PR_URL}"
+  echo "Verified identity publication PR: ${PR_URL}"
+fi
