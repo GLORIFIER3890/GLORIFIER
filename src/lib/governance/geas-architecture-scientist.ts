@@ -488,6 +488,12 @@ const PATTERN_DEFINITIONS: PatternDefinition[] = [
   P('genai-agent-telemetry', 'GenAI agent telemetry semantics', 'observability', 'otel-genai-agents', 'Use common spans and attributes for agent creation, invocation, planning and tool execution.', 'Versioned GEAS agent telemetry contract', ['OBS-01', 'EVID-01'], ['agent', 'invoke', 'tool', 'span']),
   P('zero-trust-resource-access', 'Resource-centric zero trust access', 'networking', 'nist-zero-trust', 'Authenticate and authorize subjects and devices before resource access without implicit trust from network location.', 'Per-resource GEAS capability and authorization gates', ['SEC-01', 'AUTH-01'], ['zero trust', 'resource', 'authorization', 'authentication']),
   P('federated-data-access', 'Federated data access', 'data', 'google-architecture', 'Use fit-for-purpose governed data access rather than assuming all workloads require centralized movement.', 'Data governance + provider-neutral connectors', ['DATA-01'], ['data', 'access', 'architecture']),
+  P('enterprise-architecture-traceability', 'Enterprise architecture traceability', 'enterprise-architecture', 'opengroup-togaf', 'Link business, information, application and technology architecture decisions to governed outcomes and traceable change.', 'GEAS architecture baseline and five-state reconciliation', ['TRACE-01', 'GOV-01'], ['architecture', 'capability', 'governance', 'traceability']),
+  P('oauth-security-best-practice', 'OAuth security best current practice', 'cybersecurity', 'ietf-oauth-security', 'Apply current OAuth security guidance including constrained authorization flows, secure redirect handling and token misuse defenses.', 'GEAS identity, delegation, audience and token lifecycle controls', ['AUTH-01', 'SEC-01'], ['OAuth', 'authorization', 'token', 'security']),
+  P('standard-api-error-contracts', 'Standard API error contracts', 'integration', 'ietf-http-problem-details', 'Use a consistent machine-readable HTTP API error representation without exposing sensitive implementation details.', 'Versioned API adapters and sanitized operational diagnostics', ['FED-01', 'OBS-01'], ['problem details', 'HTTP API', 'status', 'error']),
+  P('build-provenance', 'Verifiable build provenance', 'software', 'slsa-v1-2', 'Generate and verify provenance that identifies how software artifacts were built and which trusted process produced them.', 'Release evidence graph and artifact provenance gates', ['SUPPLY-01', 'EVID-01'], ['provenance', 'build', 'artifact', 'builder']),
+  P('open-source-supply-chain-risk', 'Open-source supply-chain risk signals', 'software', 'openssf-scorecard', 'Use transparent, repeatable security health checks as one signal in dependency and repository risk assessment.', 'Dependency review and repository security posture evidence', ['SUPPLY-01', 'SEC-01'], ['scorecard', 'security', 'dependency', 'branch protection']),
+  P('slo-error-budget-release-gates', 'SLO and error-budget release gates', 'reliability', 'google-sre-workbook', 'Use service-level objectives and error-budget policy to balance reliability with release velocity.', 'Release gates tied to verified service health and reliability evidence', ['REL-01', 'GOV-01'], ['SLO', 'error budget', 'release', 'reliability']),
 ];
 
 const CONTROLS: ArchitectureControl[] = [
@@ -641,7 +647,7 @@ async function fetchSource(source: ArchitectureSource): Promise<SourceObservatio
     let offset = 0;
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
     const body = new TextDecoder().decode(bytes);
-    const normalizedText = stripHtml(body).replace(/\\s+/g, ' ').trim();
+    const normalizedText = stripHtml(body);
     const contentHash = createHash('sha256').update(normalizedText).digest('hex');
     const keywords = PATTERN_DEFINITIONS.filter((pattern) => pattern.sourceId === source.id).flatMap((pattern) => pattern.keywords);
     const excerpt = response.ok ? extractEvidence(body, keywords) : null;
