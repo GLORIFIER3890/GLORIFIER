@@ -154,7 +154,7 @@ jobs:
             # history is deleted. Close only main-branch records from the retired
             # category after the exact current main commit has a clean active scan.
             dismissed_count=0
-            while IFS=$'\\t' read -r alert_number alert_rule alert_path; do
+            while IFS=$'\x09' read -r alert_number alert_rule alert_path; do
               [[ -n "$alert_number" ]] || continue
               if [[ "$alert_path" == tests/* ]]; then
                 dismissal_reason="used in tests"
