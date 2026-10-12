@@ -132,7 +132,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
       return /^0x[a-fA-F0-9]{40}$/.test(trimmed);
     }
     if (chain === 'SOL') {
-      return /^[1-9A-HJ-NP-za-km-z]{32,44}$/.test(trimmed);
+      return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(trimmed);
     }
     if (chain === 'BTC') {
       // SegWit (bc1q/bc1p), Legacy (1), or P2SH (3)
