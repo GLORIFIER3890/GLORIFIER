@@ -33,13 +33,11 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Local integrity check
         id: integrity
-        continue-on-error: true
         run: |
           npm run lint
           npm run build
       - name: Production health check
         id: health
-        continue-on-error: true
         env:
           GLORIFIER_HEALTH_URL: https://glorifier-artificial-intelligence-production.up.railway.app/api/health
         run: |
@@ -53,9 +51,8 @@ jobs:
           exit 1
       - name: Verify Vercel to Railway API routing
         id: vercel_api
-        continue-on-error: true
         env:
-          GLORIFIER_VERCEL_API_URL: https://glorifier.vercel.app/api/health
+          GLORIFIER_VERCEL_API_URL: https://glorifier-sepia.vercel.app/api/health/ready
         run: |
           set -euo pipefail
           body="$(mktemp)"
@@ -66,7 +63,6 @@ jobs:
           grep -q '"status":"ok"' "$body"
       - name: Verify unauthenticated write protection
         id: auth_guard
-        continue-on-error: true
         run: |
           set -euo pipefail
           body="$(mktemp)"
@@ -77,7 +73,6 @@ jobs:
           grep -q "Authentication required" "$body"
       - name: Verify Neon-backed runtime state
         id: runtime
-        continue-on-error: true
         run: |
           set -euo pipefail
           body="$(mktemp)"
@@ -104,4 +99,4 @@ jobs:
           if [ "${{ steps.vercel_api.outcome }}" != "success" ]; then echo "::warning::Vercel-to-Railway API routing verification failed."; fi
           if [ "${{ steps.auth_guard.outcome }}" != "success" ]; then echo "::warning::Authentication boundary verification failed."; fi
           if [ "${{ steps.runtime.outcome }}" != "success" ]; then echo "::warning::Neon-backed runtime verification failed."; fi
-          if [ "${{ steps.integrity.outcome }}" != "success" ]; then exit 1; fi
+          if [ "${{ steps.integrity.outcome }}" != "success" ] || [ "${{ steps.health.outcome }}" != "success" ] || [ "${{ steps.vercel_api.outcome }}" != "success" ] || [ "${{ steps.auth_guard.outcome }}" != "success" ] || [ "${{ steps.runtime.outcome }}" != "success" ]; then exit 1; fi
