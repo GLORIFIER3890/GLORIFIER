@@ -94,7 +94,20 @@ async function ensureSchema() {
 }
 
 function stripHtml(value: string) {
-  return value.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim();
+  const withoutTags = value.replace(/<[^>]+>/g, ' ');
+  // Decode each supported entity once. A combined callback replacement does not
+  // reprocess the ampersand produced by decoding &amp; (avoids double-unescaping).
+  return withoutTags
+    .replace(/&amp;|&#39;|&quot;/g, (entity) => {
+      switch (entity) {
+        case '&amp;': return '&';
+        case '&#39;': return "'";
+        case '&quot;': return '"';
+        default: return entity;
+      }
+    })
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function tagValue(block: string, tag: string) {
