@@ -596,16 +596,24 @@ function extractEvidence(body: string, keywords: string[]) {
 
 async function fetchSource(source: ArchitectureSource): Promise<SourceObservation> {
   const observedAt = new Date().toISOString();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12000);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12000);
+    const requestedUrl = new URL(source.url);
+    if (requestedUrl.protocol !== 'https:') throw new Error('architecture source must use HTTPS');
     const response = await fetch(source.url, {
       redirect: 'follow',
       headers: { 'User-Agent': 'GLORIFIER-GEAS-Architecture-Scientist/2.0', Accept: 'text/html,application/xhtml+xml,text/plain' },
       signal: controller.signal,
     });
-    clearTimeout(timer);
+    const finalUrl = new URL(response.url || source.url);
+    if (finalUrl.protocol !== 'https:' || (finalUrl.hostname !== requestedUrl.hostname && !finalUrl.hostname.endsWith('.' + requestedUrl.hostname))) {
+      throw new Error('source redirect left the approved HTTPS host boundary');
+    }
+    const declaredLength = Number(response.headers.get('content-length') ?? 0);
+    if (declaredLength > 2_000_000) throw new Error('source response exceeded 2 MB limit');
     const body = await response.text();
+    if (Buffer.byteLength(body, 'utf8') > 2_000_000) throw new Error('source response exceeded 2 MB limit');
     const normalizedText = stripHtml(body).replace(/\s+/g, ' ').trim();
     const hash = createHash('sha256').update(normalizedText).digest('hex');
     const keywords = PATTERN_DEFINITIONS.filter((pattern) => pattern.sourceId === source.id).flatMap((pattern) => pattern.keywords);
@@ -634,6 +642,8 @@ async function fetchSource(source: ArchitectureSource): Promise<SourceObservatio
       evidenceStatus: 'unavailable',
       error: error instanceof Error ? error.message : 'source fetch failed',
     };
+  } finally {
+    clearTimeout(timer);
   }
 }
 
