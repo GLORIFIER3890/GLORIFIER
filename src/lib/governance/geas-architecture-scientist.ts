@@ -833,10 +833,13 @@ export async function initializeGeasArchitectureScientist() {
       observed_at TIMESTAMPTZ NOT NULL,
       content_hash TEXT NOT NULL,
       excerpt TEXT NOT NULL,
-      evidence_class TEXT NOT NULL DEFAULT 'observed-fact',
+      evidence_class TEXT NOT NULL DEFAULT 'analysis',
       source_status INTEGER NOT NULL,
       pattern_ids JSONB NOT NULL DEFAULT '[]'::jsonb
     );
+
+    ALTER TABLE geas_architecture_evidence ALTER COLUMN evidence_class SET DEFAULT 'analysis';
+    UPDATE geas_architecture_evidence SET evidence_class = 'analysis' WHERE evidence_class = 'observed-fact' AND source_status <> 200;
 
     CREATE TABLE IF NOT EXISTS geas_agent_identity_contracts (
       subject TEXT PRIMARY KEY,
