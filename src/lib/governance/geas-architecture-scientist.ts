@@ -606,90 +606,124 @@ function extractEvidence(body: string, keywords: string[]) {
   return text.slice(start, end).trim();
 }
 
+const SOURCE_MAX_BYTES = 2 * 1024 * 1024;
+const SOURCE_REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+
+async function fetchCuratedSource(
+  sourceUrl: string,
+  signal: AbortSignal,
+): Promise<{ response: Response; finalUrl: URL; body: string }> {
+  const originalUrl = new URL(sourceUrl);
+  if (originalUrl.protocol !== 'https:' || originalUrl.username || originalUrl.password) {
+    throw new Error('curated source URL must use HTTPS without embedded credentials');
+  }
+
+  let requestUrl = originalUrl;
+  let response: Response | undefined;
+  for (let redirects = 0; redirects <= 10; redirects += 1) {
+    response = await fetch(requestUrl, {
+      redirect: 'manual',
+      headers: {
+        'User-Agent': 'GLORIFIER-GEAS-Architecture-Scientist/2.0',
+        Accept: 'text/html,application/xhtml+xml,text/plain',
+      },
+      signal,
+    });
+    if (!SOURCE_REDIRECT_STATUSES.has(response.status)) break;
+
+    const location = response.headers.get('location');
+    await response.body?.cancel();
+    if (!location) throw new Error('source redirect is missing a Location header');
+    if (redirects === 10) throw new Error('source redirect limit exceeded');
+
+    const nextUrl = new URL(location, requestUrl);
+    const unsafeTarget =
+      nextUrl.protocol !== 'https:' ||
+      nextUrl.hostname !== originalUrl.hostname ||
+      Boolean(nextUrl.username || nextUrl.password) ||
+      Boolean(nextUrl.port && nextUrl.port !== '443');
+    if (unsafeTarget) {
+      throw new Error('source redirect rejected: target must remain HTTPS on the curated hostname');
+    }
+    requestUrl = nextUrl;
+  }
+
+  if (!response || SOURCE_REDIRECT_STATUSES.has(response.status)) {
+    await response?.body?.cancel();
+    throw new Error('source redirect limit exceeded or no response returned');
+  }
+
+  const finalUrl = new URL(response.url || requestUrl.toString());
+  if (finalUrl.protocol !== 'https:' || finalUrl.hostname !== originalUrl.hostname) {
+    await response.body?.cancel();
+    throw new Error('source redirect rejected: final host/protocol differs from curated source');
+  }
+
+  const declaredLength = Number(response.headers.get('content-length') ?? 0);
+  if (declaredLength > SOURCE_MAX_BYTES) {
+    await response.body?.cancel();
+    throw new Error('source response exceeds 2 MiB limit');
+  }
+
+  const reader = response.body?.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  if (reader) {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > SOURCE_MAX_BYTES) {
+        await reader.cancel();
+        throw new Error('source response exceeds 2 MiB limit');
+      }
+      chunks.push(value);
+    }
+  }
+
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { response, finalUrl, body: new TextDecoder().decode(bytes) };
+}
+
 async function fetchSource(source: ArchitectureSource): Promise<SourceObservation> {
   const observedAt = new Date().toISOString();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 12000);
   try {
-    const originalUrl = new URL(source.url);
-    if (originalUrl.protocol !== 'https:' || originalUrl.username || originalUrl.password) {
-      throw new Error('curated source URL must use HTTPS without embedded credentials');
-    }
-    let requestUrl = originalUrl;
-    let response: Response | undefined;
-    const redirectStatuses = new Set([301, 302, 303, 307, 308]);
-    for (let redirects = 0; redirects <= 10; redirects += 1) {
-      response = await fetch(requestUrl, {
-        redirect: 'manual',
-        headers: { 'User-Agent': 'GLORIFIER-GEAS-Architecture-Scientist/2.0', Accept: 'text/html,application/xhtml+xml,text/plain' },
-        signal: controller.signal,
-      });
-      if (!redirectStatuses.has(response.status)) break;
-      const location = response.headers.get('location');
-      await response.body?.cancel();
-      if (!location) throw new Error('source redirect is missing a Location header');
-      if (redirects === 10) throw new Error('source redirect limit exceeded');
-      const nextUrl = new URL(location, requestUrl);
-      if (
-        nextUrl.protocol !== 'https:' ||
-        nextUrl.hostname !== originalUrl.hostname ||
-        nextUrl.username ||
-        nextUrl.password ||
-        (nextUrl.port !== '' && nextUrl.port !== '443')
-      ) {
-        throw new Error('source redirect rejected: target must remain HTTPS on the curated hostname');
-      }
-      requestUrl = nextUrl;
-    }
-    if (!response || redirectStatuses.has(response.status)) {
-      await response?.body?.cancel();
-      throw new Error('source redirect limit exceeded or no response returned');
-    }
-    const finalUrl = new URL(response.url || requestUrl.toString());
-    if (finalUrl.protocol !== 'https:' || finalUrl.hostname !== originalUrl.hostname) {
-      await response.body?.cancel();
-      throw new Error('source redirect rejected: final host/protocol differs from curated source');
-    }
-    const maxBytes = 2 * 1024 * 1024;
-    const declaredLength = Number(response.headers.get('content-length') ?? 0);
-    if (declaredLength > maxBytes) {
-      await response.body?.cancel();
-      throw new Error('source response exceeds 2 MiB limit');
-    }
-    const reader = response.body?.getReader();
-    const chunks: Uint8Array[] = [];
-    let totalBytes = 0;
-    if (reader) {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        totalBytes += value.byteLength;
-        if (totalBytes > maxBytes) {
-          await reader.cancel();
-          throw new Error('source response exceeds 2 MiB limit');
-        }
-        chunks.push(value);
-      }
-    }
-    const bytes = new Uint8Array(totalBytes);
-    let offset = 0;
-    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
-    const body = new TextDecoder().decode(bytes);
+    const { response, finalUrl, body } = await fetchCuratedSource(source.url, controller.signal);
     const normalizedText = stripHtml(body);
     const contentHash = createHash('sha256').update(normalizedText).digest('hex');
-    const keywords = PATTERN_DEFINITIONS.filter((pattern) => pattern.sourceId === source.id).flatMap((pattern) => pattern.keywords);
+    const keywords = PATTERN_DEFINITIONS
+      .filter((pattern) => pattern.sourceId === source.id)
+      .flatMap((pattern) => pattern.keywords);
     const excerpt = response.ok ? extractEvidence(body, keywords) : null;
     return {
-      sourceId: source.id, ok: response.ok, status: response.status, contentHash, observedAt,
-      finalUrl: finalUrl.toString(), etag: response.headers.get('etag'), lastModified: response.headers.get('last-modified'),
+      sourceId: source.id,
+      ok: response.ok,
+      status: response.status,
+      contentHash,
+      observedAt,
+      finalUrl: finalUrl.toString(),
+      etag: response.headers.get('etag'),
+      lastModified: response.headers.get('last-modified'),
       evidenceExcerpt: excerpt,
       evidenceStatus: excerpt ? 'content-matched' : response.ok ? 'source-available' : 'not-observed',
       error: response.ok ? undefined : `source fetch returned ${response.status}`,
     };
   } catch (error) {
     return {
-      sourceId: source.id, ok: false, status: null, contentHash: null, observedAt,
-      evidenceExcerpt: null, evidenceStatus: 'unavailable',
+      sourceId: source.id,
+      ok: false,
+      status: null,
+      contentHash: null,
+      observedAt,
+      evidenceExcerpt: null,
+      evidenceStatus: 'unavailable',
       error: error instanceof Error ? error.message : 'source fetch failed',
     };
   } finally {
