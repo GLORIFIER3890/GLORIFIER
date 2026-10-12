@@ -9,10 +9,10 @@
   "theme_color": "#020617",
   "icons": [
     {
-      "src": "./glorifier-app-icon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "./glorifier-logo.jpg",
+      "sizes": "500x500",
+      "type": "image/jpeg",
+      "purpose": "any"
     }
   ],
   "orientation": "portrait-primary",
