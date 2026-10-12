@@ -14,6 +14,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Require discovery database configuration
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        shell: bash
+        run: |
+          if [[ -z "${DATABASE_URL:-}" ]]; then
+            echo "::error::GitHub Actions secret DATABASE_URL is missing. Add it under Settings > Secrets and variables > Actions before running opportunity discovery."
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v7
       - name: Setup Node
