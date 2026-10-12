@@ -39,7 +39,7 @@ jobs:
       - name: Inventory open CodeQL alerts on the default branch
         env:
           GH_TOKEN: ${{ github.token }}
-          ALERT_REF: ${{ github.event.pull_request.number && format('refs/pull/{0}/merge', github.event.pull_request.number) || 'refs/heads/main' }}
+          ALERT_REF: refs/heads/main
         shell: bash
         run: |
           set -euo pipefail
