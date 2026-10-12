@@ -9,7 +9,7 @@
   "theme_color": "#020617",
   "icons": [
     {
-      "src": "./glorifier-app-icon.svg",
+      "src": "./favicon.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
