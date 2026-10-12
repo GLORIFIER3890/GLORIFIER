@@ -417,8 +417,38 @@ async function seedCanonicalGLRRegistry() {
     verificationWorkflowCommit: '8921c2e31b79107cf05aa3ba4bdb43715dda69d2',
     evidence: { onChainAssertions: 'PASSED', bscScanVerified: true, blockchainTransactionBroadcast: false, deployerNonce: 3, source: 'github-actions-evidence' }
   });
+  await upsertCanonicalGLRDeployment({
+    deploymentId: 'glr-solana-mainnet-beta',
+    network: 'Solana Mainnet Beta',
+    networkFamily: 'solana',
+    networkId: 'solana:mainnet-beta',
+    chainId: null,
+    identifierType: 'mint',
+    assetIdentifier: '7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9',
+    programId: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+    deploymentTransaction: 'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa',
+    status: 'fully_verified',
+    explorer: 'Solscan',
+    sourceVerificationStatus: 'verified',
+    verificationMode: 'finalized-read-only-reconciliation',
+    verificationWorkflowCommit: 'e4e2c5bfead19eed360a1543b93ec58cdd3fff02',
+    evidence: {
+      tokenStandard: 'Token-2022',
+      supply: '1000000000',
+      decimals: 9,
+      mintAuthorityStatus: 'REVOKED_ON_CHAIN',
+      freezeAuthorityStatus: 'ABSENT_AT_INITIALIZATION',
+      metadataUpdateAuthorityStatus: 'DISABLED_OR_ABSENT_ON_CHAIN',
+      metadataPointerAuthorityStatus: 'DISABLED_OR_ABSENT_ON_CHAIN',
+      reconciliationRunNumber: 87,
+      verificationRunId: '37886411021',
+      verificationRunUrl: 'https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021',
+      reconciliationEvidenceArtifactReview: 'REVIEWED_2026-10-09',
+      source: 'github-actions-evidence',
+      note: 'Technical identity verification only; does not assert market liquidity, price, audit, or legal compliance.'
+    }
+  });
 }
-
 async function upsertCanonicalGLRDeployment(input: {
   deploymentId: string; network: string; networkFamily?: 'evm' | 'solana' | 'other'; networkId?: string; chainId?: number | null; identifierType?: 'contract' | 'mint' | 'other'; contractAddress?: string | null; assetIdentifier?: string; programId?: string | null;
   deploymentTransaction: string; deploymentBlock?: number; status: CanonicalDeploymentStatus;
