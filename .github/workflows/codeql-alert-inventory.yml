@@ -123,12 +123,11 @@ jobs:
                 "$other_open" -eq 0 &&
                 "$codeql_workflow_has_active_category" == "true" ]]; then
             deleted_count=0
-            if [[ "$legacy_analysis_count" -gt 0 && -n "$legacy_latest_id" ]]; then
+            # Preserve the final legacy analysis so GitHub cannot erase the
+            # only historical evidence associated with retained alert records.
+            # Delete obsolete history only when at least two records exist.
+            if [[ "$legacy_analysis_count" -gt 1 && -n "$legacy_latest_id" ]]; then
               delete_target="repos/${GITHUB_REPOSITORY}/code-scanning/analyses/${legacy_latest_id}"
-              # Deleting the final analysis requires GitHub's explicit confirmation.
-              if [[ "$legacy_analysis_count" -eq 1 ]]; then
-                delete_target+="?confirm_delete"
-              fi
               iterations=0
               while [[ -n "$delete_target" ]]; do
                 response="$(gh api --method DELETE "$delete_target")"
@@ -148,6 +147,8 @@ jobs:
                   delete_target=""
                 fi
               done
+            elif [[ "$legacy_analysis_count" -eq 1 ]]; then
+              cleanup_status="skipped: preserving the final obsolete-category analysis as historical evidence"
             fi
 
             # Do not bulk-dismiss security alerts automatically. Removing obsolete
