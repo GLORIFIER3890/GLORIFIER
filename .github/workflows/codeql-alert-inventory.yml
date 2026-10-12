@@ -32,6 +32,8 @@ jobs:
           persist-credentials: false
 
       - name: Inventory and guarded cleanup of obsolete CodeQL category
+        id: inventory
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -117,7 +119,6 @@ jobs:
 
           if [[ -n "$active_analysis_id" &&
                 "$active_open" -eq 0 &&
-                "$legacy_open" -gt 0 &&
                 "$legacy_open" -eq "$count" &&
                 "$other_open" -eq 0 &&
                 "$legacy_analysis_count" -gt 0 &&
@@ -125,11 +126,16 @@ jobs:
                 "$codeql_workflow_has_active_category" == "true" ]]; then
             cleanup_status="eligible: removing obsolete main-only category ${legacy_category}"
             delete_target="repos/${GITHUB_REPOSITORY}/code-scanning/analyses/${legacy_latest_id}"
+            # If only one obsolete analysis remains, GitHub requires explicit
+            # confirmation because deleting it removes this retired analysis set.
+            if [[ "$legacy_analysis_count" -eq 1 ]]; then
+              delete_target+="?confirm_delete"
+            fi
             iterations=0
 
-            # GitHub returns the next analysis URL until only the final item remains.
-            # Use confirm_delete_url only when GitHub explicitly signals that final
-            # historical analysis is the last record in this obsolete category.
+            # This run is explicitly allowed to remove the entire retired category.
+            # Prefer GitHub's confirm_delete_url so the final historical record is
+            # removed deliberately; next_analysis_url alone preserves the final item.
             while [[ -n "$delete_target" ]]; do
               response="$(gh api --method DELETE "$delete_target")"
               deleted_count=$((deleted_count + 1))
@@ -140,10 +146,10 @@ jobs:
               fi
               next_url="$(jq -r '.next_analysis_url // empty' <<< "$response")"
               confirm_url="$(jq -r '.confirm_delete_url // empty' <<< "$response")"
-              if [[ -n "$next_url" ]]; then
-                delete_target="${next_url#https://api.github.com/}"
-              elif [[ -n "$confirm_url" ]]; then
+              if [[ -n "$confirm_url" ]]; then
                 delete_target="${confirm_url#https://api.github.com/}"
+              elif [[ -n "$next_url" ]]; then
+                delete_target="${next_url#https://api.github.com/}"
               else
                 delete_target=""
               fi
@@ -198,11 +204,19 @@ jobs:
           cat "$report"
 
       - name: Upload CodeQL alert inventory and analyses
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: codeql-open-alert-inventory
           path: |
             codeql-open-alerts.jsonl
             codeql-analyses.jsonl
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
+
+      - name: Fail inventory job if cleanup failed
+        if: steps.inventory.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "CodeQL cleanup failed; see the inventory step logs and uploaded artifact."
+          exit 1
