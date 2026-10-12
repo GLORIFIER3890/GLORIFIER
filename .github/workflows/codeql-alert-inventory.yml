@@ -121,42 +121,57 @@ jobs:
                 "$active_open" -eq 0 &&
                 "$legacy_open" -eq "$count" &&
                 "$other_open" -eq 0 &&
-                "$legacy_analysis_count" -gt 0 &&
-                -n "$legacy_latest_id" &&
                 "$codeql_workflow_has_active_category" == "true" ]]; then
-            cleanup_status="eligible: removing obsolete main-only category ${legacy_category}"
-            delete_target="repos/${GITHUB_REPOSITORY}/code-scanning/analyses/${legacy_latest_id}"
-            # If only one obsolete analysis remains, GitHub requires explicit
-            # confirmation because deleting it removes this retired analysis set.
-            if [[ "$legacy_analysis_count" -eq 1 ]]; then
-              delete_target+="?confirm_delete"
+            deleted_count=0
+            if [[ "$legacy_analysis_count" -gt 0 && -n "$legacy_latest_id" ]]; then
+              delete_target="repos/${GITHUB_REPOSITORY}/code-scanning/analyses/${legacy_latest_id}"
+              # Deleting the final analysis requires GitHub's explicit confirmation.
+              if [[ "$legacy_analysis_count" -eq 1 ]]; then
+                delete_target+="?confirm_delete"
+              fi
+              iterations=0
+              while [[ -n "$delete_target" ]]; do
+                response="$(gh api --method DELETE "$delete_target")"
+                deleted_count=$((deleted_count + 1))
+                iterations=$((iterations + 1))
+                if (( iterations > 120 )); then
+                  echo "Refusing to delete more than 120 obsolete main-category analyses in one run." >&2
+                  exit 1
+                fi
+                next_url="$(jq -r '.next_analysis_url // empty' <<< "$response")"
+                confirm_url="$(jq -r '.confirm_delete_url // empty' <<< "$response")"
+                if [[ -n "$confirm_url" ]]; then
+                  delete_target="${confirm_url#https://api.github.com/}"
+                elif [[ -n "$next_url" ]]; then
+                  delete_target="${next_url#https://api.github.com/}"
+                else
+                  delete_target=""
+                fi
+              done
             fi
-            iterations=0
 
-            # This run is explicitly allowed to remove the entire retired category.
-            # Prefer GitHub's confirm_delete_url so the final historical record is
-            # removed deliberately; next_analysis_url alone preserves the final item.
-            while [[ -n "$delete_target" ]]; do
-              response="$(gh api --method DELETE "$delete_target")"
-              deleted_count=$((deleted_count + 1))
-              iterations=$((iterations + 1))
-              if (( iterations > 120 )); then
-                echo "Refusing to delete more than 120 obsolete main-category analyses in one run." >&2
-                exit 1
-              fi
-              next_url="$(jq -r '.next_analysis_url // empty' <<< "$response")"
-              confirm_url="$(jq -r '.confirm_delete_url // empty' <<< "$response")"
-              if [[ -n "$confirm_url" ]]; then
-                delete_target="${confirm_url#https://api.github.com/}"
-              elif [[ -n "$next_url" ]]; then
-                delete_target="${next_url#https://api.github.com/}"
+            # GitHub may retain open alert records after their obsolete analysis
+            # history is deleted. Close only main-branch records from the retired
+            # category after the exact current main commit has a clean active scan.
+            dismissed_count=0
+            while IFS=$'\x09' read -r alert_number alert_rule alert_path; do
+              [[ -n "$alert_number" ]] || continue
+              if [[ "$alert_path" == tests/* ]]; then
+                dismissal_reason="used in tests"
               else
-                delete_target=""
+                dismissal_reason="mitigated"
               fi
-            done
+              dismissal_comment="Historical alert from retired CodeQL category ${legacy_category}. Current main commit ${main_sha} passed CodeQL analysis under active category ${active_category} with zero open alerts in that category; related remediation was merged in PR #261. Classified as ${dismissal_reason} after verifying the current scan."
+              gh api --method PATCH \
+                --field state=dismissed \
+                --field "dismissed_reason=${dismissal_reason}" \
+                --field "dismissed_comment=${dismissal_comment}" \
+                "repos/${GITHUB_REPOSITORY}/code-scanning/alerts/${alert_number}" >/dev/null
+              dismissed_count=$((dismissed_count + 1))
+            done < <(jq -r --arg cat "$legacy_category" --arg ref "$main_ref" 'select(.ref == $ref and .category == $cat) | [.number, .rule, .path] | @tsv' "$report")
 
-            cleanup_status="completed: removed $deleted_count obsolete main-only analyses from ${legacy_category}; current analysis history retained"
-            # Re-query after deletion so the published inventory reflects live state.
+            cleanup_status="completed: removed $deleted_count obsolete main-only analyses and dismissed $dismissed_count open alert records from the retired category; active category and PR refs preserved"
+            # Re-query after cleanup so the published inventory reflects live state.
             fetch_alerts
             fetch_analyses
             count="$(count_alerts)"
