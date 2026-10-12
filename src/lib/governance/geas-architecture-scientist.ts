@@ -611,13 +611,41 @@ async function fetchSource(source: ArchitectureSource): Promise<SourceObservatio
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 12000);
   try {
-    const response = await fetch(source.url, {
-      redirect: 'follow',
-      headers: { 'User-Agent': 'GLORIFIER-GEAS-Architecture-Scientist/2.0', Accept: 'text/html,application/xhtml+xml,text/plain' },
-      signal: controller.signal,
-    });
-    const finalUrl = new URL(response.url || source.url);
     const originalUrl = new URL(source.url);
+    if (originalUrl.protocol !== 'https:' || originalUrl.username || originalUrl.password) {
+      throw new Error('curated source URL must use HTTPS without embedded credentials');
+    }
+    let requestUrl = originalUrl;
+    let response: Response | undefined;
+    const redirectStatuses = new Set([301, 302, 303, 307, 308]);
+    for (let redirects = 0; redirects <= 10; redirects += 1) {
+      response = await fetch(requestUrl, {
+        redirect: 'manual',
+        headers: { 'User-Agent': 'GLORIFIER-GEAS-Architecture-Scientist/2.0', Accept: 'text/html,application/xhtml+xml,text/plain' },
+        signal: controller.signal,
+      });
+      if (!redirectStatuses.has(response.status)) break;
+      const location = response.headers.get('location');
+      await response.body?.cancel();
+      if (!location) throw new Error('source redirect is missing a Location header');
+      if (redirects === 10) throw new Error('source redirect limit exceeded');
+      const nextUrl = new URL(location, requestUrl);
+      if (
+        nextUrl.protocol !== 'https:' ||
+        nextUrl.hostname !== originalUrl.hostname ||
+        nextUrl.username ||
+        nextUrl.password ||
+        (nextUrl.port !== '' && nextUrl.port !== '443')
+      ) {
+        throw new Error('source redirect rejected: target must remain HTTPS on the curated hostname');
+      }
+      requestUrl = nextUrl;
+    }
+    if (!response || redirectStatuses.has(response.status)) {
+      await response?.body?.cancel();
+      throw new Error('source redirect limit exceeded or no response returned');
+    }
+    const finalUrl = new URL(response.url || requestUrl.toString());
     if (finalUrl.protocol !== 'https:' || finalUrl.hostname !== originalUrl.hostname) {
       await response.body?.cancel();
       throw new Error('source redirect rejected: final host/protocol differs from curated source');
