@@ -5,9 +5,10 @@ on:
     - cron: "*/10 * * * *"
   workflow_dispatch:
 
+# Read-only monitoring. Remediation must use a reviewed pull request.
 permissions:
-  contents: write
-  actions: write
+  contents: read
+  actions: read
 
 concurrency:
   group: glorifier-health-guardian
@@ -21,24 +22,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
-
+          fetch-depth: 1
+          persist-credentials: false
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
           node-version: 22
           package-manager-cache: false
-
       - name: Install
         run: npm install --no-audit --no-fund
-
       - name: Local integrity check
         id: integrity
         continue-on-error: true
         run: |
           npm run lint
           npm run build
-
       - name: Production health check
         id: health
         continue-on-error: true
@@ -48,19 +46,11 @@ jobs:
           set -e
           for attempt in 1 2 3 4 5; do
             echo "Health check attempt $attempt/5"
-            if curl --fail --silent --show-error --connect-timeout 5 --max-time 20 "$GLORIFIER_HEALTH_URL"; then
-              echo
-              echo "GLORIFIER production health: OK"
-              exit 0
-            fi
-            echo
-            if [ "$attempt" -lt 5 ]; then
-              sleep 10
-            fi
+            if curl --fail --silent --show-error --connect-timeout 5 --max-time 20 "$GLORIFIER_HEALTH_URL"; then echo; echo "GLORIFIER production health: OK"; exit 0; fi
+            if [ "$attempt" -lt 5 ]; then sleep 10; fi
           done
-          echo "::warning::Production health endpoint remained unavailable after 5 attempts."
+          echo "::warning::Production health endpoint unavailable after 5 attempts."
           exit 1
-
       - name: Verify Vercel to Railway API routing
         id: vercel_api
         continue-on-error: true
@@ -74,7 +64,6 @@ jobs:
           cat "$body"
           test "$status" = "200"
           grep -q '"status":"ok"' "$body"
-
       - name: Verify unauthenticated write protection
         id: auth_guard
         continue-on-error: true
@@ -86,7 +75,6 @@ jobs:
           cat "$body"
           test "$status" = "401"
           grep -q "Authentication required" "$body"
-
       - name: Verify Neon-backed runtime state
         id: runtime
         continue-on-error: true
@@ -98,21 +86,12 @@ jobs:
           cat "$body"
           test "$status" = "200"
           grep -q '"status":"verified"' "$body"
-
-      - name: Run bounded self-healing
+      - name: Enforce diagnostic-only remediation boundary
         if: steps.integrity.outcome == 'failure'
-        env:
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
-          META_API_KEY: ${{ secrets.META_API_KEY }}
-          META_BASE_URL: ${{ vars.META_BASE_URL }}
-          META_MODEL: ${{ vars.META_MODEL }}
-        run: node scripts/self-healing-agent.mjs
-
+        run: |
+          echo "::error::Integrity checks failed. Automated production repair is disabled."
+          echo "Collect logs and create a reviewed pull request; do not push or deploy automatically."
+          exit 1
       - name: Report health state
         if: always()
         run: |
@@ -121,21 +100,8 @@ jobs:
           echo "Vercel API routing: ${{ steps.vercel_api.outcome }}"
           echo "Authentication guard: ${{ steps.auth_guard.outcome }}"
           echo "Neon runtime verification: ${{ steps.runtime.outcome }}"
-          if [ "${{ steps.integrity.outcome }}" != "success" ]; then
-            echo "::error::GLORIFIER local integrity check failed."
-          fi
-          if [ "${{ steps.health.outcome }}" != "success" ]; then
-            echo "::warning::GLORIFIER production health is still unavailable; code integrity remains independently tracked."
-          fi
-          if [ "${{ steps.vercel_api.outcome }}" != "success" ]; then
-            echo "::warning::Vercel-to-Railway API routing verification failed."
-          fi
-          if [ "${{ steps.auth_guard.outcome }}" != "success" ]; then
-            echo "::warning::Authentication boundary verification failed."
-          fi
-          if [ "${{ steps.runtime.outcome }}" != "success" ]; then
-            echo "::warning::Neon-backed runtime verification failed."
-          fi
-          if [ "${{ steps.integrity.outcome }}" != "success" ]; then
-            exit 1
-          fi
+          if [ "${{ steps.health.outcome }}" != "success" ]; then echo "::warning::Production health is unavailable; code integrity is tracked separately."; fi
+          if [ "${{ steps.vercel_api.outcome }}" != "success" ]; then echo "::warning::Vercel-to-Railway API routing verification failed."; fi
+          if [ "${{ steps.auth_guard.outcome }}" != "success" ]; then echo "::warning::Authentication boundary verification failed."; fi
+          if [ "${{ steps.runtime.outcome }}" != "success" ]; then echo "::warning::Neon-backed runtime verification failed."; fi
+          if [ "${{ steps.integrity.outcome }}" != "success" ]; then exit 1; fi

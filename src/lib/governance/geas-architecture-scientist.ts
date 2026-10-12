@@ -100,13 +100,14 @@ export interface ArchitectureEvidence {
   observedAt: string;
   contentHash: string;
   excerpt: string;
-  evidenceClass: 'observed-fact';
+  evidenceClass: EvidenceClass;
   sourceStatus: number;
   patternIds: string[];
 }
 
 export interface ArchitectureScanResult {
   scanId: string;
+  repositoryRevision: string;
   startedAt: string;
   completedAt: string;
   sources: SourceObservation[];
@@ -341,7 +342,7 @@ const SOURCES: ArchitectureSource[] = [
     id: 'nist-iot',
     authority: 'NIST',
     domain: 'iot',
-    url: 'https://www.nist.gov/programs-projects/nist-cybersecurity-iot-program',
+    url: 'https://www.nist.gov/itl/applied-cybersecurity/nist-cybersecurity-iot-program',
     patternIds: ['iot-device-boundaries'],
     cadenceHours: 336,
   },
@@ -567,6 +568,10 @@ export function isClaimSupportedEvidence(status: EvidenceStatus): boolean {
   return status === 'claim-supported';
 }
 
+export function classifyArchitectureEvidence(status: EvidenceStatus): EvidenceClass {
+  return status === 'claim-supported' ? 'observed-fact' : 'analysis';
+}
+
 export function isSourceObservationDue(cadenceHours: number, observedAt: string | null | undefined, nowMs = Date.now()): boolean {
   if (!Number.isFinite(cadenceHours) || cadenceHours <= 0 || !observedAt) return true;
   const observedMs = Date.parse(observedAt);
@@ -672,7 +677,7 @@ function buildEvidence(results: SourceObservation[], patterns: ArchitecturePatte
       observedAt: result.observedAt,
       contentHash: result.contentHash ?? 'unknown',
       excerpt: result.evidenceExcerpt,
-      evidenceClass: 'observed-fact',
+      evidenceClass: classifyArchitectureEvidence(result.evidenceStatus),
       sourceStatus: result.status ?? 0,
       patternIds: ids.get(result.sourceId) ?? [],
     }];
@@ -965,6 +970,7 @@ export async function runGeasArchitectureScan(): Promise<ArchitectureScanResult>
   const evidence = buildEvidence(sources, patterns);
   const result: ArchitectureScanResult = {
     scanId,
+    repositoryRevision: process.env.GITHUB_SHA ?? 'unknown',
     startedAt,
     completedAt,
     sources,

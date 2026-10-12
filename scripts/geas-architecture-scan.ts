@@ -13,8 +13,9 @@ await writeFile(
 
 const summary = {
   scanId: result.scanId,
+  repositoryRevision: result.repositoryRevision,
   completedAt: result.completedAt,
-  observedPatterns: result.patterns.length,
+  analysisPatterns: result.patterns.length,
   evidenceRecords: result.evidence.length,
   driftFindings: result.drift.length,
   sourceStatuses: result.sources.reduce<Record<string, number>>((acc, source) => {
