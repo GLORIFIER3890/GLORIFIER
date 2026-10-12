@@ -1,6 +1,10 @@
-# GLORIFIER Token
+# GLORIFIER Token (GLR)
 
-GLORIFIER (GLR) is a fixed-supply ERC-20 implementation.
+This directory contains the EVM ERC-20 contract foundation for GLORIFIER. It documents contract parameters, safe deployment configuration, and the evidence required to validate a deployment. This document does not itself prove that a deployment or explorer verification succeeded.
+
+**Governance rule:** deployment is an explicit, authorized action. Keep private keys and RPC credentials in approved secret stores; do not commit them or paste them into issues, pull requests, logs, or chat.
+
+## EVM contract parameters
 
 ## Parameters
 
@@ -130,3 +134,11 @@ Explorer source verification is a separate optional evidence layer. Repository c
 Optional Etherscan source verification is performed only when `GLORIFIER_ETHERSCAN_API_KEY` is configured in the `testnet` environment. Source verification is separate from on-chain deployment verification: the contract can be on-chain verified without explorer source verification.
 
 Never commit API keys or private keys.
+
+## Status and cross-chain scope
+
+The parameters above describe the EVM ERC-20 contract only. They do not describe a Solana Token-2022 mint, whose mint address, decimals, authorities, metadata, and provenance must be checked independently. EVM contract verification, successful deployment, source verification, metadata availability, and canonical-registry reconciliation are separate evidence items.
+
+Before publishing a status claim, verify the current workflow run, chain ID, deployed address, transaction receipt, bytecode, token fields, and canonical registry on the relevant network. Report missing or stale evidence as **NOT VERIFIED** or **NOT OBSERVABLE**; never infer success from source code or workflow configuration alone.
+
+The workflow and manual commands below are examples for the authorized Ethereum Sepolia testnet path. They are not instructions to deploy to mainnet, and a deployment must not be initiated without explicit authorization and the required funding.
