@@ -161,7 +161,7 @@ jobs:
               else
                 dismissal_reason="mitigated"
               fi
-              dismissal_comment="Historical alert from retired CodeQL category ${legacy_category}. Current main commit ${main_sha} passed CodeQL analysis under active category ${active_category} with zero open alerts in that category; related remediation was merged in PR #261. Classified as ${dismissal_reason} after verifying the current scan."
+              dismissal_comment="Retired CodeQL category only. Main commit ${main_sha} passed active category ${active_category} with zero open alerts. Source remediation in PR #261; dismissed as ${dismissal_reason}."
               gh api --method PATCH \
                 --field state=dismissed \
                 --field "dismissed_reason=${dismissal_reason}" \
