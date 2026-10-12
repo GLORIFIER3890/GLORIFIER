@@ -852,9 +852,6 @@ export async function initializeGeasArchitectureScientist() {
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS etag TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS last_modified TEXT;
 
-    ALTER TABLE geas_architecture_evidence ALTER COLUMN evidence_class SET DEFAULT 'analysis';
-    UPDATE geas_architecture_evidence SET evidence_class = 'analysis' WHERE evidence_class = 'observed-fact';
-
     CREATE TABLE IF NOT EXISTS geas_architecture_evidence (
       id TEXT PRIMARY KEY,
       source_id TEXT NOT NULL,
@@ -866,6 +863,9 @@ export async function initializeGeasArchitectureScientist() {
       source_status INTEGER NOT NULL,
       pattern_ids JSONB NOT NULL DEFAULT '[]'::jsonb
     );
+
+    ALTER TABLE geas_architecture_evidence ALTER COLUMN evidence_class SET DEFAULT 'analysis';
+    UPDATE geas_architecture_evidence SET evidence_class = 'analysis' WHERE evidence_class = 'observed-fact';
 
     CREATE TABLE IF NOT EXISTS geas_agent_identity_contracts (
       subject TEXT PRIMARY KEY,
