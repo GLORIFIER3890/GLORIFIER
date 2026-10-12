@@ -417,15 +417,80 @@ async function seedCanonicalGLRRegistry() {
     verificationWorkflowCommit: '8921c2e31b79107cf05aa3ba4bdb43715dda69d2',
     evidence: { onChainAssertions: 'PASSED', bscScanVerified: true, blockchainTransactionBroadcast: false, deployerNonce: 3, source: 'github-actions-evidence' }
   });
+  await upsertCanonicalGLRDeployment({
+    deploymentId: 'glr-solana-mainnet-beta',
+    network: 'Solana Mainnet Beta',
+    networkFamily: 'solana',
+    networkId: 'solana:mainnet-beta',
+    chainId: null,
+    identifierType: 'mint',
+    assetIdentifier: '7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9',
+    programId: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+    deploymentTransaction: 'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa',
+    status: 'fully_verified',
+    explorer: 'Solscan',
+    sourceVerificationStatus: 'verified',
+    verificationMode: 'finalized-read-only-reconciliation',
+    evidence: {
+      tokenStandard: 'Token-2022',
+      supply: '1000000000',
+      decimals: 9,
+      mintAuthorityStatus: 'REVOKED_ON_CHAIN',
+      freezeAuthorityStatus: 'ABSENT_AT_INITIALIZATION',
+      metadataUpdateAuthorityStatus: 'DISABLED_OR_ABSENT_ON_CHAIN',
+      metadataPointerAuthorityStatus: 'DISABLED_OR_ABSENT_ON_CHAIN',
+      reconciliationRunNumber: 87,
+      verificationRunId: '37886411021',
+      verificationRunUrl: 'https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021',
+      reconciliationEvidenceArtifactReview: 'REVIEWED_2026-10-09',
+      source: 'github-actions-evidence',
+      note: 'Technical identity verification only; does not assert market liquidity, price, audit, or legal compliance.'
+    }
+  });
+}
+type CanonicalDeploymentUpsertInput = {
+  deploymentId: string;
+  network: string;
+  networkFamily?: 'evm' | 'solana' | 'other';
+  networkId?: string;
+  chainId?: number | null;
+  identifierType?: 'contract' | 'mint' | 'other';
+  contractAddress?: string | null;
+  assetIdentifier?: string;
+  programId?: string | null;
+  deploymentTransaction: string;
+  deploymentBlock?: number;
+  status: CanonicalDeploymentStatus;
+  explorer: string;
+  sourceVerificationStatus: string;
+  deployerAddress?: string;
+  initialHolderAddress?: string;
+  verificationMode: string;
+  verificationWorkflowCommit?: string;
+  evidence: Record<string, unknown>;
+};
+
+function canonicalDeploymentValues(input: CanonicalDeploymentUpsertInput) {
+  const {
+    deploymentId, network, networkFamily = 'evm',
+    networkId = `evm:${input.chainId}`, chainId = null,
+    identifierType = 'contract', contractAddress = null,
+    assetIdentifier = contractAddress || '', programId = null,
+    deploymentTransaction, deploymentBlock = null, status, explorer,
+    sourceVerificationStatus, deployerAddress = null,
+    initialHolderAddress = null, verificationMode,
+    verificationWorkflowCommit = null, evidence
+  } = input;
+  return [
+    deploymentId, network, networkFamily, networkId, chainId, identifierType,
+    contractAddress, assetIdentifier, programId, deploymentTransaction,
+    deploymentBlock, status, explorer, sourceVerificationStatus,
+    deployerAddress, initialHolderAddress, verificationMode,
+    verificationWorkflowCommit, JSON.stringify(evidence)
+  ];
 }
 
-async function upsertCanonicalGLRDeployment(input: {
-  deploymentId: string; network: string; networkFamily?: 'evm' | 'solana' | 'other'; networkId?: string; chainId?: number | null; identifierType?: 'contract' | 'mint' | 'other'; contractAddress?: string | null; assetIdentifier?: string; programId?: string | null;
-  deploymentTransaction: string; deploymentBlock?: number; status: CanonicalDeploymentStatus;
-  explorer: string; sourceVerificationStatus: string; deployerAddress?: string;
-  initialHolderAddress?: string; verificationMode: string; verificationWorkflowCommit?: string;
-  evidence: Record<string, unknown>;
-}) {
+async function upsertCanonicalGLRDeployment(input: CanonicalDeploymentUpsertInput) {
   await getPostgresPool().query(`INSERT INTO canonical_asset_deployments
     (deployment_id,asset_id,network,network_family,network_id,chain_id,identifier_type,contract_address,asset_identifier,program_id,deployment_transaction,deployment_block,status,explorer,source_verification_status,deployer_address,initial_holder_address,verification_mode,verification_workflow_commit,evidence,first_verified_at,last_verified_at)
     VALUES($1,'glr',$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,NOW(),NOW())
@@ -436,9 +501,7 @@ async function upsertCanonicalGLRDeployment(input: {
       deployer_address=EXCLUDED.deployer_address,initial_holder_address=EXCLUDED.initial_holder_address,
       verification_mode=EXCLUDED.verification_mode,verification_workflow_commit=EXCLUDED.verification_workflow_commit,
       evidence=EXCLUDED.evidence,last_verified_at=NOW(),updated_at=NOW()`,
-    [input.deploymentId,input.network,input.networkFamily || 'evm',input.networkId || `evm:${input.chainId}`,input.chainId ?? null,input.identifierType || 'contract',input.contractAddress ?? null,input.assetIdentifier || input.contractAddress || '',input.programId ?? null,input.deploymentTransaction,input.deploymentBlock??null,
-     input.status,input.explorer,input.sourceVerificationStatus,input.deployerAddress??null,input.initialHolderAddress??null,
-     input.verificationMode,input.verificationWorkflowCommit??null,JSON.stringify(input.evidence)]
+    canonicalDeploymentValues(input)
   );
 }
 
