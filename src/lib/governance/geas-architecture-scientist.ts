@@ -433,7 +433,13 @@ const SOURCES: ArchitectureSource[] = [
     url: 'https://csrc.nist.gov/pubs/ir/8536/final',
     patternIds: ['provenance-graph'],
     cadenceHours: 168,
-  },
+  },,
+  { id: 'opengroup-togaf', authority: 'The Open Group', domain: 'enterprise-architecture', url: 'https://www.opengroup.org/togaf', patternIds: ['enterprise-architecture-traceability'], cadenceHours: 336 },
+  { id: 'ietf-oauth-security', authority: 'IETF', domain: 'cybersecurity', url: 'https://datatracker.ietf.org/doc/html/rfc9700', patternIds: ['oauth-security-best-practice'], cadenceHours: 336 },
+  { id: 'ietf-http-problem-details', authority: 'IETF', domain: 'integration', url: 'https://datatracker.ietf.org/doc/html/rfc9457', patternIds: ['standard-api-error-contracts'], cadenceHours: 336 },
+  { id: 'slsa-v1-2', authority: 'SLSA', domain: 'software', url: 'https://slsa.dev/spec/v1.2/', patternIds: ['build-provenance'], cadenceHours: 336 },
+  { id: 'openssf-scorecard', authority: 'OpenSSF', domain: 'software', url: 'https://securityscorecards.dev/', patternIds: ['open-source-supply-chain-risk'], cadenceHours: 336 },
+  { id: 'google-sre-workbook', authority: 'Google SRE', domain: 'reliability', url: 'https://sre.google/workbook/table-of-contents/', patternIds: ['slo-error-budget-release-gates'], cadenceHours: 336 }
 ];
 
 const P = (
@@ -596,44 +602,64 @@ function extractEvidence(body: string, keywords: string[]) {
 
 async function fetchSource(source: ArchitectureSource): Promise<SourceObservation> {
   const observedAt = new Date().toISOString();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12000);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12000);
     const response = await fetch(source.url, {
       redirect: 'follow',
       headers: { 'User-Agent': 'GLORIFIER-GEAS-Architecture-Scientist/2.0', Accept: 'text/html,application/xhtml+xml,text/plain' },
       signal: controller.signal,
     });
-    clearTimeout(timer);
-    const body = await response.text();
-    const normalizedText = stripHtml(body).replace(/\s+/g, ' ').trim();
-    const hash = createHash('sha256').update(normalizedText).digest('hex');
+    const finalUrl = new URL(response.url || source.url);
+    const originalUrl = new URL(source.url);
+    if (finalUrl.protocol !== 'https:' || finalUrl.hostname !== originalUrl.hostname) {
+      await response.body?.cancel();
+      throw new Error('source redirect rejected: final host/protocol differs from curated source');
+    }
+    const maxBytes = 2 * 1024 * 1024;
+    const declaredLength = Number(response.headers.get('content-length') ?? 0);
+    if (declaredLength > maxBytes) {
+      await response.body?.cancel();
+      throw new Error('source response exceeds 2 MiB limit');
+    }
+    const reader = response.body?.getReader();
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        totalBytes += value.byteLength;
+        if (totalBytes > maxBytes) {
+          await reader.cancel();
+          throw new Error('source response exceeds 2 MiB limit');
+        }
+        chunks.push(value);
+      }
+    }
+    const bytes = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+    const body = new TextDecoder().decode(bytes);
+    const normalizedText = stripHtml(body).replace(/\\s+/g, ' ').trim();
+    const contentHash = createHash('sha256').update(normalizedText).digest('hex');
     const keywords = PATTERN_DEFINITIONS.filter((pattern) => pattern.sourceId === source.id).flatMap((pattern) => pattern.keywords);
     const excerpt = response.ok ? extractEvidence(body, keywords) : null;
     return {
-      sourceId: source.id,
-      ok: response.ok,
-      status: response.status,
-      contentHash: hash,
-      observedAt,
-      finalUrl: response.url || source.url,
-      etag: response.headers.get('etag'),
-      lastModified: response.headers.get('last-modified'),
+      sourceId: source.id, ok: response.ok, status: response.status, contentHash, observedAt,
+      finalUrl: finalUrl.toString(), etag: response.headers.get('etag'), lastModified: response.headers.get('last-modified'),
       evidenceExcerpt: excerpt,
       evidenceStatus: excerpt ? 'content-matched' : response.ok ? 'source-available' : 'not-observed',
       error: response.ok ? undefined : `source fetch returned ${response.status}`,
     };
   } catch (error) {
     return {
-      sourceId: source.id,
-      ok: false,
-      status: null,
-      contentHash: null,
-      observedAt,
-      evidenceExcerpt: null,
-      evidenceStatus: 'unavailable',
+      sourceId: source.id, ok: false, status: null, contentHash: null, observedAt,
+      evidenceExcerpt: null, evidenceStatus: 'unavailable',
       error: error instanceof Error ? error.message : 'source fetch failed',
     };
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -826,6 +852,8 @@ export async function initializeGeasArchitectureScientist() {
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS etag TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS last_modified TEXT;
 
+    ALTER TABLE geas_architecture_evidence ALTER COLUMN evidence_class SET DEFAULT 'analysis';
+
     CREATE TABLE IF NOT EXISTS geas_architecture_evidence (
       id TEXT PRIMARY KEY,
       source_id TEXT NOT NULL,
@@ -833,7 +861,7 @@ export async function initializeGeasArchitectureScientist() {
       observed_at TIMESTAMPTZ NOT NULL,
       content_hash TEXT NOT NULL,
       excerpt TEXT NOT NULL,
-      evidence_class TEXT NOT NULL DEFAULT 'observed-fact',
+      evidence_class TEXT NOT NULL DEFAULT 'analysis',
       source_status INTEGER NOT NULL,
       pattern_ids JSONB NOT NULL DEFAULT '[]'::jsonb
     );
