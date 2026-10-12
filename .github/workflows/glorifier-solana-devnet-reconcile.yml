@@ -1,9 +1,18 @@
 name: GLORIFIER Solana Devnet Reconciliation
 
 on:
+  # Avoid re-running on publication-record commits; recheck only relevant changes.
   push:
     branches:
       - main
+    paths:
+      - ".github/workflows/glorifier-solana-devnet-reconcile.yml"
+      - ".github/workflows/glorifier-solana-devnet.yml"
+      - "solana/deploy-token2022-devnet.sh"
+      - "solana/reconcile-token2022-devnet.sh"
+      - "solana/recover-deployment-provenance.sh"
+      - "solana/publish-verified-devnet-identity.sh"
+      - "solana/token-config.json"
   workflow_dispatch:
     inputs:
       confirm:
