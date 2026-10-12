@@ -28,6 +28,34 @@ const providers: AIProvider[] = [
 
 const providerCooldownUntil = new Map<string, number>();
 const providerLastFailure = new Map<string, string>();
+function isProviderEligible(provider: AIProvider, discovery: Map<string, any>, capability?: string): boolean {
+  const entry = discovery.get(provider.id);
+  return Boolean(entry?.authorization === 'configured' && (!capability || entry.capabilities.includes(capability)));
+}
+
+function isProviderEligibleAfterRefresh(provider: AIProvider, discovery: Map<string, any>, capability: string | undefined, attemptedProviders: string[]): boolean {
+  const entry = discovery.get(provider.id);
+  return Boolean(entry?.availability === 'available' && entry.authenticated
+    && isProviderEligible(provider, discovery, capability)
+    && !isCoolingDown(provider.id)
+    && !attemptedProviders.includes(provider.id));
+}
+
+function compareProviderOrder(a: AIProvider, b: AIProvider, discovery: Map<string, any>, preferredProvider?: AIProviderId): number {
+  const da = discovery.get(a.id);
+  const db = discovery.get(b.id);
+  const rank = (entry: any): number => {
+    if (entry?.availability === 'available' && entry.authenticated) return 0;
+    if (entry?.availability === 'rate_limited') return 2;
+    return 1;
+  };
+  const rankDifference = rank(da) - rank(db);
+  if (rankDifference !== 0) return rankDifference;
+  if (preferredProvider && a.id === preferredProvider && b.id !== preferredProvider) return -1;
+  if (preferredProvider && b.id === preferredProvider && a.id !== preferredProvider) return 1;
+  return 0;
+}
+
 
 function parseRetryAfterMs(error: unknown): number | null {
   const message = error instanceof Error ? error.message : String(error);
@@ -147,20 +175,9 @@ export async function executeThroughProviderRegistry(
     const refreshed = await discoverGlobalProviders('provider-registry-pre-exhaustion');
     discovery = new Map(refreshed.map((entry) => [entry.id, entry]));
   };
-  const ordered = [...connected].filter((provider) => {
-    const discovered = discovery.get(provider.id);
-    return discovered?.authorization === 'configured' && (!request.capability || Boolean(discovered.capabilities.includes(request.capability)));
-  }).sort((a, b) => {
-    const da = discovery.get(a.id);
-    const db = discovery.get(b.id);
-    const rank = (entry: typeof da) => entry?.availability === 'available' && entry.authenticated ? 0 : entry?.availability === 'rate_limited' ? 2 : 1;
-    if (rank(da) !== rank(db)) return rank(da) - rank(db);
-    if (preferredProvider) {
-      if (a.id === preferredProvider && b.id !== preferredProvider) return -1;
-      if (b.id === preferredProvider && a.id !== preferredProvider) return 1;
-    }
-    return 0;
-  });
+  const ordered = [...connected]
+    .filter((provider) => isProviderEligible(provider, discovery, request.capability))
+    .sort((a, b) => compareProviderOrder(a, b, discovery, preferredProvider));
 
   const attemptedProviders: string[] = [];
   const errors: string[] = [];
@@ -215,10 +232,9 @@ export async function executeThroughProviderRegistry(
     discoveryRefreshes += 1;
     try {
       await refreshDiscovery();
-      const refreshedEligible = getConnectedProviders().filter((provider) => {
-        const discovered = discovery.get(provider.id);
-        return discovered?.availability === 'available' && discovered.authenticated && discovered.authorization === 'configured' && (!request.capability || discovered.capabilities.includes(request.capability)) && !isCoolingDown(provider.id) && !attemptedProviders.includes(provider.id);
-      });
+      const refreshedEligible = getConnectedProviders().filter((provider) =>
+        isProviderEligibleAfterRefresh(provider, discovery, request.capability, attemptedProviders)
+      );
       for (const provider of refreshedEligible) {
         if (attempts >= policy.maxAttempts) break;
         attemptedProviders.push(provider.id);
