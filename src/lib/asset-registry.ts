@@ -426,12 +426,11 @@ async function seedCanonicalGLRRegistry() {
     identifierType: 'mint',
     assetIdentifier: '7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9',
     programId: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
-    deploymentTransaction: 'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa',
+    deploymentTransaction: 'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa',
     status: 'fully_verified',
     explorer: 'Solscan',
     sourceVerificationStatus: 'verified',
     verificationMode: 'finalized-read-only-reconciliation',
-    verificationWorkflowCommit: 'e4e2c5bfead19eed360a1543b93ec58cdd3fff02',
     evidence: {
       tokenStandard: 'Token-2022',
       supply: '1000000000',
