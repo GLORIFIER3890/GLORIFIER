@@ -41,21 +41,31 @@ jobs:
         id: health
         continue-on-error: true
         env:
-          GLORIFIER_HEALTH_URL: https://glorifier-artificial-intelligence-production.up.railway.app/api/health
+          GLORIFIER_HEALTH_URL: https://glorifier-artificial-intelligence-production.up.railway.app/api/health/ready
         run: |
           set -e
+          set -euo pipefail
+          body="$(mktemp)"
           for attempt in 1 2 3 4 5; do
             echo "Health check attempt $attempt/5"
-            if curl --fail --silent --show-error --connect-timeout 5 --max-time 20 "$GLORIFIER_HEALTH_URL"; then echo; echo "GLORIFIER production health: OK"; exit 0; fi
+            if curl --fail --silent --show-error --connect-timeout 5 --max-time 20 --output "$body" "$GLORIFIER_HEALTH_URL" &&
+               grep -q '"status":"ready"' "$body"; then
+              cat "$body"
+              echo "GLORIFIER production readiness: OK"
+              rm -f "$body"
+              exit 0
+            fi
             if [ "$attempt" -lt 5 ]; then sleep 10; fi
           done
-          echo "::warning::Production health endpoint unavailable after 5 attempts."
+          cat "$body" || true
+          rm -f "$body"
+          echo "::warning::Production readiness endpoint unavailable or not ready after 5 attempts."
           exit 1
       - name: Verify Vercel to Railway API routing
         id: vercel_api
         continue-on-error: true
         env:
-          GLORIFIER_VERCEL_API_URL: https://glorifier.vercel.app/api/health
+          GLORIFIER_VERCEL_API_URL: https://glorifier-sepia.vercel.app/api/health/ready
         run: |
           set -euo pipefail
           body="$(mktemp)"
@@ -63,7 +73,7 @@ jobs:
           echo "Vercel API route HTTP status: $status"
           cat "$body"
           test "$status" = "200"
-          grep -q '"status":"ok"' "$body"
+          grep -q '"status":"ready"' "$body"
       - name: Verify unauthenticated write protection
         id: auth_guard
         continue-on-error: true
@@ -104,4 +114,11 @@ jobs:
           if [ "${{ steps.vercel_api.outcome }}" != "success" ]; then echo "::warning::Vercel-to-Railway API routing verification failed."; fi
           if [ "${{ steps.auth_guard.outcome }}" != "success" ]; then echo "::warning::Authentication boundary verification failed."; fi
           if [ "${{ steps.runtime.outcome }}" != "success" ]; then echo "::warning::Neon-backed runtime verification failed."; fi
-          if [ "${{ steps.integrity.outcome }}" != "success" ]; then exit 1; fi
+          if [ "${{ steps.integrity.outcome }}" != "success" ] ||
+             [ "${{ steps.health.outcome }}" != "success" ] ||
+             [ "${{ steps.vercel_api.outcome }}" != "success" ] ||
+             [ "${{ steps.auth_guard.outcome }}" != "success" ] ||
+             [ "${{ steps.runtime.outcome }}" != "success" ]; then
+            echo "::error::One or more health checks failed; automated production repair remains disabled."
+            exit 1
+          fi
