@@ -38,6 +38,8 @@ jobs:
         run: |
           set -euo pipefail
           report="codeql-open-alerts.jsonl"
+          analyses="codeql-analyses.jsonl"
+
           gh api --paginate \
             "repos/${GITHUB_REPOSITORY}/code-scanning/alerts?tool_name=CodeQL&state=open&per_page=100" \
             --jq '.[] | {
@@ -48,16 +50,43 @@ jobs:
               html_url: .html_url,
               path: .most_recent_instance.location.path,
               start_line: .most_recent_instance.location.start_line,
-              message: .most_recent_instance.message.text
+              message: .most_recent_instance.message.text,
+              analysis_key: .most_recent_instance.analysis_key,
+              category: .most_recent_instance.category,
+              ref: .most_recent_instance.ref,
+              commit_sha: .most_recent_instance.commit_sha,
+              environment: .most_recent_instance.environment
             }' > "$report"
 
+          # Inspect analyses as well so old categories can be distinguished from the
+          # active workflow result before any cleanup is considered.
+          gh api --paginate \
+            "repos/${GITHUB_REPOSITORY}/code-scanning/analyses?tool_name=CodeQL&per_page=100" \
+            --jq '.[] | {
+              analysis_id: .id,
+              category: .category,
+              ref: .ref,
+              commit_sha: .commit_sha,
+              created_at: .created_at,
+              environment: .environment,
+              tool_name: .tool.name
+            }' > "$analyses"
+
           count="$(awk 'END { print NR+0 }' "$report")"
+          analysis_count="$(awk 'END { print NR+0 }' "$analyses")"
           {
             echo "## Open CodeQL alert inventory"
             echo ""
             echo "- Repository: ${GITHUB_REPOSITORY}"
             echo "- Reference: refs/heads/main"
             echo "- Open CodeQL alerts returned by GitHub: **$count**"
+            echo "- CodeQL analysis records returned by GitHub: **$analysis_count**"
+            echo ""
+            echo "### Analysis categories on the repository"
+            echo ""
+            echo "| Category | Ref | Created | Commit |"
+            echo "|---|---|---|---|"
+            jq -r '"| `\(.category // "unknown")` | `\(.ref // "?")` | \(.created_at // "?") | `\(.commit_sha[0:7] // "?")` |"' "$analyses"
             echo ""
             if [ "$count" -eq 0 ]; then
               echo "No open CodeQL alerts were returned by the API."
@@ -70,11 +99,15 @@ jobs:
 
           echo "Open CodeQL alerts: $count"
           cat "$report"
+          echo "CodeQL analysis records: $analysis_count"
+          cat "$analyses"
 
-      - name: Upload CodeQL alert inventory
+      - name: Upload CodeQL alert inventory and analyses
         uses: actions/upload-artifact@v4
         with:
           name: codeql-open-alert-inventory
-          path: codeql-open-alerts.jsonl
+          path: |
+            codeql-open-alerts.jsonl
+            codeql-analyses.jsonl
           if-no-files-found: error
           retention-days: 14
