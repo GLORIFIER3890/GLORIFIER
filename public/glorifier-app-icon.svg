@@ -1,54 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">GLORIFIER SERVICES</title>
-  <desc id="desc">Circular GLORIFIER SERVICES app icon with gold laurel wreaths, matching-size curved lettering, and a centered three-color orbital emblem.</desc>
+  <title id="title">GLORIFIER SERVICES — Original Profile Artwork</title>
+  <desc id="desc">Displays the original GLORIFIER profile image directly from its Gravatar source without redrawing, changing typography, recoloring, or repositioning its artwork.</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2563eb"/>
-      <stop offset="1" stop-color="#06133f"/>
-    </linearGradient>
-    <clipPath id="circle-clip"><circle cx="256" cy="256" r="250"/></clipPath>
-    <path id="title-arc" d="M 143 119 Q 256 82 369 119"/>
-    <path id="services-arc" d="M 177 410 Q 256 465 335 410"/>
+    <clipPath id="profile-circle">
+      <circle cx="256" cy="256" r="256"/>
+    </clipPath>
   </defs>
-  <g clip-path="url(#circle-clip)">
-    <circle cx="256" cy="256" r="250" fill="url(#bg)"/>
-    <circle cx="256" cy="256" r="225" fill="#06133f" stroke="#fff" stroke-width="10"/>
-    <circle cx="256" cy="256" r="207" fill="none" stroke="#22d3ee" stroke-width="3" opacity=".45"/>
-    <g font-family="Georgia,serif" font-size="32" font-weight="700" letter-spacing="1.2" fill="#fff" text-anchor="middle">
-      <text><textPath href="#title-arc" startOffset="50%">GLORIFIER</textPath></text>
-    </g>
-    <!-- Gold laurel wreaths preserved on both sides of the emblem. -->
-    <g fill="none" stroke="#d9b45b" stroke-width="3.5" stroke-linecap="round">
-      <path d="M157 365 C126 324 119 274 126 231 C131 201 143 178 159 159"/>
-      <path d="M355 365 C386 324 393 274 386 231 C381 201 369 178 353 159"/>
-    </g>
-    <g fill="#e7c66f" stroke="#9c7731" stroke-width="1">
-      <ellipse cx="133" cy="326" rx="7" ry="17" transform="rotate(-38 133 326)"/>
-      <ellipse cx="124" cy="299" rx="7" ry="17" transform="rotate(-20 124 299)"/>
-      <ellipse cx="122" cy="270" rx="7" ry="17" transform="rotate(-4 122 270)"/>
-      <ellipse cx="127" cy="242" rx="7" ry="17" transform="rotate(12 127 242)"/>
-      <ellipse cx="136" cy="216" rx="7" ry="17" transform="rotate(26 136 216)"/>
-      <ellipse cx="148" cy="192" rx="7" ry="17" transform="rotate(38 148 192)"/>
-      <ellipse cx="161" cy="174" rx="7" ry="16" transform="rotate(48 161 174)"/>
-      <ellipse cx="379" cy="326" rx="7" ry="17" transform="rotate(38 379 326)"/>
-      <ellipse cx="388" cy="299" rx="7" ry="17" transform="rotate(20 388 299)"/>
-      <ellipse cx="390" cy="270" rx="7" ry="17" transform="rotate(4 390 270)"/>
-      <ellipse cx="385" cy="242" rx="7" ry="17" transform="rotate(-12 385 242)"/>
-      <ellipse cx="376" cy="216" rx="7" ry="17" transform="rotate(-26 376 216)"/>
-      <ellipse cx="364" cy="192" rx="7" ry="17" transform="rotate(-38 364 192)"/>
-      <ellipse cx="351" cy="174" rx="7" ry="16" transform="rotate(-48 351 174)"/>
-    </g>
-    <g fill="none" stroke-width="8" stroke-linecap="round">
-      <ellipse cx="256" cy="258" rx="39" ry="91" stroke="#18d8ee"/>
-      <ellipse cx="256" cy="258" rx="94" ry="34" stroke="#18e58b" transform="rotate(-28 256 258)"/>
-      <ellipse cx="256" cy="258" rx="94" ry="34" stroke="#ef2015" transform="rotate(28 256 258)"/>
-    </g>
-    <circle cx="256" cy="258" r="17" fill="#fff"/>
-    <circle cx="174" cy="230" r="8" fill="#f1ff00"/>
-    <circle cx="338" cy="230" r="8" fill="#f1ff00"/>
-    <circle cx="256" cy="349" r="8" fill="#f1ff00"/>
-    <g font-family="Georgia,serif" font-size="32" font-weight="700" letter-spacing="1.2" fill="#fff" text-anchor="middle">
-      <text><textPath href="#services-arc" startOffset="50%">SERVICES</textPath></text>
-    </g>
+  <g clip-path="url(#profile-circle)">
+    <image
+      href="https://gravatar.com/avatar/2debdba15d0c08ab78691048092e465dc74c530e3447e3f584a23e7165272c33?s=512"
+      x="0" y="0" width="512" height="512"
+      preserveAspectRatio="xMidYMid meet"
+    />
   </g>
 </svg>
