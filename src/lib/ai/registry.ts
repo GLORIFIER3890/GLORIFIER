@@ -2,7 +2,7 @@ import { GeminiProvider } from './providers/gemini';
 import { AnthropicProvider } from './providers/anthropic';
 import { OpenAICompatibleProvider } from './providers/openai-compatible';
 import type { AIProvider, AIProviderId, ProviderRegistryEntry } from './types';
-import { discoverGlobalProviders, getGlobalProviderDiscoverySnapshot } from './provider-discovery';
+import { discoverGlobalProviders, getGlobalProviderDiscoverySnapshot, type DiscoveredProvider } from './provider-discovery';
 
 const compatibleProviders = [
   { id: 'openai', name: 'OpenAI', apiKeyEnv: 'OPENAI_API_KEY', baseUrlEnv: 'OPENAI_BASE_URL', modelEnv: 'OPENAI_MODEL', defaultBaseUrl: 'https://api.openai.com/v1', defaultModel: 'gpt-4o' },
@@ -28,12 +28,12 @@ const providers: AIProvider[] = [
 
 const providerCooldownUntil = new Map<string, number>();
 const providerLastFailure = new Map<string, string>();
-function isProviderEligible(provider: AIProvider, discovery: Map<string, any>, capability?: string): boolean {
+function isProviderEligible(provider: AIProvider, discovery: Map<string, DiscoveredProvider>, capability?: string): boolean {
   const entry = discovery.get(provider.id);
   return Boolean(entry?.authorization === 'configured' && (!capability || entry.capabilities.includes(capability)));
 }
 
-function isProviderEligibleAfterRefresh(provider: AIProvider, discovery: Map<string, any>, capability: string | undefined, attemptedProviders: string[]): boolean {
+function isProviderEligibleAfterRefresh(provider: AIProvider, discovery: Map<string, DiscoveredProvider>, capability: string | undefined, attemptedProviders: string[]): boolean {
   const entry = discovery.get(provider.id);
   return Boolean(entry?.availability === 'available' && entry.authenticated
     && isProviderEligible(provider, discovery, capability)
@@ -41,10 +41,10 @@ function isProviderEligibleAfterRefresh(provider: AIProvider, discovery: Map<str
     && !attemptedProviders.includes(provider.id));
 }
 
-function compareProviderOrder(a: AIProvider, b: AIProvider, discovery: Map<string, any>, preferredProvider?: AIProviderId): number {
+function compareProviderOrder(a: AIProvider, b: AIProvider, discovery: Map<string, DiscoveredProvider>, preferredProvider?: AIProviderId): number {
   const da = discovery.get(a.id);
   const db = discovery.get(b.id);
-  const rank = (entry: any): number => {
+  const rank = (entry: DiscoveredProvider | undefined): number => {
     if (entry?.availability === 'available' && entry.authenticated) return 0;
     if (entry?.availability === 'rate_limited') return 2;
     return 1;
