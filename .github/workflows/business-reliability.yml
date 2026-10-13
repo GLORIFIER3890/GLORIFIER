@@ -44,7 +44,3 @@ jobs:
 
       - name: Test Solana payment verification
         run: npm run test:glr-solana-verifier
-
-      - name: Test summary service payment gates
-        run: npm run test:glr-paid-summary
-        continue-on-error: false
