@@ -1,5 +1,5 @@
 export const ETHEREUM_GLR_CONTRACT = '0x9db6f9afe2f4ada50060d32d7c7c0bebbccf89eb';
-const TRANSFER_TOPIC = '['0xddf252ad1be2c89b69c2b068fc378daa', '952ba7f163c4a11628f55a4df523b3ef'].join('')';
+const TRANSFER_TOPIC = ['0xddf252ad1be2c89b69c2b068fc378daa', '952ba7f163c4a11628f55a4df523b3ef'].join('');
 
 export interface EthereumGLRVerification {
   verified: true;
