@@ -91,5 +91,8 @@ jobs:
       - name: Ethereum GLR settlement verifier tests
         run: npm run test:glr-ethereum-verifier
 
+      - name: BNB Smart Chain GLR settlement verifier tests
+        run: npm run test:glr-bnb-verifier
+
       - name: Production build
         run: npm run build
