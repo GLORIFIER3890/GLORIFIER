@@ -1,0 +1,50 @@
+name: GLORIFIER Daily Business Reliability
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-business-reliability
+  cancel-in-progress: false
+
+jobs:
+  verify-core-services:
+    name: Verify core service and settlement safeguards
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Type-check application
+        run: npm run lint
+
+      - name: Test GLR commerce quote and tariff rules
+        run: npm run test:glr-commerce
+
+      - name: Test Ethereum payment verification
+        run: npm run test:glr-ethereum-verifier
+
+      - name: Test BNB payment verification
+        run: npm run test:glr-bnb-verifier
+
+      - name: Test Solana payment verification
+        run: npm run test:glr-solana-verifier
+
+      - name: Test summary service payment gates
+        run: npm run test:glr-paid-summary
+        continue-on-error: false
