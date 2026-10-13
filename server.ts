@@ -2248,15 +2248,35 @@ app.post('/api/economy/glr/intents/:id/settlement-evidence', requireOwnerOrInter
     );
     const metadata = intentRow.rows[0]?.metadata;
     const expectedPayerWallet = typeof metadata?.payerWallet === 'string' ? metadata.payerWallet : '';
-    if (!expectedPayerWallet) {
-      return res.status(409).json({ ok: false, error: 'Payment intent must include a payerWallet address; wallet ownership proof is required before production enablement' });
+    if (!/^0x[a-fA-F0-9]{40}$/.test(expectedPayerWallet)) {
+      return res.status(409).json({ ok: false, error: 'Payment intent must include a valid payerWallet address' });
+    }
+    const pool = getPostgresPool();
+    await pool.query(`CREATE TABLE IF NOT EXISTS glorifier_glr_wallet_bindings (
+      user_id TEXT NOT NULL,
+      wallet_address TEXT NOT NULL,
+      verified_at TIMESTAMPTZ NOT NULL,
+      proof_ref TEXT NOT NULL,
+      PRIMARY KEY (user_id, wallet_address)
+    )`);
+    const binding = await pool.query(
+      `SELECT 1 FROM glorifier_glr_wallet_bindings
+       WHERE user_id=$1 AND LOWER(wallet_address)=LOWER($2) AND verified_at IS NOT NULL AND proof_ref <> ''
+       LIMIT 1`,
+      [payerUid, expectedPayerWallet]
+    );
+    if (!binding.rows[0]) {
+      return res.status(403).json({ ok: false, error: 'Ethereum wallet ownership has not been independently verified for this authenticated payer' });
     }
     const verification = await verifyEthereumGLRTransfer({
       transactionHash,
       expectedAmount: intent.amount,
       expectedPayerWallet
     });
-    const duplicate = await getPostgresPool().query(
+    await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS glorifier_glr_unique_settlement_tx_ref
+      ON glorifier_glr_payment_intents (LOWER(settlement_tx_ref))
+      WHERE settlement_tx_ref IS NOT NULL AND settlement_tx_ref <> ''`);
+    const duplicate = await pool.query(
       'SELECT id FROM glorifier_glr_payment_intents WHERE LOWER(settlement_tx_ref)=LOWER($1) AND id<>$2 LIMIT 1',
       [verification.transactionHash, intentId]
     );
