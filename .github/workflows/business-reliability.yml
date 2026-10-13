@@ -14,9 +14,9 @@ concurrency:
 
 jobs:
   verify-core-services:
-    name: Verify core service and settlement safeguards
+    name: Verify architecture, governance and settlement safeguards
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -33,8 +33,20 @@ jobs:
       - name: Type-check application
         run: npm run lint
 
-      - name: Test GLR commerce quote and tariff rules
-        run: npm run test:glr-commerce
+      - name: Test agent approval harness
+        run: npm run test:harness
+
+      - name: Test core architecture governance
+        run: npm run test:architecture
+
+      - name: Test GEAS reconciliation and controls
+        run: npm run test:geas-reconciliation && npm run test:geas-controls && npm run test:geas-enterprise-controls
+
+      - name: Test permanent orchestration stack
+        run: npm run test:permanent-stack
+
+      - name: Test GLR economic layer and commerce rules
+        run: npm run test:glr-economic-layer && npm run test:glr-commerce
 
       - name: Test Ethereum payment verification
         run: npm run test:glr-ethereum-verifier
