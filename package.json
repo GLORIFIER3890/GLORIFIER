@@ -33,7 +33,9 @@
     "test:glr-economic-layer": "tsx src/lib/glr-economic-layer.test.ts",
     "validate:geas-architecture": "tsx scripts/geas-architecture-validate.ts",
     "scan:geas-architecture": "tsx scripts/geas-architecture-scan.ts",
-    "test:currency-intelligence": "tsx src/lib/currency-intelligence.test.ts"
+    "test:currency-intelligence": "tsx src/lib/currency-intelligence.test.ts",
+    "test:glr-commerce": "tsx src/lib/glr-commerce.test.ts",
+    "test:glr-ethereum-verifier": "tsx src/lib/glr-ethereum-verifier.test.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",

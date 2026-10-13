@@ -6,7 +6,9 @@ import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import OpenAI from 'openai';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
+import { buildGLRAIServiceQuote, GLR_AI_SUMMARY_SERVICE } from './src/lib/glr-commerce';
+import { verifyEthereumGLRTransfer } from './src/lib/glr-ethereum-verifier';
 import { aiOrchestrator, runSpecialistCouncil, specialistRoles } from './src/lib/ai';
 import { executeThroughProviderRegistry } from './src/lib/ai/registry';
 import { discoverGlobalProviders, getGlobalProviderDiscoverySnapshot, getGlobalProviderDiscoveryPolicy } from './src/lib/ai/provider-discovery';
@@ -2141,6 +2143,48 @@ app.get('/api/agents', (_req: Request, res: Response) => {
   res.json(agentManifest());
 });
 
+app.get('/api/glr-commerce/quote', async (req: Request, res: Response) => {
+  try {
+    const currency = String(req.query.currency || 'USD').trim().toUpperCase();
+    if (!/^[A-Z]{3}$/.test(currency)) return apiError(res, 400, 'currency must be a three-letter ISO code');
+    let fiatRate: { currency: string; ratePerUsd: string; source: string; observedAt: string; retrievedAt: string; maxAgeSeconds: number } | null = null;
+    if (currency !== 'USD') {
+      const retrievedAt = new Date().toISOString();
+      const response = await fetch('https://open.er-api.com/v6/latest/USD', { signal: AbortSignal.timeout(5000) });
+      if (!response.ok) return apiError(res, 503, 'Fiat reference rate provider unavailable');
+      const payload: any = await response.json();
+      const rate = payload?.rates?.[currency];
+      const observedAt = Number(payload?.time_last_update_unix);
+      if (payload?.result !== 'success' || typeof rate !== 'number' || !Number.isFinite(rate) || rate <= 0 || !Number.isFinite(observedAt)) {
+        return apiError(res, 503, 'No reliable fiat reference rate is available for this currency');
+      }
+      fiatRate = {
+        currency,
+        ratePerUsd: String(rate),
+        source: 'open.er-api.com',
+        observedAt: new Date(observedAt * 1000).toISOString(),
+        retrievedAt,
+        maxAgeSeconds: 172800
+      };
+    }
+    const usdPerGlr = String(process.env.GLR_USD_PRICE || '').trim();
+    const glrPriceSource = String(process.env.GLR_USD_PRICE_SOURCE || '').trim();
+    const glrPriceObservedAt = String(process.env.GLR_USD_PRICE_OBSERVED_AT || '').trim();
+    const glrPrice = usdPerGlr && glrPriceSource && glrPriceObservedAt
+      ? { usdPerGlr, source: glrPriceSource, observedAt: glrPriceObservedAt, maxAgeSeconds: Math.min(604800, Math.max(60, Number(process.env.GLR_USD_PRICE_MAX_AGE_SECONDS) || 86400)) }
+      : null;
+    const quote = buildGLRAIServiceQuote({ currency, fiatRate, glrPrice });
+    return res.json({
+      ok: true,
+      quote,
+      payment: { amountGLR: quote.priceGLR, network: 'eip155:1', token: 'GLORIFIER (Ethereum)', executable: false },
+      settlementStatus: 'NOT VERIFIED UNTIL AN INDEPENDENT SERVER-SIDE CHAIN VERIFIER CONFIRMS THE PAYMENT'
+    });
+  } catch (error) {
+    return apiError(res, 503, 'GLR service quote unavailable', error);
+  }
+});
+
 app.get('/api/economy/glr/policy', (_req: Request, res: Response) => {
   res.json({ ok: true, policy: glrEconomicPolicy() });
 });
@@ -2188,21 +2232,202 @@ app.post('/api/economy/glr/intents/:id/commit', requireOwner, async (req: Reques
 
 app.post('/api/economy/glr/intents/:id/settlement-evidence', requireOwnerOrInternalService, async (req: Request, res: Response) => {
   try {
-    const intent = await recordGLRSettlementEvidence({
-      intentId: String(req.params.id),
-      settlementTxRef: String(req.body?.settlementTxRef || ''),
-      evidenceRef: String(req.body?.evidenceRef || ''),
-      humanAuthorized: req.body?.humanAuthorized === true,
-      network: req.body?.network ? String(req.body.network) : null,
-      // Client-submitted fields are claims, not independent verification.
-      // Until a server-side chain/provider verifier checks authoritative evidence,
-      // this endpoint must fail closed and leave settlement EVIDENCE_PENDING.
-      externallyVerified: false,
-      verificationMethod: undefined,
-      verifierRef: null
+    const intentId = String(req.params.id);
+    const intent = await getGLRPaymentIntent(intentId);
+    if (!intent) return res.status(404).json({ ok: false, error: 'GLR payment intent not found' });
+    if (!intent.humanAuthorized || !['COMMITTED', 'EVIDENCE_PENDING'].includes(intent.status)) {
+      return res.status(409).json({ ok: false, error: 'Settlement verification requires a human-authorized, committed GLR intent' });
+    }
+    if (intent.rail !== 'evm' || intent.network !== 'eip155:1') {
+      return res.status(409).json({ ok: false, error: 'Independent settlement verification is currently enabled only for Ethereum mainnet (eip155:1)' });
+    }
+    const transactionHash = String(req.body?.settlementTxRef || '').trim();
+    const intentRow = await getPostgresPool().query(
+      'SELECT metadata FROM glorifier_glr_payment_intents WHERE id=$1',
+      [intentId]
+    );
+    const metadata = intentRow.rows[0]?.metadata;
+    const expectedPayerWallet = typeof metadata?.payerWallet === 'string' ? metadata.payerWallet : '';
+    if (!/^0x[a-fA-F0-9]{40}$/.test(expectedPayerWallet)) {
+      return res.status(409).json({ ok: false, error: 'Payment intent must include a valid payerWallet address' });
+    }
+    const pool = getPostgresPool();
+    await pool.query(`CREATE TABLE IF NOT EXISTS glorifier_glr_wallet_bindings (
+      user_id TEXT NOT NULL,
+      wallet_address TEXT NOT NULL,
+      verified_at TIMESTAMPTZ NOT NULL,
+      proof_ref TEXT NOT NULL,
+      PRIMARY KEY (user_id, wallet_address)
+    )`);
+    const binding = await pool.query(
+      `SELECT 1 FROM glorifier_glr_wallet_bindings
+       WHERE user_id=$1 AND LOWER(wallet_address)=LOWER($2) AND verified_at IS NOT NULL AND proof_ref <> ''
+       LIMIT 1`,
+      [intent.payerAgentId, expectedPayerWallet]
+    );
+    if (!binding.rows[0]) {
+      return res.status(403).json({ ok: false, error: 'Ethereum wallet ownership has not been independently verified for this authenticated payer' });
+    }
+    const verification = await verifyEthereumGLRTransfer({
+      transactionHash,
+      expectedAmount: intent.amount,
+      expectedPayerWallet
     });
-    res.json({ ok: true, intent, truth: intent.truthStatus });
-  } catch (error) { return apiError(res, 400, 'GLR settlement evidence rejected', error); }
+    await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS glorifier_glr_unique_settlement_tx_ref
+      ON glorifier_glr_payment_intents (LOWER(settlement_tx_ref))
+      WHERE settlement_tx_ref IS NOT NULL AND settlement_tx_ref <> ''`);
+    const duplicate = await pool.query(
+      'SELECT id FROM glorifier_glr_payment_intents WHERE LOWER(settlement_tx_ref)=LOWER($1) AND id<>$2 LIMIT 1',
+      [verification.transactionHash, intentId]
+    );
+    if (duplicate.rows[0]) return res.status(409).json({ ok: false, error: 'This transaction has already been linked to another GLR payment intent' });
+
+    const settled = await recordGLRSettlementEvidence({
+      intentId,
+      settlementTxRef: verification.transactionHash,
+      evidenceRef: verification.evidenceRef,
+      humanAuthorized: intent.humanAuthorized,
+      network: verification.network,
+      externallyVerified: true,
+      verificationMethod: 'chain-rpc',
+      verifierRef: `ethereum-rpc:${verification.verifier}:chainId:1`
+    });
+    return res.json({
+      ok: true,
+      intent: settled,
+      truth: settled.truthStatus,
+      independentVerification: {
+        network: verification.network,
+        tokenContract: verification.tokenContract,
+        recipient: verification.recipient,
+        amountGLR: verification.amountGLR,
+        blockNumber: verification.blockNumber,
+        confirmations: verification.confirmations,
+        evidenceRef: verification.evidenceRef
+      }
+    });
+  } catch (error) {
+    return apiError(res, 400, 'Ethereum GLR settlement verification failed closed', error);
+  }
+});
+
+app.post('/api/glr-commerce/ai-summary', requireAuthentication, async (req: Request, res: Response) => {
+  const payerUid = String((req as any).auth?.uid || '').trim();
+  if (!payerUid) return res.status(401).json({ ok: false, error: 'Authentication required' });
+  const intentId = String(req.body?.intentId || '').trim();
+  const prompt = String(req.body?.prompt || '').trim();
+  if (!intentId || !prompt) return apiError(res, 400, 'intentId and prompt are required');
+  if (prompt.length > GLR_AI_SUMMARY_SERVICE.maxPromptCharacters) {
+    return apiError(res, 413, `prompt exceeds ${GLR_AI_SUMMARY_SERVICE.maxPromptCharacters} characters`);
+  }
+
+  try {
+    const intent = await getGLRPaymentIntent(intentId);
+    if (!intent) return res.status(404).json({ ok: false, error: 'GLR payment intent not found' });
+    if (intent.payerAgentId !== payerUid) return res.status(403).json({ ok: false, error: 'Payment intent does not belong to the authenticated payer' });
+    if (intent.payeeAgentId !== 'glorifier-ai-service'
+      || intent.taskRef !== GLR_AI_SUMMARY_SERVICE.taskRef
+      || intent.amount !== GLR_AI_SUMMARY_SERVICE.priceGLR) {
+      return res.status(409).json({ ok: false, error: 'Payment intent does not match the published AI-summary service tariff' });
+    }
+    if (intent.rail !== 'evm' || intent.network !== 'eip155:1') {
+      return res.status(409).json({ ok: false, error: 'The initial paid-service pilot accepts only the Ethereum mainnet GLR rail (eip155:1)' });
+    }
+    if (intent.status !== 'SETTLED' || intent.truthStatus !== 'VERIFIED' || !intent.humanAuthorized || !intent.settlementTxRef) {
+      return res.status(409).json({
+        ok: false,
+        error: 'Payment is not independently verified; AI service execution is blocked',
+        settlement: { status: intent.status, truthStatus: intent.truthStatus, transactionRefPresent: Boolean(intent.settlementTxRef) }
+      });
+    }
+
+    const promptHash = createHash('sha256').update(prompt, 'utf8').digest('hex');
+    const pool = getPostgresPool();
+    await pool.query(`CREATE TABLE IF NOT EXISTS glorifier_glr_service_redemptions (
+      intent_id TEXT PRIMARY KEY,
+      payer_uid TEXT NOT NULL,
+      service_id TEXT NOT NULL,
+      prompt_sha256 TEXT NOT NULL,
+      status TEXT NOT NULL CHECK (status IN ('PROCESSING','SUCCEEDED','FAILED')),
+      response_text TEXT,
+      provider TEXT,
+      model TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )`);
+    const inserted = await pool.query(
+      `INSERT INTO glorifier_glr_service_redemptions
+        (intent_id,payer_uid,service_id,prompt_sha256,status)
+       VALUES ($1,$2,$3,$4,'PROCESSING')
+       ON CONFLICT (intent_id) DO NOTHING
+       RETURNING intent_id`,
+      [intent.id, payerUid, GLR_AI_SUMMARY_SERVICE.id, promptHash]
+    );
+    if (!inserted.rows[0]) {
+      const existing = (await pool.query(
+        'SELECT * FROM glorifier_glr_service_redemptions WHERE intent_id=$1',
+        [intent.id]
+      )).rows[0];
+      if (!existing || existing.payer_uid !== payerUid || existing.service_id !== GLR_AI_SUMMARY_SERVICE.id
+        || existing.prompt_sha256 !== promptHash) {
+        return res.status(409).json({ ok: false, error: 'Payment intent has already been used for a different request' });
+      }
+      if (existing.status === 'SUCCEEDED') {
+        return res.json({ ok: true, service: GLR_AI_SUMMARY_SERVICE.id, output: existing.response_text, provider: existing.provider, model: existing.model, cached: true, paymentIntentId: intent.id });
+      }
+      if (existing.status === 'PROCESSING') {
+        return res.status(409).json({ ok: false, error: 'A redemption for this payment is already processing' });
+      }
+      const retry = await pool.query(
+        `UPDATE glorifier_glr_service_redemptions SET status='PROCESSING',updated_at=NOW()
+         WHERE intent_id=$1 AND status='FAILED' RETURNING intent_id`,
+        [intent.id]
+      );
+      if (!retry.rows[0]) return res.status(409).json({ ok: false, error: 'Payment redemption is already being processed' });
+    }
+
+    let execution: Awaited<ReturnType<typeof runModelExecution>>;
+    try {
+      execution = await runModelExecution({
+        model: 'auto' as any,
+        systemPrompt: 'You are GLORIFIER AI Summary, a paid AI service. Produce a clear, accurate summary of the user-provided text. Do not claim external verification, perform actions, or invent facts. State uncertainty when needed. The result is advisory.',
+        userPrompt: prompt,
+        temperature: 0.2
+      });
+    } catch {
+      await pool.query(
+        `UPDATE glorifier_glr_service_redemptions SET status='FAILED',updated_at=NOW() WHERE intent_id=$1 AND status='PROCESSING'`,
+        [intent.id]
+      );
+      return res.status(503).json({ ok: false, error: 'AI provider unavailable; no paid service result was delivered', retryable: true });
+    }
+    if (execution.executionStatus !== 'success' || !execution.text?.trim()) {
+      await pool.query(
+        `UPDATE glorifier_glr_service_redemptions SET status='FAILED',updated_at=NOW() WHERE intent_id=$1 AND status='PROCESSING'`,
+        [intent.id]
+      );
+      return res.status(503).json({ ok: false, error: 'AI provider unavailable; no paid service result was delivered', retryable: true });
+    }
+    await pool.query(
+      `UPDATE glorifier_glr_service_redemptions
+       SET status='SUCCEEDED',response_text=$2,provider=$3,model=$4,updated_at=NOW()
+       WHERE intent_id=$1 AND status='PROCESSING'`,
+      [intent.id, execution.text, execution.provider, execution.modelUsed]
+    );
+    return res.json({
+      ok: true,
+      service: GLR_AI_SUMMARY_SERVICE.id,
+      serviceVersion: GLR_AI_SUMMARY_SERVICE.version,
+      output: execution.text,
+      provider: execution.provider,
+      model: execution.modelUsed,
+      cached: false,
+      paymentIntentId: intent.id,
+      settlement: { status: intent.status, truthStatus: intent.truthStatus, transactionRef: intent.settlementTxRef }
+    });
+  } catch (error) {
+    return apiError(res, 503, 'GLR paid AI service unavailable', error);
+  }
 });
 
 app.get('/api/federated-a2a/v3/policy', (_req: Request, res: Response) => {
