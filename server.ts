@@ -8,6 +8,7 @@ import { GoogleGenAI } from '@google/genai';
 import OpenAI from 'openai';
 import { createHash, randomUUID } from 'node:crypto';
 import { buildGLRAIServiceQuote, GLR_AI_SUMMARY_SERVICE } from './src/lib/glr-commerce';
+import { verifyEthereumGLRTransfer } from './src/lib/glr-ethereum-verifier';
 import { aiOrchestrator, runSpecialistCouncil, specialistRoles } from './src/lib/ai';
 import { executeThroughProviderRegistry } from './src/lib/ai/registry';
 import { discoverGlobalProviders, getGlobalProviderDiscoverySnapshot, getGlobalProviderDiscoveryPolicy } from './src/lib/ai/provider-discovery';
@@ -2231,21 +2232,53 @@ app.post('/api/economy/glr/intents/:id/commit', requireOwner, async (req: Reques
 
 app.post('/api/economy/glr/intents/:id/settlement-evidence', requireOwnerOrInternalService, async (req: Request, res: Response) => {
   try {
-    const intent = await recordGLRSettlementEvidence({
-      intentId: String(req.params.id),
-      settlementTxRef: String(req.body?.settlementTxRef || ''),
-      evidenceRef: String(req.body?.evidenceRef || ''),
-      humanAuthorized: req.body?.humanAuthorized === true,
-      network: req.body?.network ? String(req.body.network) : null,
-      // Client-submitted fields are claims, not independent verification.
-      // Until a server-side chain/provider verifier checks authoritative evidence,
-      // this endpoint must fail closed and leave settlement EVIDENCE_PENDING.
-      externallyVerified: false,
-      verificationMethod: undefined,
-      verifierRef: null
+    const intentId = String(req.params.id);
+    const intent = await getGLRPaymentIntent(intentId);
+    if (!intent) return res.status(404).json({ ok: false, error: 'GLR payment intent not found' });
+    if (!intent.humanAuthorized || !['COMMITTED', 'EVIDENCE_PENDING'].includes(intent.status)) {
+      return res.status(409).json({ ok: false, error: 'Settlement verification requires a human-authorized, committed GLR intent' });
+    }
+    if (intent.rail !== 'evm' || intent.network !== 'eip155:1') {
+      return res.status(409).json({ ok: false, error: 'Independent settlement verification is currently enabled only for Ethereum mainnet (eip155:1)' });
+    }
+    const transactionHash = String(req.body?.settlementTxRef || '').trim();
+    const verification = await verifyEthereumGLRTransfer({
+      transactionHash,
+      expectedAmount: intent.amount
     });
-    res.json({ ok: true, intent, truth: intent.truthStatus });
-  } catch (error) { return apiError(res, 400, 'GLR settlement evidence rejected', error); }
+    const duplicate = await getPostgresPool().query(
+      'SELECT id FROM glorifier_glr_payment_intents WHERE LOWER(settlement_tx_ref)=LOWER($1) AND id<>$2 LIMIT 1',
+      [verification.transactionHash, intentId]
+    );
+    if (duplicate.rows[0]) return res.status(409).json({ ok: false, error: 'This transaction has already been linked to another GLR payment intent' });
+
+    const settled = await recordGLRSettlementEvidence({
+      intentId,
+      settlementTxRef: verification.transactionHash,
+      evidenceRef: verification.evidenceRef,
+      humanAuthorized: intent.humanAuthorized,
+      network: verification.network,
+      externallyVerified: true,
+      verificationMethod: 'chain-rpc',
+      verifierRef: `ethereum-rpc:${verification.verifier}:chainId:1`
+    });
+    return res.json({
+      ok: true,
+      intent: settled,
+      truth: settled.truthStatus,
+      independentVerification: {
+        network: verification.network,
+        tokenContract: verification.tokenContract,
+        recipient: verification.recipient,
+        amountGLR: verification.amountGLR,
+        blockNumber: verification.blockNumber,
+        confirmations: verification.confirmations,
+        evidenceRef: verification.evidenceRef
+      }
+    });
+  } catch (error) {
+    return apiError(res, 400, 'Ethereum GLR settlement verification failed closed', error);
+  }
 });
 
 app.post('/api/glr-commerce/ai-summary', requireAuthentication, async (req: Request, res: Response) => {
