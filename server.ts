@@ -2268,9 +2268,11 @@ app.post('/api/economy/glr/intents/:id/settlement-evidence', requireOwnerOrInter
     )`);
     const binding = await pool.query(
       `SELECT 1 FROM glorifier_glr_wallet_bindings
-       WHERE user_id=$1 AND LOWER(wallet_address)=LOWER($2) AND verified_at IS NOT NULL AND proof_ref <> ''
+       WHERE user_id=$1
+         AND (CASE WHEN $3='solana:mainnet' THEN wallet_address=$2 ELSE LOWER(wallet_address)=LOWER($2) END)
+         AND verified_at IS NOT NULL AND proof_ref <> ''
        LIMIT 1`,
-      [intent.payerAgentId, expectedPayerWallet]
+      [intent.payerAgentId, expectedPayerWallet, intent.network]
     );
     if (!binding.rows[0]) {
       return res.status(403).json({ ok: false, error: 'Payer wallet ownership has not been independently verified for this authenticated payer' });
