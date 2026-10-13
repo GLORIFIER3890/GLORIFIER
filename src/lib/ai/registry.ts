@@ -55,12 +55,18 @@ const compareProviderOrder = (a: AIProvider, b: AIProvider, discovery: Map<strin
 };
 
 
-function parseRetryAfterMs(error: unknown): number | null {
+const parseRetryAfterMs = (error: unknown): number | null => {
   const message = error instanceof Error ? error.message : String(error);
   const match = message.match(/retry(?: after| in)?\s+(\d+(?:\.\d+)?)\s*s/i);
   if (!match) return null;
   return Math.min(Math.max(Number(match[1]) * 1000, 5_000), 15 * 60_000);
-}
+};
+
+const getProviderAvailability = (error: unknown): string | undefined => {
+  if (typeof error !== 'object' || error === null || !('providerAvailability' in error)) return undefined;
+  const availability = error.providerAvailability;
+  return typeof availability === 'string' ? availability : undefined;
+};
 
 const cooldownFor = (error: unknown): number => {
   const retryAfter = parseRetryAfterMs(error);
@@ -74,14 +80,14 @@ const cooldownFor = (error: unknown): number => {
   return rules.find(([pattern]) => pattern.test(message))?.[1] ?? 10_000;
 };
 
-function isCoolingDown(providerId: string): boolean {
+const isCoolingDown = (providerId: string): boolean => {
   const until = providerCooldownUntil.get(providerId) || 0;
   if (until <= Date.now()) {
     providerCooldownUntil.delete(providerId);
     return false;
   }
   return true;
-}
+};
 
 export function getProviderCircuitStatus() {
   const now = Date.now();
@@ -215,7 +221,7 @@ export async function executeThroughProviderRegistry(
       errors.push(`${provider.id}: empty response`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      const availability = (error as any)?.providerAvailability;
+      const availability = getProviderAvailability(error);
       providerStatuses[provider.id] = availability === 'unavailable' ? 'unavailable' : 'error';
       errors.push(`${provider.id}: ${message}`);
       providerCooldownUntil.set(provider.id, Date.now() + cooldownFor(error));
