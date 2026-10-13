@@ -2267,7 +2267,7 @@ app.post('/api/economy/glr/intents/:id/settlement-evidence', requireOwnerOrInter
       [intent.payerAgentId, expectedPayerWallet]
     );
     if (!binding.rows[0]) {
-      return res.status(403).json({ ok: false, error: 'Ethereum wallet ownership has not been independently verified for this authenticated payer' });
+      return res.status(403).json({ ok: false, error: 'Payer wallet ownership has not been independently verified for this authenticated payer' });
     }
     const verification = intent.network === 'eip155:56'
       ? await verifyBnbGLRTransfer({ transactionHash, expectedAmount: intent.amount, expectedPayerWallet })
