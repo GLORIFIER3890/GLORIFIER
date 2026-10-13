@@ -9,6 +9,7 @@ import OpenAI from 'openai';
 import { createHash, randomUUID } from 'node:crypto';
 import { buildGLRAIServiceQuote, GLR_AI_SUMMARY_SERVICE } from './src/lib/glr-commerce';
 import { verifyEthereumGLRTransfer } from './src/lib/glr-ethereum-verifier';
+import { verifyBnbGLRTransfer } from './src/lib/glr-bnb-verifier';
 import { aiOrchestrator, runSpecialistCouncil, specialistRoles } from './src/lib/ai';
 import { executeThroughProviderRegistry } from './src/lib/ai/registry';
 import { discoverGlobalProviders, getGlobalProviderDiscoverySnapshot, getGlobalProviderDiscoveryPolicy } from './src/lib/ai/provider-discovery';
@@ -2238,8 +2239,8 @@ app.post('/api/economy/glr/intents/:id/settlement-evidence', requireOwnerOrInter
     if (!intent.humanAuthorized || !['COMMITTED', 'EVIDENCE_PENDING'].includes(intent.status)) {
       return res.status(409).json({ ok: false, error: 'Settlement verification requires a human-authorized, committed GLR intent' });
     }
-    if (intent.rail !== 'evm' || intent.network !== 'eip155:1') {
-      return res.status(409).json({ ok: false, error: 'Independent settlement verification is currently enabled only for Ethereum mainnet (eip155:1)' });
+    if (intent.rail !== 'evm' || !['eip155:1', 'eip155:56'].includes(intent.network)) {
+      return res.status(409).json({ ok: false, error: 'Independent settlement verification is enabled only for Ethereum mainnet (eip155:1) and BNB Smart Chain mainnet (eip155:56)' });
     }
     const transactionHash = String(req.body?.settlementTxRef || '').trim();
     const intentRow = await getPostgresPool().query(
@@ -2268,11 +2269,9 @@ app.post('/api/economy/glr/intents/:id/settlement-evidence', requireOwnerOrInter
     if (!binding.rows[0]) {
       return res.status(403).json({ ok: false, error: 'Ethereum wallet ownership has not been independently verified for this authenticated payer' });
     }
-    const verification = await verifyEthereumGLRTransfer({
-      transactionHash,
-      expectedAmount: intent.amount,
-      expectedPayerWallet
-    });
+    const verification = intent.network === 'eip155:56'
+      ? await verifyBnbGLRTransfer({ transactionHash, expectedAmount: intent.amount, expectedPayerWallet })
+      : await verifyEthereumGLRTransfer({ transactionHash, expectedAmount: intent.amount, expectedPayerWallet });
     await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS glorifier_glr_unique_settlement_tx_ref
       ON glorifier_glr_payment_intents (LOWER(settlement_tx_ref))
       WHERE settlement_tx_ref IS NOT NULL AND settlement_tx_ref <> ''`);
@@ -2290,7 +2289,7 @@ app.post('/api/economy/glr/intents/:id/settlement-evidence', requireOwnerOrInter
       network: verification.network,
       externallyVerified: true,
       verificationMethod: 'chain-rpc',
-      verifierRef: `ethereum-rpc:${verification.verifier}:chainId:1`
+      verifierRef: `${intent.network === 'eip155:56' ? 'bnb-rpc' : 'ethereum-rpc'}:${verification.verifier}:chainId:${intent.network === 'eip155:56' ? '56' : '1'}`
     });
     return res.json({
       ok: true,
