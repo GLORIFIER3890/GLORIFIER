@@ -2292,39 +2292,29 @@ app.post('/api/glr-commerce/ai-summary', requireAuthentication, async (req: Requ
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )`);
-    await pool.query(
+    const inserted = await pool.query(
       `INSERT INTO glorifier_glr_service_redemptions
         (intent_id,payer_uid,service_id,prompt_sha256,status)
        VALUES ($1,$2,$3,$4,'PROCESSING')
-       ON CONFLICT (intent_id) DO NOTHING`,
+       ON CONFLICT (intent_id) DO NOTHING
+       RETURNING intent_id`,
       [intent.id, payerUid, GLR_AI_SUMMARY_SERVICE.id, promptHash]
     );
-    let redemption = (await pool.query(
-      'SELECT * FROM glorifier_glr_service_redemptions WHERE intent_id=$1',
-      [intent.id]
-    )).rows[0];
-    if (!redemption || redemption.payer_uid !== payerUid || redemption.service_id !== GLR_AI_SUMMARY_SERVICE.id
-      || redemption.prompt_sha256 !== promptHash) {
-      return res.status(409).json({ ok: false, error: 'Payment intent has already been used for a different request' });
-    }
-    if (redemption.status === 'SUCCEEDED') {
-      return res.json({ ok: true, service: GLR_AI_SUMMARY_SERVICE.id, output: redemption.response_text, provider: redemption.provider, model: redemption.model, cached: true, paymentIntentId: intent.id });
-    }
-    if (redemption.status === 'PROCESSING') {
-      // A row created by this request is also PROCESSING. Claim it atomically with a conditional update.
-      const claimed = await pool.query(
-        `UPDATE glorifier_glr_service_redemptions SET updated_at=NOW()
-         WHERE intent_id=$1 AND status='PROCESSING' AND created_at < NOW() - INTERVAL '1 second'
-         RETURNING intent_id`,
+    if (!inserted.rows[0]) {
+      const existing = (await pool.query(
+        'SELECT * FROM glorifier_glr_service_redemptions WHERE intent_id=$1',
         [intent.id]
-      );
-      if (!claimed.rows[0]) {
-        const current = await pool.query('SELECT created_at FROM glorifier_glr_service_redemptions WHERE intent_id=$1', [intent.id]);
-        const createdAt = new Date(current.rows[0]?.created_at || Date.now()).getTime();
-        if (Date.now() - createdAt > 1000) return res.status(409).json({ ok: false, error: 'A redemption for this payment is already processing' });
+      )).rows[0];
+      if (!existing || existing.payer_uid !== payerUid || existing.service_id !== GLR_AI_SUMMARY_SERVICE.id
+        || existing.prompt_sha256 !== promptHash) {
+        return res.status(409).json({ ok: false, error: 'Payment intent has already been used for a different request' });
       }
-    }
-    if (redemption.status === 'FAILED') {
+      if (existing.status === 'SUCCEEDED') {
+        return res.json({ ok: true, service: GLR_AI_SUMMARY_SERVICE.id, output: existing.response_text, provider: existing.provider, model: existing.model, cached: true, paymentIntentId: intent.id });
+      }
+      if (existing.status === 'PROCESSING') {
+        return res.status(409).json({ ok: false, error: 'A redemption for this payment is already processing' });
+      }
       const retry = await pool.query(
         `UPDATE glorifier_glr_service_redemptions SET status='PROCESSING',updated_at=NOW()
          WHERE intent_id=$1 AND status='FAILED' RETURNING intent_id`,
@@ -2333,12 +2323,21 @@ app.post('/api/glr-commerce/ai-summary', requireAuthentication, async (req: Requ
       if (!retry.rows[0]) return res.status(409).json({ ok: false, error: 'Payment redemption is already being processed' });
     }
 
-    const execution = await runModelExecution({
-      model: 'auto' as any,
-      systemPrompt: 'You are GLORIFIER AI Summary, a paid AI service. Produce a clear, accurate summary of the user-provided text. Do not claim external verification, perform actions, or invent facts. State uncertainty when needed. The result is advisory.',
-      userPrompt: prompt,
-      temperature: 0.2
-    });
+    let execution: Awaited<ReturnType<typeof runModelExecution>>;
+    try {
+      execution = await runModelExecution({
+        model: 'auto' as any,
+        systemPrompt: 'You are GLORIFIER AI Summary, a paid AI service. Produce a clear, accurate summary of the user-provided text. Do not claim external verification, perform actions, or invent facts. State uncertainty when needed. The result is advisory.',
+        userPrompt: prompt,
+        temperature: 0.2
+      });
+    } catch (providerError) {
+      await pool.query(
+        `UPDATE glorifier_glr_service_redemptions SET status='FAILED',updated_at=NOW() WHERE intent_id=$1 AND status='PROCESSING'`,
+        [intent.id]
+      );
+      return res.status(503).json({ ok: false, error: 'AI provider unavailable; no paid service result was delivered', retryable: true });
+    }
     if (execution.executionStatus !== 'success' || !execution.text?.trim()) {
       await pool.query(
         `UPDATE glorifier_glr_service_redemptions SET status='FAILED',updated_at=NOW() WHERE intent_id=$1 AND status='PROCESSING'`,
