@@ -2305,10 +2305,10 @@ app.post('/api/economy/glr/intents/:id/settlement-evidence', requireOwnerOrInter
       truth: settled.truthStatus,
       independentVerification: {
         network: verification.network,
-        asset: isSupportedSolana ? verification.mint : verification.tokenContract,
+        asset: 'mint' in verification ? verification.mint : verification.tokenContract,
         recipient: verification.recipient,
         amountGLR: verification.amountGLR,
-        ...(isSupportedSolana ? { slot: verification.slot, finality: 'finalized', decimals: verification.decimals } : { blockNumber: verification.blockNumber, confirmations: verification.confirmations }),
+        ...('slot' in verification ? { slot: verification.slot, finality: 'finalized', decimals: verification.decimals } : { blockNumber: verification.blockNumber, confirmations: verification.confirmations }),
         evidenceRef: verification.evidenceRef
       }
     });
