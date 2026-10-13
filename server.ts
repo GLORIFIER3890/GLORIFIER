@@ -2242,9 +2242,19 @@ app.post('/api/economy/glr/intents/:id/settlement-evidence', requireOwnerOrInter
       return res.status(409).json({ ok: false, error: 'Independent settlement verification is currently enabled only for Ethereum mainnet (eip155:1)' });
     }
     const transactionHash = String(req.body?.settlementTxRef || '').trim();
+    const intentRow = await getPostgresPool().query(
+      'SELECT metadata FROM glorifier_glr_payment_intents WHERE id=$1',
+      [intentId]
+    );
+    const metadata = intentRow.rows[0]?.metadata;
+    const expectedPayerWallet = typeof metadata?.payerWallet === 'string' ? metadata.payerWallet : '';
+    if (!expectedPayerWallet) {
+      return res.status(409).json({ ok: false, error: 'Payment intent must include a payerWallet address; wallet ownership proof is required before production enablement' });
+    }
     const verification = await verifyEthereumGLRTransfer({
       transactionHash,
-      expectedAmount: intent.amount
+      expectedAmount: intent.amount,
+      expectedPayerWallet
     });
     const duplicate = await getPostgresPool().query(
       'SELECT id FROM glorifier_glr_payment_intents WHERE LOWER(settlement_tx_ref)=LOWER($1) AND id<>$2 LIMIT 1',
