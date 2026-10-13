@@ -17,10 +17,10 @@ const recipientTopic = '0x' + recipient.slice(2).padStart(64, '0');
 const payerTopic = '0x' + payer.slice(2).padStart(64, '0');
 const payloads: Record<string, unknown> = {
   eth_chainId: '0x1',
+  eth_getTransactionByHash: { hash: txHash, to: ETHEREUM_GLR_CONTRACT },
   eth_getTransactionReceipt: {
     transactionHash: txHash,
     status: '0x1',
-    to: ETHEREUM_GLR_CONTRACT,
     blockNumber: '0x64',
     logs: [{
       address: ETHEREUM_GLR_CONTRACT,
