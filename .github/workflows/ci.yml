@@ -85,5 +85,8 @@ jobs:
       - name: Currency intelligence arithmetic and fail-closed quote tests
         run: npm run test:currency-intelligence
 
+      - name: GLR commerce quote and decimal tests
+        run: npm run test:glr-commerce
+
       - name: Production build
         run: npm run build
