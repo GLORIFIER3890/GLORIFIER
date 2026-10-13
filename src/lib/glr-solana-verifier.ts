@@ -16,7 +16,7 @@ export interface SolanaGLRVerification {
 }
 
 export function solanaGLRAmountToBaseUnits(amount: string): bigint {
-  if (!/^(?:0|[1-9]\d*)(?:\\.\d{1,9})?$/.test(amount)) {
+  if (!/^(?:0|[1-9]\d*)(?:\.\d{1,9})?$/.test(amount)) {
     throw new Error('GLR amount must be a decimal string with at most 9 decimals on Solana');
   }
   const [whole, fraction = ''] = amount.split('.');
