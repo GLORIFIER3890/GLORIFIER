@@ -72,7 +72,7 @@ export async function verifyBnbGLRTransfer(input: {
   }
   const receipt: any = await rpc('eth_getTransactionReceipt', [txHash]);
   if (!receipt) throw new Error('BNB transaction is not mined');
-  if (String(receipt.status).toLowerCase() !== '0x38') throw new Error('BNB transaction failed');
+  if (String(receipt.status).toLowerCase() !== '0x1') throw new Error('BNB transaction failed');
   if (String(receipt.transactionHash).toLowerCase() !== txHash.toLowerCase()) throw new Error('RPC receipt hash mismatch');
   const blockNumber = Number(BigInt(String(receipt.blockNumber)));
   if (!Number.isSafeInteger(blockNumber) || blockNumber <= 0) throw new Error('BNB receipt block number is invalid');
