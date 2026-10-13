@@ -92,3 +92,18 @@ Never compare raw integer token amounts across networks without converting using
 - [Blockchain Security Standards Council](https://specs.blockchainssc.org/) — security, key management and token integration guidance.
 
 These references are design inputs, not endorsements or proof that any bridge or integration is suitable for GLR.
+
+
+## Implemented API prototype (behind merge and deployment gates)
+
+- `GET /api/glr-commerce/quote?currency=USD` — returns the published 1 GLR service tariff and USD reference. Other three-letter currencies use the Open ER API USD reference feed, with the source observation timestamp and a 48-hour freshness window. Provider failure returns an error rather than inventing a rate.
+- `GET /api/glr-commerce/quote?currency=LAK` — attempts the same USD-to-LAK reference conversion when the provider supplies a fresh LAK rate. This is not a bank FX offer.
+- `POST /api/glr-commerce/ai-summary` — requires authentication and a payment intent owned by that payer, with the exact service tariff, payee, Ethereum mainnet rail, and a persisted `SETTLED / VERIFIED` state. It uses the configured live AI provider registry; if providers are unavailable, no successful output is fabricated.
+- Redemption records are stored in PostgreSQL with a unique payment-intent key, prompt hash, and idempotent result cache to prevent one verified intent from paying for repeated or different requests.
+- The endpoint intentionally rejects intents that have not already been independently verified. The current evidence-submission route remains fail-closed, so the paid service cannot process real payments until the independent Ethereum verifier is implemented and released.
+
+### Optional GLR/USD reference feed configuration
+
+Set `GLR_USD_PRICE`, `GLR_USD_PRICE_SOURCE`, and `GLR_USD_PRICE_OBSERVED_AT` only when an operator has an actual rate observation from a documented source. Optionally set `GLR_USD_PRICE_MAX_AGE_SECONDS` (default 86400; capped at 604800). These environment values are operator-supplied evidence, not independently verified market data. If absent, the API shows no GLR fiat valuation.
+
+The service tariff is currently **1 GLR per summary** and the USD tariff reference is **$0.05**. That is a service-pricing proposal, not a market valuation, redemption commitment, or peg. Do not launch a production paid-service promise until the server-side verifier and end-to-end tests are complete.
