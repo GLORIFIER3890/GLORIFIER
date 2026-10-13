@@ -16,11 +16,11 @@ This document separates automated checks from proven production outcomes. Passin
 | Verified revenue | A reconciled ledger record is backed by a verified settlement and service outcome. Forecasts, quotes, token balances, offers and test transactions are not revenue. |
 | Production autonomy | Agents may perform bounded, reversible, non-financial tasks under least privilege. Production releases, credential changes, external commitments, wallet signing, transfers, payouts, supply/authority changes and other irreversible financial/blockchain actions require explicit owner authorization. |
 
-## Daily workflow
+## Daily architecture reliability workflow
 
-`.github/workflows/business-reliability.yml` runs every day and on manual dispatch. It type-checks the repository and runs GLR commerce and Ethereum, BNB and Solana verifier tests. It deliberately does not make a live payment or change production infrastructure.
+`.github/workflows/business-reliability.yml` runs daily and supports manual dispatch. It type-checks the application and exercises existing tests for the agent approval harness, core architecture governance, GEAS reconciliation/controls/scientist, A2A and discovery networks, GLR economic/commerce rules, and Ethereum, BNB and Solana payment verification. The job is read-only and does not make live payments or change production infrastructure.
 
-A green workflow is a software-regression signal only. A live application health URL and deployment credentials have not been assumed; add a separately configured, read-only health probe once the production endpoint and expected response contract are verified.
+A green workflow is a software-regression signal only. A live application health URL and deployment credentials have not been assumed; add a separately configured, read-only health probe once the production endpoint and expected response contract are verified. Monitoring should not report a live service as healthy based on CI alone.
 
 ## Paid AI summary acceptance test
 
@@ -38,11 +38,14 @@ The proposed tariff is **1 GLR per summary**. Any **$0.05 USD** figure is a serv
 
 ## Customer acquisition and onboarding
 
-Start with one narrowly defined summary use case and a public demo. Invite a small number of relevant developers or businesses to test it, explain that live payments are not proven until the acceptance test passes, and collect consented feedback. Track lead source, consent, demo completion, trial status, onboarding status, support issue, and verified paid conversion. Do not label a lead or quote as a customer or revenue.
+Start with one narrowly defined summary use case and a public demo. Invite a small number of relevant developers or businesses to test it, explain that live payments are not proven until the acceptance test passes, and collect consented feedback. Track lead source, consent, demo completion, trial status, onboarding status, support issue, and verified paid conversion. Do not label a lead or quote as a customer or revenue, and do not automate unsolicited bulk outreach.
 
-## Human authority and safety boundaries
+## Autonomy boundaries across the architecture
 
-Automation may gather evidence, run tests, draft changes, open a pull request, and recommend reversible repairs. It must not bypass branch protection or required checks. Keep production deployments behind repository/environment controls. Keep wallet private keys and provider credentials out of source code and logs. Do not permit an AI agent to autonomously sign transactions, transfer funds, issue payouts, trade assets, alter token supply/authorities, or make legal/financial commitments.
+- **May run autonomously:** scheduled tests and read-only health checks; architecture drift detection; evidence collection; provider-health observations; non-sensitive reporting; reversible code/documentation fixes on a branch; opening a PR; deduplicated incident tickets; draft onboarding materials; consent-based lead tracking; and reconciliation reports.
+- **Must fail closed:** missing/ambiguous identity, policy, price, payer, recipient, network, finality, idempotency, provider output, or audit evidence. Label unsupported conclusions `UNKNOWN` or `NOT VERIFIED`.
+- **Requires explicit owner authorization:** merging when required checks are not green; production releases or infrastructure changes; credential changes; external messages/commitments; wallet signing; transfers, payouts, trading; token supply/authority changes; deletion or other irreversible operations.
+- **Operational requirements:** least-privilege service identities, separate staging and production credentials, redacted logs, immutable request/intent IDs, idempotency keys, retry limits, bounded budgets, timeouts, rollback plans, and a human escalation path. Never place secrets in source code or logs.
 
 ## Remaining proof
 
