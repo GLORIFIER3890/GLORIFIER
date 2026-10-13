@@ -114,7 +114,10 @@ export function buildGLRAIServiceQuote(input: {
     const rate = parseDecimal(input.fiatRate.ratePerUsd, 'Fiat rate');
     if (rate.units > 0n && isFresh(input.fiatRate.observedAt, input.fiatRate.retrievedAt, input.fiatRate.maxAgeSeconds, now)) {
       const scale = Math.min(6, Math.max(0, rate.scale));
-      const amountUnits = 5n * rate.units * pow10(scale);
+      // ratePerUsd is foreign-currency units per 1 USD. The service tariff
+      // is USD 0.05, so convert as 5 / 100 * rate, then round to the
+      // display precision. Do not multiply by 10^scale twice.
+      const amountUnits = 5n * rate.units;
       const divisor = pow10(rate.scale + 2);
       const rounded = (amountUnits + divisor / 2n) / divisor;
       fiatReferenceAmount = formatDecimal(rounded, scale);
