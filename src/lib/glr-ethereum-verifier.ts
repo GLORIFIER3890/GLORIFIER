@@ -1,5 +1,3 @@
-import { GLR_AI_SUMMARY_SERVICE } from './glr-commerce';
-
 export const ETHEREUM_GLR_CONTRACT = '0x9db6f9afe2f4ada50060d32d7c7c0bebbccf89eb';
 const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 
@@ -32,6 +30,7 @@ function addressTopic(address: string): string {
 export async function verifyEthereumGLRTransfer(input: {
   transactionHash: string;
   expectedAmount: string;
+  expectedPayerWallet: string;
   fetchImpl?: typeof fetch;
   env?: Record<string, string | undefined>;
 }): Promise<EthereumGLRVerification> {
@@ -41,6 +40,8 @@ export async function verifyEthereumGLRTransfer(input: {
   if (!/^0x[a-fA-F0-9]{64}$/.test(txHash)) throw new Error('Ethereum transaction hash is invalid');
   if (glrAmountToBaseUnits(input.expectedAmount) <= 0n) throw new Error('Expected GLR amount must be greater than zero');
 
+  const expectedPayerWallet = input.expectedPayerWallet.trim();
+  if (!/^0x[a-fA-F0-9]{40}$/.test(expectedPayerWallet)) throw new Error('Expected payer wallet is missing or invalid in the payment intent metadata');
   const recipient = String(env.GLR_ETHEREUM_PAYMENT_RECIPIENT || '').trim();
   if (!/^0x[a-fA-F0-9]{40}$/.test(recipient)) {
     throw new Error('Ethereum GLR payment recipient is not configured; verification is disabled');
@@ -80,12 +81,14 @@ export async function verifyEthereumGLRTransfer(input: {
   }
 
   const expectedRecipientTopic = addressTopic(recipient);
+  const expectedPayerTopic = addressTopic(expectedPayerWallet);
   const expectedUnits = glrAmountToBaseUnits(input.expectedAmount);
   const logs: any[] = Array.isArray(receipt.logs) ? receipt.logs : [];
   const matches = logs.filter((log) =>
     String(log.address || '').toLowerCase() === ETHEREUM_GLR_CONTRACT.toLowerCase()
     && Array.isArray(log.topics)
     && String(log.topics[0]).toLowerCase() === TRANSFER_TOPIC
+    && String(log.topics[1] || '').toLowerCase() === expectedPayerTopic
     && String(log.topics[2] || '').toLowerCase() === expectedRecipientTopic
     && BigInt(String(log.data || '0x0')) === expectedUnits
   );
