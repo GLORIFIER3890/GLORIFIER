@@ -107,3 +107,10 @@ These references are design inputs, not endorsements or proof that any bridge or
 Set `GLR_USD_PRICE`, `GLR_USD_PRICE_SOURCE`, and `GLR_USD_PRICE_OBSERVED_AT` only when an operator has an actual rate observation from a documented source. Optionally set `GLR_USD_PRICE_MAX_AGE_SECONDS` (default 86400; capped at 604800). These environment values are operator-supplied evidence, not independently verified market data. If absent, the API shows no GLR fiat valuation.
 
 The service tariff is currently **1 GLR per summary** and the USD tariff reference is **$0.05**. That is a service-pricing proposal, not a market valuation, redemption commitment, or peg. Do not launch a production paid-service promise until the server-side verifier and end-to-end tests are complete.
+
+
+### Ethereum settlement enablement gate
+
+The Ethereum verifier checks chain ID 1, successful mined receipt, the canonical GLR contract, exactly one Transfer event matching the exact intent amount, the configured recipient, the expected payer wallet, and at least 12 confirmations (configurable upward). Configure `GLR_ETHEREUM_PAYMENT_RECIPIENT`; optionally configure `GLR_ETHEREUM_RPC_URL` and `GLR_ETHEREUM_MIN_CONFIRMATIONS`. Verification remains disabled unless the recipient is configured.
+
+The payer wallet must also have a server-controlled row in `glorifier_glr_wallet_bindings` tied to the authenticated user, with a non-empty `proof_ref` and `verified_at`. This repository does not yet expose a self-service wallet-binding endpoint: an operator must not insert that row until wallet control has been independently verified. A user-supplied wallet address or metadata flag is not proof of ownership. The unique settlement-transaction index prevents a transaction hash from paying multiple intents.
