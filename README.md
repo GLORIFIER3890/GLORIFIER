@@ -91,6 +91,7 @@ Some scripts may require environment variables, credentials, external services, 
 ## Documentation
 
 - [Documentation directory](docs/)
+- [Linux- and Web-inspired architecture](docs/linux-web-inspired-architecture.md)
 - [Canonical GLR asset registry](docs/canonical-asset-registry.md)
 - [Tokenomics](docs/tokenomics.md)
 - [Hybrid multichain money architecture](docs/glr-hybrid-multichain-money.md)
