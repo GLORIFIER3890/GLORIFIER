@@ -28,6 +28,18 @@ const lak = buildGLRAIServiceQuote({
 expect(lak.fiatReferenceAmount === '1100', 'fiat quote should multiply the USD service tariff by the supplied FX rate');
 expect(lak.quoteStatus === 'GLR_RATE_NOT_CONFIGURED', 'fiat conversion does not invent a GLR market rate');
 
+const eur = buildGLRAIServiceQuote({
+  currency: 'EUR',
+  fiatRate: {
+    currency: 'EUR', ratePerUsd: '0.92',
+    source: 'test-fixture', observedAt: '2026-10-13T06:59:00.000Z',
+    retrievedAt: '2026-10-13T06:59:30.000Z', maxAgeSeconds: 3600,
+  },
+  now,
+});
+expect(eur.fiatReferenceAmount === '0.05', 'fractional FX rates must convert USD 0.05 before currency precision rounding');
+expect(eur.quoteStatus === 'GLR_RATE_NOT_CONFIGURED', 'fractional fiat conversion must not invent a GLR market rate');
+
 const stale = buildGLRAIServiceQuote({
   currency: 'EUR',
   fiatRate: {
