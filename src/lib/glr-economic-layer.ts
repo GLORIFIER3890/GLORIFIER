@@ -43,6 +43,10 @@ export interface GLRSettlementEvidenceInput {
 }
 
 export function normalizeGLRAmount(value: string | number): string {
+  // Decimal money values must arrive as strings. Fractional JS numbers may already have lost precision.
+  if (typeof value === 'number' && (!Number.isSafeInteger(value) || value < 0)) {
+    throw new Error('Numeric GLR amounts must be non-negative safe integers; pass fractional amounts as decimal strings');
+  }
   const raw = String(value ?? '').trim();
   if (!/^\d+(?:\.\d+)?$/.test(raw)) {
     throw new Error('GLR amount must be a non-negative decimal string');
@@ -61,11 +65,12 @@ export function canMarkGLRSettled(input: {
   verificationMethod?: GLRSettlementEvidenceInput['verificationMethod'];
   verifierRef?: string | null;
 }) {
-  const hasEvidence = Boolean(input.settlementTxRef && input.evidenceRef);
+  const hasEvidence = Boolean(input.settlementTxRef?.trim() && input.evidenceRef?.trim());
+  const allowedMethods = new Set(['chain-rpc', 'explorer', 'authoritative-ledger', 'authorized-provider']);
   const hasExternalVerification =
     input.externallyVerified === true &&
-    Boolean(input.verificationMethod) &&
-    Boolean(input.verifierRef);
+    Boolean(input.verificationMethod && allowedMethods.has(input.verificationMethod)) &&
+    Boolean(input.verifierRef?.trim());
   return {
     settled: Boolean(input.humanAuthorized && hasEvidence && hasExternalVerification),
     evidenceBacked: Boolean(input.humanAuthorized && hasEvidence),
@@ -168,6 +173,7 @@ export async function createGLRPaymentIntent(input: {
     throw new Error('payerAgentId, payeeAgentId and taskRef are required');
   }
   const amount = normalizeGLRAmount(input.amount);
+  if (amount === '0') throw new Error('GLR payment intent amount must be greater than zero');
   await initializeGLREconomicLayer();
 
   const rail = input.rail || 'internal_ledger';
@@ -213,7 +219,7 @@ export async function commitGLRPaymentIntent(id: string) {
 
 export async function recordGLRSettlementEvidence(input: GLRSettlementEvidenceInput) {
   await initializeGLREconomicLayer();
-  if (!input.settlementTxRef || !input.evidenceRef) {
+  if (!input.settlementTxRef?.trim() || !input.evidenceRef?.trim()) {
     throw new Error('Settlement transaction and evidence references are required');
   }
 
@@ -235,7 +241,7 @@ export async function recordGLRSettlementEvidence(input: GLRSettlementEvidenceIn
          settled_at=CASE WHEN $2='SETTLED' THEN NOW() ELSE settled_at END,
          updated_at=NOW()
      WHERE id=$1
-       AND status IN ('AUTHORIZED','COMMITTED','EVIDENCE_PENDING')
+       AND status IN ('COMMITTED','EVIDENCE_PENDING')
        AND human_authorized=TRUE
      RETURNING *`,
     [
