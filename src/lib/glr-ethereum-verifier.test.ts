@@ -42,6 +42,16 @@ const verified = await verifyEthereumGLRTransfer({
   env: { GLR_ETHEREUM_PAYMENT_RECIPIENT: recipient, GLR_ETHEREUM_MIN_CONFIRMATIONS: '12' }
 });
 expect(verified.verified && verified.confirmations === 13, 'valid mainnet receipt with exact GLR transfer and finality must verify');
+let wrongPayerRejected = false;
+try {
+  await verifyEthereumGLRTransfer({
+    transactionHash: txHash, expectedAmount: '1',
+    expectedPayerWallet: '0x3333333333333333333333333333333333333333',
+    fetchImpl: mockFetch,
+    env: { GLR_ETHEREUM_PAYMENT_RECIPIENT: recipient, GLR_ETHEREUM_MIN_CONFIRMATIONS: '12' }
+  });
+} catch { wrongPayerRejected = true; }
+expect(wrongPayerRejected, 'transfer from a different payer wallet must be rejected');
 
 let disabled = false;
 try {
