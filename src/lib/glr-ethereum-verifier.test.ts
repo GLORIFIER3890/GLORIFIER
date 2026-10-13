@@ -24,7 +24,7 @@ const payloads: Record<string, unknown> = {
     blockNumber: '0x64',
     logs: [{
       address: ETHEREUM_GLR_CONTRACT,
-      topics: ['['0xddf252ad1be2c89b69c2b068fc378daa', '952ba7f163c4a11628f55a4df523b3ef'].join('')', payerTopic, recipientTopic],
+      topics: [['0xddf252ad1be2c89b69c2b068fc378daa', '952ba7f163c4a11628f55a4df523b3ef'].join(''), payerTopic, recipientTopic],
       data: '0xde0b6b3a7640000'
     }]
   },
