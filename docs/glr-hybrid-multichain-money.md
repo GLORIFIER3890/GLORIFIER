@@ -1,6 +1,6 @@
 # GLORIFIER hybrid multichain money architecture
 
-**Status: DESIGN / NOT YET IMPLEMENTED END-TO-END.** This document defines a safe target architecture. It does not claim that GLR is a stablecoin, legal tender, a bank deposit, redeemable for fiat, or transferable across chains today.
+**Status: PARTIAL IMPLEMENTATION; NOT ENABLED END-TO-END IN PRODUCTION.** Quote, paid-service prototype, and Ethereum/BNB/Solana settlement verifier code exist, but recipient configuration, independently verified wallet bindings, production flow testing, and Solana transaction conformance review remain gates. It does not claim that GLR is a stablecoin, legal tender, a bank deposit, redeemable for fiat, or transferable across chains today.
 
 ## Product goal
 
@@ -100,7 +100,7 @@ These references are design inputs, not endorsements or proof that any bridge or
 - `GET /api/glr-commerce/quote?currency=LAK` — attempts the same USD-to-LAK reference conversion when the provider supplies a fresh LAK rate. This is not a bank FX offer.
 - `POST /api/glr-commerce/ai-summary` — requires authentication and a payment intent owned by that payer, with the exact service tariff, payee, Ethereum mainnet rail, and a persisted `SETTLED / VERIFIED` state. It uses the configured live AI provider registry; if providers are unavailable, no successful output is fabricated.
 - Redemption records are stored in PostgreSQL with a unique payment-intent key, prompt hash, and idempotent result cache to prevent one verified intent from paying for repeated or different requests.
-- The endpoint intentionally rejects intents that have not already been independently verified. An Ethereum mainnet RPC verifier is implemented, but real settlement remains disabled until `GLR_ETHEREUM_PAYMENT_RECIPIENT` is configured and the authenticated payer has a server-controlled wallet-binding record created only after independent proof-of-control verification.
+- The endpoint intentionally rejects intents that have not already been independently verified. Ethereum and BNB Smart Chain RPC verifiers are implemented. Settlement verification for either EVM network remains disabled until its payment recipient is configured (`GLR_ETHEREUM_PAYMENT_RECIPIENT` or `GLR_BNB_PAYMENT_RECIPIENT`) and the authenticated payer has a server-controlled wallet-binding record created only after independent proof-of-control verification. The paid AI-summary pilot intentionally remains Ethereum-only until the complete end-to-end flow is tested.
 
 ### Optional GLR/USD reference feed configuration
 
@@ -114,3 +114,16 @@ The service tariff is currently **1 GLR per summary** and the USD tariff referen
 The Ethereum verifier checks chain ID 1, successful mined receipt, the canonical GLR contract, exactly one Transfer event matching the exact intent amount, the configured recipient, the expected payer wallet, and at least 12 confirmations (configurable upward). Configure `GLR_ETHEREUM_PAYMENT_RECIPIENT`; optionally configure `GLR_ETHEREUM_RPC_URL` and `GLR_ETHEREUM_MIN_CONFIRMATIONS`. Verification remains disabled unless the recipient is configured.
 
 The payer wallet must also have a server-controlled row in `glorifier_glr_wallet_bindings` tied to the authenticated user, with a non-empty `proof_ref` and `verified_at`. This repository does not yet expose a self-service wallet-binding endpoint: an operator must not insert that row until wallet control has been independently verified. A user-supplied wallet address or metadata flag is not proof of ownership. The unique settlement-transaction index prevents a transaction hash from paying multiple intents.
+
+
+### BNB Smart Chain verifier gate
+
+The independent BNB Smart Chain verifier checks chain ID 56, the canonical GLR contract `0x5e0B0A449232FDA7cA6Ea3419A50873b08F64804`, successful receipt status, the exact GLR Transfer event, the expected payer and configured recipient, and at least 12 confirmations. Configure `GLR_BNB_PAYMENT_RECIPIENT`; optionally configure `GLR_BNB_RPC_URL` and `GLR_BNB_MIN_CONFIRMATIONS`. Automated mocked-RPC tests run in CI. This is implementation evidence, not proof of production readiness or a real payment.
+
+### Solana settlement status
+
+A Solana mainnet Token-2022 verifier is implemented and wired into the settlement-evidence route. It checks the mainnet genesis hash, finalized successful transaction, canonical GLR mint, Token-2022 transfer instruction, payer authority, exact 9-decimal amount, and destination token-account mint/owner. Configure `GLR_SOLANA_PAYMENT_RECIPIENT`; optionally configure `GLR_SOLANA_RPC_URL`. Mocked-RPC tests run in CI. Production readiness still requires independent payer-wallet binding, recipient configuration, real transaction conformance testing, and operational review. The presence of a Solana GLR mint does not establish cross-chain fungibility or paid-service support; the AI-summary pilot remains Ethereum-only.
+
+### Quote semantics
+
+The `$0.05` USD figure is the service-price reference for the AI-summary tariff only. It is not a market price, a peg, or a promise that 1 GLR can be redeemed for USD. A GLR/USD valuation is returned only when operator-supplied source, observation timestamp, and price are present; those environment variables are evidence inputs, not an independent market-data attestation. No reserve, fiat redemption promise, or stablecoin product is introduced.

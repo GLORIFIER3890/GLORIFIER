@@ -35,7 +35,9 @@
     "scan:geas-architecture": "tsx scripts/geas-architecture-scan.ts",
     "test:currency-intelligence": "tsx src/lib/currency-intelligence.test.ts",
     "test:glr-commerce": "tsx src/lib/glr-commerce.test.ts",
-    "test:glr-ethereum-verifier": "tsx src/lib/glr-ethereum-verifier.test.ts"
+    "test:glr-ethereum-verifier": "tsx src/lib/glr-ethereum-verifier.test.ts",
+    "test:glr-bnb-verifier": "tsx src/lib/glr-bnb-verifier.test.ts",
+    "test:glr-solana-verifier": "tsx src/lib/glr-solana-verifier.test.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
