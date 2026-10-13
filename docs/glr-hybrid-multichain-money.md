@@ -122,7 +122,7 @@ The independent BNB Smart Chain verifier checks chain ID 56, the canonical GLR c
 
 ### Solana settlement status
 
-Solana mainnet Token-2022 settlement is **not enabled** by this change. Its 9-decimal mint and SPL Token-2022 instruction/account semantics require a separate verifier and conformance tests before accepting Solana payment intents. The presence of a Solana GLR mint does not establish cross-chain fungibility or settlement support.
+A Solana mainnet Token-2022 verifier is implemented and wired into the settlement-evidence route. It checks the mainnet genesis hash, finalized successful transaction, canonical GLR mint, Token-2022 transfer instruction, payer authority, exact 9-decimal amount, and destination token-account mint/owner. Configure `GLR_SOLANA_PAYMENT_RECIPIENT`; optionally configure `GLR_SOLANA_RPC_URL`. Mocked-RPC tests run in CI. Production readiness still requires independent payer-wallet binding, recipient configuration, real transaction conformance testing, and operational review. The presence of a Solana GLR mint does not establish cross-chain fungibility or paid-service support; the AI-summary pilot remains Ethereum-only.
 
 ### Quote semantics
 
