@@ -2194,9 +2194,12 @@ app.post('/api/economy/glr/intents/:id/settlement-evidence', requireOwnerOrInter
       evidenceRef: String(req.body?.evidenceRef || ''),
       humanAuthorized: req.body?.humanAuthorized === true,
       network: req.body?.network ? String(req.body.network) : null,
-      externallyVerified: req.body?.externallyVerified === true,
-      verificationMethod: req.body?.verificationMethod,
-      verifierRef: req.body?.verifierRef ? String(req.body.verifierRef) : null
+      // Client-submitted fields are claims, not independent verification.
+      // Until a server-side chain/provider verifier checks authoritative evidence,
+      // this endpoint must fail closed and leave settlement EVIDENCE_PENDING.
+      externallyVerified: false,
+      verificationMethod: undefined,
+      verifierRef: null
     });
     res.json({ ok: true, intent, truth: intent.truthStatus });
   } catch (error) { return apiError(res, 400, 'GLR settlement evidence rejected', error); }
