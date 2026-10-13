@@ -12,7 +12,9 @@ expect(rejected, 'more than 18 decimals must be rejected');
 
 const txHash = '0x' + 'a'.repeat(64);
 const recipient = '0x1111111111111111111111111111111111111111';
+const payer = '0x2222222222222222222222222222222222222222';
 const recipientTopic = '0x' + recipient.slice(2).padStart(64, '0');
+const payerTopic = '0x' + payer.slice(2).padStart(64, '0');
 const payloads: Record<string, unknown> = {
   eth_chainId: '0x1',
   eth_getTransactionReceipt: {
@@ -22,7 +24,7 @@ const payloads: Record<string, unknown> = {
     blockNumber: '0x64',
     logs: [{
       address: ETHEREUM_GLR_CONTRACT,
-      topics: ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', '0x' + '0'.repeat(64), recipientTopic],
+      topics: ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', payerTopic, recipientTopic],
       data: '0xde0b6b3a7640000'
     }]
   },
@@ -35,6 +37,7 @@ const mockFetch: typeof fetch = async (_input, init) => {
 const verified = await verifyEthereumGLRTransfer({
   transactionHash: txHash,
   expectedAmount: '1',
+  expectedPayerWallet: payer,
   fetchImpl: mockFetch,
   env: { GLR_ETHEREUM_PAYMENT_RECIPIENT: recipient, GLR_ETHEREUM_MIN_CONFIRMATIONS: '12' }
 });
@@ -42,7 +45,7 @@ expect(verified.verified && verified.confirmations === 13, 'valid mainnet receip
 
 let disabled = false;
 try {
-  await verifyEthereumGLRTransfer({ transactionHash: txHash, expectedAmount: '1', fetchImpl: mockFetch, env: {} });
+  await verifyEthereumGLRTransfer({ transactionHash: txHash, expectedAmount: '1', expectedPayerWallet: payer, fetchImpl: mockFetch, env: {} });
 } catch { disabled = true; }
 expect(disabled, 'verifier must remain disabled until recipient is configured');
 
@@ -54,7 +57,7 @@ const wrongChainFetch: typeof fetch = async (_input, init) => {
 let wrongChainRejected = false;
 try {
   await verifyEthereumGLRTransfer({
-    transactionHash: txHash, expectedAmount: '1', fetchImpl: wrongChainFetch,
+    transactionHash: txHash, expectedAmount: '1', expectedPayerWallet: payer, fetchImpl: wrongChainFetch,
     env: { GLR_ETHEREUM_PAYMENT_RECIPIENT: recipient }
   });
 } catch { wrongChainRejected = true; }
