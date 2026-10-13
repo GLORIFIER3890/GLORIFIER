@@ -28,33 +28,31 @@ const providers: AIProvider[] = [
 
 const providerCooldownUntil = new Map<string, number>();
 const providerLastFailure = new Map<string, string>();
-function isProviderEligible(provider: AIProvider, discovery: Map<string, DiscoveredProvider>, capability?: string): boolean {
+const isProviderEligible = (provider: AIProvider, discovery: Map<string, DiscoveredProvider>, capability?: string): boolean => {
   const entry = discovery.get(provider.id);
   return Boolean(entry?.authorization === 'configured' && (!capability || entry.capabilities.includes(capability)));
-}
+};
 
-function isProviderEligibleAfterRefresh(provider: AIProvider, discovery: Map<string, DiscoveredProvider>, capability: string | undefined, attemptedProviders: string[]): boolean {
+const isProviderEligibleAfterRefresh = (provider: AIProvider, discovery: Map<string, DiscoveredProvider>, capability: string | undefined, attemptedProviders: string[]): boolean => {
   const entry = discovery.get(provider.id);
   return Boolean(entry?.availability === 'available' && entry.authenticated
     && isProviderEligible(provider, discovery, capability)
     && !isCoolingDown(provider.id)
     && !attemptedProviders.includes(provider.id));
-}
+};
 
-function compareProviderOrder(a: AIProvider, b: AIProvider, discovery: Map<string, DiscoveredProvider>, preferredProvider?: AIProviderId): number {
-  const da = discovery.get(a.id);
-  const db = discovery.get(b.id);
-  const rank = (entry: DiscoveredProvider | undefined): number => {
-    if (entry?.availability === 'available' && entry.authenticated) return 0;
-    if (entry?.availability === 'rate_limited') return 2;
-    return 1;
-  };
-  const rankDifference = rank(da) - rank(db);
+const providerAvailabilityRank = (entry: DiscoveredProvider | undefined): number => {
+  if (entry?.availability === 'available' && entry.authenticated) return 0;
+  return entry?.availability === 'rate_limited' ? 2 : 1;
+};
+
+const compareProviderOrder = (a: AIProvider, b: AIProvider, discovery: Map<string, DiscoveredProvider>, preferredProvider?: AIProviderId): number => {
+  const rankDifference = providerAvailabilityRank(discovery.get(a.id)) - providerAvailabilityRank(discovery.get(b.id));
   if (rankDifference !== 0) return rankDifference;
-  if (preferredProvider && a.id === preferredProvider && b.id !== preferredProvider) return -1;
-  if (preferredProvider && b.id === preferredProvider && a.id !== preferredProvider) return 1;
-  return 0;
-}
+  const preferredComesFirst = preferredProvider === a.id && preferredProvider !== b.id;
+  const otherComesFirst = preferredProvider === b.id && preferredProvider !== a.id;
+  return Number(otherComesFirst) - Number(preferredComesFirst);
+};
 
 
 function parseRetryAfterMs(error: unknown): number | null {
@@ -64,15 +62,17 @@ function parseRetryAfterMs(error: unknown): number | null {
   return Math.min(Math.max(Number(match[1]) * 1000, 5_000), 15 * 60_000);
 }
 
-function cooldownFor(error: unknown): number {
-  const message = error instanceof Error ? error.message : String(error);
+const cooldownFor = (error: unknown): number => {
   const retryAfter = parseRetryAfterMs(error);
   if (retryAfter) return retryAfter;
-  if (/429|RESOURCE_EXHAUSTED|quota|rate.?limit/i.test(message)) return 60_000;
-  if (/402|insufficient_quota|credit_balance_exhausted|no credits/i.test(message)) return 15 * 60_000;
-  if (/503|UNAVAILABLE|overloaded|high demand/i.test(message)) return 30_000;
-  return 10_000;
-}
+  const message = error instanceof Error ? error.message : String(error);
+  const rules: Array<[RegExp, number]> = [
+    [/429|RESOURCE_EXHAUSTED|quota|rate.?limit/i, 60_000],
+    [/402|insufficient_quota|credit_balance_exhausted|no credits/i, 15 * 60_000],
+    [/503|UNAVAILABLE|overloaded|high demand/i, 30_000],
+  ];
+  return rules.find(([pattern]) => pattern.test(message))?.[1] ?? 10_000;
+};
 
 function isCoolingDown(providerId: string): boolean {
   const until = providerCooldownUntil.get(providerId) || 0;
