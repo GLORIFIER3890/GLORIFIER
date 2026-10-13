@@ -61,7 +61,7 @@ expect(disabled, 'verifier must remain disabled until recipient is configured');
 
 const wrongChainFetch: typeof fetch = async (_input, init) => {
   const body = JSON.parse(String(init?.body || '{}'));
-  const result = body.method === 'eth_chainId' ? '0x38' : payloads[body.method];
+  const result = body.method === 'eth_chainId' ? '0x1' : payloads[body.method];
   return new Response(JSON.stringify({ jsonrpc: '2.0', id: body.id, result }), { status: 200, headers: { 'content-type': 'application/json' } });
 };
 let wrongChainRejected = false;
