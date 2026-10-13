@@ -2331,7 +2331,7 @@ app.post('/api/glr-commerce/ai-summary', requireAuthentication, async (req: Requ
         userPrompt: prompt,
         temperature: 0.2
       });
-    } catch (providerError) {
+    } catch {
       await pool.query(
         `UPDATE glorifier_glr_service_redemptions SET status='FAILED',updated_at=NOW() WHERE intent_id=$1 AND status='PROCESSING'`,
         [intent.id]
