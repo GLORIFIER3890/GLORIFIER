@@ -100,7 +100,7 @@ These references are design inputs, not endorsements or proof that any bridge or
 - `GET /api/glr-commerce/quote?currency=LAK` — attempts the same USD-to-LAK reference conversion when the provider supplies a fresh LAK rate. This is not a bank FX offer.
 - `POST /api/glr-commerce/ai-summary` — requires authentication and a payment intent owned by that payer, with the exact service tariff, payee, Ethereum mainnet rail, and a persisted `SETTLED / VERIFIED` state. It uses the configured live AI provider registry; if providers are unavailable, no successful output is fabricated.
 - Redemption records are stored in PostgreSQL with a unique payment-intent key, prompt hash, and idempotent result cache to prevent one verified intent from paying for repeated or different requests.
-- The endpoint intentionally rejects intents that have not already been independently verified. The current evidence-submission route remains fail-closed, so the paid service cannot process real payments until the independent Ethereum verifier is implemented and released.
+- The endpoint intentionally rejects intents that have not already been independently verified. An Ethereum mainnet RPC verifier is implemented, but real settlement remains disabled until `GLR_ETHEREUM_PAYMENT_RECIPIENT` is configured and the authenticated payer has a server-controlled wallet-binding record created only after independent proof-of-control verification.
 
 ### Optional GLR/USD reference feed configuration
 
