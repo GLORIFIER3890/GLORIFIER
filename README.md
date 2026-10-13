@@ -93,6 +93,7 @@ Some scripts may require environment variables, credentials, external services, 
 - [Documentation directory](docs/)
 - [Canonical GLR asset registry](docs/canonical-asset-registry.md)
 - [Tokenomics](docs/tokenomics.md)
+- [Hybrid multichain money architecture](docs/glr-hybrid-multichain-money.md)
 - [Token launch checklist](docs/token-launch-checklist.md)
 - [Smart contracts](contracts/README.md)
 - [Contributing guide](CONTRIBUTING.md)
