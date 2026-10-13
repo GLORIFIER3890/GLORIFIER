@@ -16,7 +16,7 @@ jobs:
   verify-core-services:
     name: Verify architecture, governance and settlement safeguards
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -37,13 +37,13 @@ jobs:
         run: npm run test:harness
 
       - name: Test core architecture governance
-        run: npm run test:architecture
+        run: npm run test:architecture && npm run test:permanent-stack
 
-      - name: Test GEAS reconciliation and controls
-        run: npm run test:geas-reconciliation && npm run test:geas-controls && npm run test:geas-enterprise-controls
+      - name: Test GEAS governance controls
+        run: npm run test:geas-reconciliation && npm run test:geas-controls && npm run test:geas-enterprise-controls && npm run test:geas-scientist && npm run validate:geas-architecture
 
-      - name: Test permanent orchestration stack
-        run: npm run test:permanent-stack
+      - name: Test agent and discovery networks
+        run: npm run test:federated-a2a-v3 && npm run test:model-network && npm run test:ai-web-network && npm run test:internet-discovery
 
       - name: Test GLR economic layer and commerce rules
         run: npm run test:glr-economic-layer && npm run test:glr-commerce
