@@ -64,13 +64,16 @@ export async function verifyEthereumGLRTransfer(input: {
 
   const chainId = String(await rpc('eth_chainId', []));
   if (chainId.toLowerCase() !== '0x1') throw new Error('Configured RPC is not Ethereum mainnet (chain ID 1)');
+  const transaction: any = await rpc('eth_getTransactionByHash', [txHash]);
+  if (!transaction) throw new Error('Ethereum transaction was not found');
+  if (String(transaction.hash).toLowerCase() !== txHash.toLowerCase()) throw new Error('RPC transaction hash mismatch');
+  if (String(transaction.to || '').toLowerCase() !== ETHEREUM_GLR_CONTRACT.toLowerCase()) {
+    throw new Error('Transaction destination is not the canonical Ethereum GLR contract');
+  }
   const receipt: any = await rpc('eth_getTransactionReceipt', [txHash]);
   if (!receipt) throw new Error('Ethereum transaction is not mined');
   if (String(receipt.status).toLowerCase() !== '0x1') throw new Error('Ethereum transaction failed');
   if (String(receipt.transactionHash).toLowerCase() !== txHash.toLowerCase()) throw new Error('RPC receipt hash mismatch');
-  if (String(receipt.to || '').toLowerCase() !== ETHEREUM_GLR_CONTRACT.toLowerCase()) {
-    throw new Error('Transaction destination is not the canonical Ethereum GLR contract');
-  }
   const blockNumber = Number(BigInt(String(receipt.blockNumber)));
   if (!Number.isSafeInteger(blockNumber) || blockNumber <= 0) throw new Error('Ethereum receipt block number is invalid');
   const latestBlockHex = String(await rpc('eth_blockNumber', []));
