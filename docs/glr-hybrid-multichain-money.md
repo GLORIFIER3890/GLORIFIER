@@ -1,6 +1,6 @@
 # GLORIFIER hybrid multichain money architecture
 
-**Status: PARTIAL IMPLEMENTATION; NOT ENABLED END-TO-END IN PRODUCTION.** Quote and paid-service prototype code is merged; Ethereum and BNB Smart Chain settlement verifier code exists, but recipient configuration, independently verified wallet bindings, production flow testing, and Solana settlement verification remain gates. It does not claim that GLR is a stablecoin, legal tender, a bank deposit, redeemable for fiat, or transferable across chains today.
+**Status: PARTIAL IMPLEMENTATION; NOT ENABLED END-TO-END IN PRODUCTION.** Quote, paid-service prototype, and Ethereum/BNB/Solana settlement verifier code exist, but recipient configuration, independently verified wallet bindings, production flow testing, and Solana transaction conformance review remain gates. It does not claim that GLR is a stablecoin, legal tender, a bank deposit, redeemable for fiat, or transferable across chains today.
 
 ## Product goal
 
