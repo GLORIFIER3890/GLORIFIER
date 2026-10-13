@@ -129,7 +129,7 @@ export function buildGLRAIServiceQuote(input: {
   }
 
   const glrPrice = input.glrPrice;
-  let quoteStatus = fiatStatus;
+  let quoteStatus: GLRAIServiceQuote['quoteStatus'] = fiatStatus;
   if (glrPrice) {
     const price = parseDecimal(glrPrice.usdPerGlr, 'GLR USD price');
     if (price.units <= 0n) throw new Error('GLR USD price must be greater than zero');
