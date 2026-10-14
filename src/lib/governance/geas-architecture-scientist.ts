@@ -915,7 +915,12 @@ export async function initializeGeasArchitectureScientist() {
       etag TEXT,
       last_modified TEXT
     );
+    -- Additive compatibility migrations for databases created by earlier GEAS versions.
+    ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS status INTEGER;
+    ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS content_hash TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS evidence_excerpt TEXT;
+    ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS evidence_status TEXT NOT NULL DEFAULT 'unavailable';
+    ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS error TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS final_url TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS etag TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS last_modified TEXT;
