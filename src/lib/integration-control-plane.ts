@@ -45,6 +45,8 @@ async function ensureTable() {
     );
     CREATE INDEX IF NOT EXISTS idx_integration_control_snapshots_time
       ON integration_control_snapshots(synchronized_at DESC);
+    ALTER TABLE integration_control_snapshots
+      ADD COLUMN IF NOT EXISTS last_checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
   `);
 }
 
@@ -91,7 +93,10 @@ export async function reconcileIntegrationControlPlane(actor = 'system') {
     ]
   };
 
-  const digestSha256 = await digest(snapshotBase);
+  // A synchronization timestamp is operational metadata, not snapshot content.
+  // Excluding it lets identical state reconcile without inserting another large JSONB row.
+  const { synchronizedAt: _synchronizedAt, ...digestPayload } = snapshotBase;
+  const digestSha256 = await digest(digestPayload);
   const snapshot: IntegrationControlSnapshot = {
     id: `ics-${crypto.randomUUID()}`,
     ...snapshotBase,
@@ -101,10 +106,22 @@ export async function reconcileIntegrationControlPlane(actor = 'system') {
   latestSnapshot = snapshot;
   try {
     await ensureTable();
-    await getPostgresPool().query(
-      'INSERT INTO integration_control_snapshots(id,synchronized_at,snapshot,digest_sha256) VALUES($1,$2,$3,$4)',
-      [snapshot.id, snapshot.synchronizedAt, JSON.stringify(snapshot), digestSha256]
+    const db = getPostgresPool();
+    const previous = await db.query(
+      'SELECT id, digest_sha256 FROM integration_control_snapshots ORDER BY synchronized_at DESC LIMIT 1'
     );
+    if (previous.rows[0]?.digest_sha256 === digestSha256) {
+      // Preserve the last material state snapshot and record that reconciliation ran.
+      await db.query(
+        'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1',
+        [previous.rows[0].id]
+      );
+    } else {
+      await db.query(
+        'INSERT INTO integration_control_snapshots(id,synchronized_at,last_checked_at,snapshot,digest_sha256) VALUES($1,$2,NOW(),$3,$4)',
+        [snapshot.id, snapshot.synchronizedAt, JSON.stringify(snapshot), digestSha256]
+      );
+    }
   } catch (error) {
     console.warn('[IntegrationControlPlane] persistence deferred:', error instanceof Error ? error.message : error);
   }
