@@ -66,4 +66,4 @@ const stale = buildGLRAIServiceQuote({
 });
 expect(stale.fiatReferenceAmount === null && stale.quoteStatus === 'STALE_FIAT_RATE', 'stale FX evidence must not create a fiat amount');
 
-process.stdout.write('GLR commerce quote tests passed.\\n');
+process.stdout.write('GLR commerce quote tests passed.\n');
