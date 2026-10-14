@@ -42,7 +42,7 @@ jobs:
         run: docker build --pull --tag glorifier/glorifier:pr-${{ github.event.pull_request.number }} .
 
       - name: Scan image for critical and high vulnerabilities
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: glorifier/glorifier:pr-${{ github.event.pull_request.number }}
           format: table
@@ -75,7 +75,7 @@ jobs:
         run: docker build --pull --tag glorifier/glorifier:${IMAGE_TAG} .
 
       - name: Scan candidate image before registry login
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: glorifier/glorifier:sha-${{ github.event.workflow_run.head_sha }}
           format: table
