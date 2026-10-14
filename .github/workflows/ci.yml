@@ -34,6 +34,9 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Audit locked npm dependencies
+        run: npm audit --audit-level=low
+
       - name: Validate Solana deployment and reconciliation scripts
         run: |
           set -euo pipefail
