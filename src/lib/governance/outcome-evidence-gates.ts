@@ -82,41 +82,58 @@ const validCommonEvidence = (refs: unknown[], digests: unknown[]): boolean => {
   return refs.every(NON_BLANK) && digests.every(x => typeof x === 'string' && SHA256.test(x));
 };
 
+const allChecksPass = (checks: boolean[]): boolean => checks.every(Boolean);
+const isZeroInteger = (value: number): boolean => Number.isInteger(value) && value === 0;
+
 /** Only a production evidence bundle can support a production paid-delivery claim. */
 export const validatePaidDeliveryEvidence = (e: PaidDeliveryEvidence): GateStatus => {
   const refs = [e.customerRef, e.paymentIntentRef, e.settlementRef, e.deliveryArtifactRef, e.customerAcceptanceRef];
-  if (!validCommonEvidence(refs, [e.deliveryArtifactSha256, e.evidenceBundleSha256])) return 'NOT VERIFIED';
-  if (e.environment !== 'production' || e.settlementIndependentlyVerified !== true || e.reconciled !== true) return 'NOT VERIFIED';
-  if (!validZeroVariance(e.unexplainedVarianceMinorUnits)) return 'NOT VERIFIED';
-  return 'VERIFIED';
+  return allChecksPass([
+    validCommonEvidence(refs, [e.deliveryArtifactSha256, e.evidenceBundleSha256]),
+    e.environment === 'production',
+    e.settlementIndependentlyVerified === true,
+    e.reconciled === true,
+    validZeroVariance(e.unexplainedVarianceMinorUnits),
+  ]) ? 'VERIFIED' : 'NOT VERIFIED';
 };
 
 export const validatePayingCustomerEvidence = (e: PayingCustomerEvidence): GateStatus => {
   const refs = [e.customerRef, e.onboardingCompletedRef, e.independentlyVerifiedSettlementRef, e.deliveryAcceptanceRef];
-  if (!validCommonEvidence(refs, [e.evidenceBundleSha256])) return 'NOT VERIFIED';
-  return e.environment === 'production' ? 'VERIFIED' : 'NOT VERIFIED';
+  return allChecksPass([
+    validCommonEvidence(refs, [e.evidenceBundleSha256]),
+    e.environment === 'production',
+  ]) ? 'VERIFIED' : 'NOT VERIFIED';
 };
 
 export const validateRevenueReconciliationEvidence = (e: RevenueReconciliationEvidence): GateStatus => {
   const refs = [e.ledgerSnapshotRef, e.authoritativeSettlementReportRef, e.reconciliationReportRef];
-  if (!validCommonEvidence(refs, [e.evidenceBundleSha256])) return 'NOT VERIFIED';
-  if (e.environment !== 'production' || e.reconciled !== true || !validZeroVariance(e.unexplainedVarianceMinorUnits)) return 'NOT VERIFIED';
-  return 'VERIFIED';
+  return allChecksPass([
+    validCommonEvidence(refs, [e.evidenceBundleSha256]),
+    e.environment === 'production',
+    e.reconciled === true,
+    validZeroVariance(e.unexplainedVarianceMinorUnits),
+  ]) ? 'VERIFIED' : 'NOT VERIFIED';
 };
 
 export const validateRuntimeSecurityEvidence = (e: RuntimeSecurityEvidence): GateStatus => {
   const refs = [e.runtimeIdentity, e.defaultDenyEgressReportRef, e.toolAllowlistReportRef, e.auditTrailReportRef, e.operatorStopReportRef];
-  if (!validCommonEvidence(refs, [e.evidenceBundleSha256])) return 'NOT VERIFIED';
-  if (e.environment !== 'production') return 'NOT VERIFIED';
-  if (!e.deniedEgressTestPassed || !e.unauthorizedToolDenied || !e.auditTrailComplete || !e.operatorStopPassed) return 'NOT VERIFIED';
-  return 'VERIFIED';
+  return allChecksPass([
+    validCommonEvidence(refs, [e.evidenceBundleSha256]),
+    e.environment === 'production',
+    e.deniedEgressTestPassed === true,
+    e.unauthorizedToolDenied === true,
+    e.auditTrailComplete === true,
+    e.operatorStopPassed === true,
+  ]) ? 'VERIFIED' : 'NOT VERIFIED';
 };
 
 export const validateA2AConformanceEvidence = (e: A2AConformanceEvidence): GateStatus => {
   const refs = [e.endpoint, e.runtimeIdentity, e.suiteName, e.suiteVersion, e.reportRef];
-  if (!validCommonEvidence(refs, [e.reportSha256, e.evidenceBundleSha256])) return 'NOT VERIFIED';
-  if (e.environment !== 'production' || e.passed !== true) return 'NOT VERIFIED';
-  if (!Number.isInteger(e.failedTests) || e.failedTests !== 0) return 'NOT VERIFIED';
-  if (!Number.isInteger(e.skippedTests) || e.skippedTests !== 0) return 'NOT VERIFIED';
-  return 'VERIFIED';
-}
+  return allChecksPass([
+    validCommonEvidence(refs, [e.reportSha256, e.evidenceBundleSha256]),
+    e.environment === 'production',
+    e.passed === true,
+    isZeroInteger(e.failedTests),
+    isZeroInteger(e.skippedTests),
+  ]) ? 'VERIFIED' : 'NOT VERIFIED';
+};
