@@ -228,7 +228,8 @@ export async function executeThroughProviderRegistry(
         providerStatuses[provider.id] = availability === 'unavailable' ? 'unavailable' : 'error';
         errors.push(`${provider.id}: ${message}`);
         providerCooldownUntil.set(provider.id, Date.now() + cooldownFor(error));
-        const transient = /429|408|425|500|502|503|504|timeout|temporar|overloaded|unavailable/i.test(message);
+        const rateLimited = /429|RESOURCE_EXHAUSTED|quota|rate.?limit/i.test(message) || parseRetryAfterMs(error) !== null;
+        const transient = !rateLimited && /408|425|500|502|503|504|timeout|temporar|overloaded|unavailable/i.test(message);
         if (policy.retryTransientFailures && transient && transientRetries < 1 && attempts < policy.maxAttempts) {
           transientRetries += 1;
           providerCooldownUntil.delete(provider.id);
