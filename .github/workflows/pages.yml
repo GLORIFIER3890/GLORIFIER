@@ -12,8 +12,10 @@ permissions:
   pages: write
   id-token: write
 
+# Keep independent PR builds from cancelling each other. A newer run only
+# supersedes an older run for the same PR or the same branch.
 concurrency:
-  group: github-pages
+  group: github-pages-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
