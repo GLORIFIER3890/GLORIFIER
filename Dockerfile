@@ -20,11 +20,6 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Refresh the bundled npm CLI to the maintained Node 22-compatible line;
-# older npm bundles carry vulnerable pacote, sigstore, and brace-expansion copies.
-RUN npm install --global npm@11.6.2 --no-audit --no-fund \
- && npm --version
-
 # Install application dependencies from the committed lockfile.
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund \
@@ -33,7 +28,9 @@ RUN npm ci --no-audit --no-fund \
 COPY --chown=node:node . .
 
 RUN npm run build \
- && chown -R node:node /app
+ && chown -R node:node /app \
+ # npm is only a build-time tool; the running application uses Node and local tsx. \
+ && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 USER node
 
