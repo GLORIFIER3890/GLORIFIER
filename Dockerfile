@@ -13,8 +13,14 @@ LABEL org.opencontainers.image.title="GLORIFIER" \
 
 WORKDIR /app
 
-# Install from the lockfile for repeatable builds. Keep runtime dependencies
-# required by the current TypeScript/Vite server entrypoint available.
+# Refresh Debian security updates before installing the application.
+# Keep runtime dependencies required by the current TypeScript/Vite server entrypoint.
+RUN apt-get update \
+ && apt-get upgrade -y --no-install-recommends \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+# Install from the lockfile for repeatable builds.
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund \
  && npm cache clean --force
