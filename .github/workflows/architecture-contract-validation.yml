@@ -41,7 +41,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -RniE '(sk-[A-Za-z0-9_-]{20,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|GLORIFIER_DEPLOYER_PRIVATE_KEY=)' agent-network docs; then
+          # Require a token boundary before sk- so URL/text fragments such as
+          # "risk-management-framework" cannot match the API-key heuristic.
+          # Keep private-key and explicit deployer-key checks unchanged.
+          if grep -RniE '(^|[^[:alnum:]_-])sk-[A-Za-z0-9_-]{20,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|GLORIFIER_DEPLOYER_PRIVATE_KEY=' agent-network docs; then
             echo "Potential credential material found in architecture contracts."
             exit 1
           fi
