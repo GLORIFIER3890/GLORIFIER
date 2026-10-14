@@ -61,6 +61,10 @@ jobs:
             echo "Secret scanner regression: token-like material was not detected."
             exit 1
           fi
+          if ! printf '%s\\n' 'prefix-sk-01234567890123456789' | grep -qE "$pattern"; then
+            echo "Secret scanner regression: token-like material after a hyphen was not detected."
+            exit 1
+          fi
           if grep -RniE '((^|[^A-Za-z0-9_])sk-[A-Za-z0-9_-]{20,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|GLORIFIER_DEPLOYER_PRIVATE_KEY=)' agent-network docs; then
             echo "Potential credential material found."
             exit 1
