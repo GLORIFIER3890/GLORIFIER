@@ -14,7 +14,14 @@ Status: source and policy refinements; this document does not claim runtime cont
 ## Five-state reconciliation
 Record desired, declared, deployed, observed, and verified states separately. A comparison is valid only when both values have evidence references and timestamps. Empty evidence references must never produce ALIGNED or VERIFIED. Deployment records do not prove observed health; health telemetry does not prove a security control works.
 
-Outcomes: ALIGNED requires all required states evidenced and matching; PARTIALLY_VERIFIED means some checks remain unresolved; DRIFT requires evidence of a policy-relevant mismatch; UNKNOWN means evidence is absent, stale, unavailable, or contradictory.
+The complete outcome set is **VERIFIED, ALIGNED, PARTIALLY_VERIFIED, DRIFT, UNKNOWN**. Apply these rules in order:
+1. **UNKNOWN** — any required evidence is missing, stale, unavailable, or contradictory. Do not infer alignment or failure from absent evidence.
+2. **DRIFT** — required evidence is current and authoritative, and directly demonstrates a policy-relevant mismatch.
+3. **VERIFIED** — all required states are evidenced and match, and the claim/control has passed the applicable independent verification test.
+4. **ALIGNED** — desired, declared, deployed, and observed states are evidenced and match, but independent behavioral verification is not part of the specific claim or has not been established.
+5. **PARTIALLY_VERIFIED** — some explicitly scoped checks have valid positive evidence, while other non-required or optional checks remain unresolved. Never use this outcome to conceal missing or stale required evidence.
+
+The first applicable rule wins. Each result must retain its evidence references, observation timestamps, verifier identity/version, and rationale.
 
 ## Implementation sequence
 ### P0 — evidence integrity
