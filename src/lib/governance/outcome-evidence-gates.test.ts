@@ -81,4 +81,4 @@ if (validateA2AConformanceEvidence(a2a) !== 'VERIFIED') throw new Error('complet
 if (validateA2AConformanceEvidence({ ...a2a, skippedTests: 1 }) !== 'NOT VERIFIED') throw new Error('skipped conformance tests must not pass');
 if (validateA2AConformanceEvidence({ ...a2a, reportSha256: 'not-a-digest' }) !== 'NOT VERIFIED') throw new Error('missing report integrity must fail closed');
 
-process.stdout.write('OUTCOME_EVIDENCE_GATES_TEST_OK\\n');
+process.stdout.write('OUTCOME_EVIDENCE_GATES_TEST_OK\n');
