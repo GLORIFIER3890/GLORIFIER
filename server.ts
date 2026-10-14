@@ -2569,7 +2569,7 @@ app.post('/api/a2a/e2e-test', requireOwner, async (_req: Request, res: Response)
   try {
     // Exercise the same governed provider registry used by production orchestration.
     // A missing/failed provider remains a failure; this endpoint never fabricates inference.
-    const result = await runA2AE2ETest(async (prompt) => {
+    const result = await runA2AE2ETest(async (prompt, options) => {
       const registryResult = await executeThroughProviderRegistry({
         messages: [{ role: 'user', content: prompt }],
         capability: typeof options?.capability === 'string' ? options.capability : 'research',
