@@ -40,6 +40,21 @@ const eur = buildGLRAIServiceQuote({
 expect(eur.fiatReferenceAmount === '0.05', 'fractional FX rates must convert USD 0.05 before currency precision rounding');
 expect(eur.quoteStatus === 'GLR_RATE_NOT_CONFIGURED', 'fractional fiat conversion must not invent a GLR market rate');
 
+// A deliberately discriminating fixture: 0.05 USD × 1.70 = 0.085,
+// which rounds to 0.09 at two decimal places. Inverting the rate would
+// produce 0.03, so this catches accidental division instead of multiplication.
+const directionCheck = buildGLRAIServiceQuote({
+  currency: 'EUR',
+  fiatRate: {
+    currency: 'EUR', ratePerUsd: '1.70',
+    source: 'direction-regression-fixture', observedAt: '2026-10-13T06:59:00.000Z',
+    retrievedAt: '2026-10-13T06:59:30.000Z', maxAgeSeconds: 3600,
+  },
+  now,
+});
+expect(directionCheck.fiatReferenceAmount === '0.09', 'ratePerUsd must be multiplied by the USD tariff, not inverted');
+expect(directionCheck.quoteStatus === 'GLR_RATE_NOT_CONFIGURED', 'direction regression fixture must not imply a GLR market rate');
+
 const stale = buildGLRAIServiceQuote({
   currency: 'EUR',
   fiatRate: {
