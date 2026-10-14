@@ -47,7 +47,6 @@ jobs:
           image-ref: glorifier/glorifier:pr-${{ github.event.pull_request.number }}
           format: table
           exit-code: "1"
-          ignore-unfixed: true
           vuln-type: os,library
           severity: LOW,MEDIUM,HIGH,CRITICAL
 
@@ -97,7 +96,6 @@ jobs:
           image-ref: glorifier/glorifier:sha-${{ github.event.workflow_run.head_sha }}
           format: table
           exit-code: "1"
-          ignore-unfixed: true
           vuln-type: os,library
           severity: LOW,MEDIUM,HIGH,CRITICAL
 
