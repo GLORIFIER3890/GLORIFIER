@@ -50,9 +50,28 @@ const ensureTable = async () => {
   `);
 };
 
-const digest = (value: unknown) => {
-  return crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
-};
+const digest = (value: unknown) =>
+  crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
+
+const getAuthenticationSnapshot = () => ({
+  firebaseBackendConfigured: Boolean(
+    process.env.FIREBASE_SERVICE_ACCOUNT_JSON ||
+    (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) ||
+    process.env.GOOGLE_APPLICATION_CREDENTIALS
+  ),
+  ownerBindingConfigured: Boolean(process.env.GLORIFIER_OWNER_UID || process.env.GLORIFIER_OWNER_EMAIL)
+});
+
+const getIntegrationInvariants = () => [
+  'Authentication is required before state-changing API operations.',
+  'Authorization is separate from authentication and scoped by identity, capability, tool, data scope, and risk.',
+  'Provider registry is the only AI-provider execution boundary.',
+  'Compute registry is the only independent-compute execution boundary.',
+  'Connection registry is authoritative for integration authorization state.',
+  'Synchronization records observed state; it never upgrades an unavailable or unverified resource to healthy.',
+  'Estimated value never becomes verified revenue without qualifying external evidence.',
+  'Human owner remains the final authority for irreversible external actions.'
+];
 
 const persistSnapshotIfChanged = async (
   snapshot: IntegrationControlSnapshot,
@@ -94,14 +113,7 @@ export const reconcileIntegrationControlPlane = async (actor = 'system') => {
 
   const snapshotBase = {
     synchronizedAt,
-    authentication: {
-      firebaseBackendConfigured: Boolean(
-        process.env.FIREBASE_SERVICE_ACCOUNT_JSON ||
-        (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) ||
-        process.env.GOOGLE_APPLICATION_CREDENTIALS
-      ),
-      ownerBindingConfigured: Boolean(process.env.GLORIFIER_OWNER_UID || process.env.GLORIFIER_OWNER_EMAIL)
-    },
+    authentication: getAuthenticationSnapshot(),
     connections: connections.map(c => ({
       id: c.id, provider: c.provider, status: c.status, risk: c.risk,
       scopes: c.scopes, lastVerifiedAt: c.lastVerifiedAt
@@ -112,16 +124,7 @@ export const reconcileIntegrationControlPlane = async (actor = 'system') => {
     })),
     providers: listProviders(),
     compute: listComputeResources(),
-    invariants: [
-      'Authentication is required before state-changing API operations.',
-      'Authorization is separate from authentication and scoped by identity, capability, tool, data scope, and risk.',
-      'Provider registry is the only AI-provider execution boundary.',
-      'Compute registry is the only independent-compute execution boundary.',
-      'Connection registry is authoritative for integration authorization state.',
-      'Synchronization records observed state; it never upgrades an unavailable or unverified resource to healthy.',
-      'Estimated value never becomes verified revenue without qualifying external evidence.',
-      'Human owner remains the final authority for irreversible external actions.'
-    ]
+    invariants: getIntegrationInvariants()
   };
 
   // A synchronization timestamp is operational metadata, not snapshot content.
