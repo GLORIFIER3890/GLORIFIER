@@ -1,6 +1,6 @@
 # GLORIFIER SERVICES NFT Preparation Record
 
-**Status:** PREPARED — NETWORK AND MINTING NOT EXECUTED  
+**Status:** PREPARED — METADATA VERIFICATION BLOCKED; NO DEPLOYMENT OR MINT  
 **Last updated:** 2026-10-14  
 **Repository:** GLORIFIER7/GLORIFIER
 
@@ -9,11 +9,13 @@
 This record preserves the current NFT preparation details for the original GLORIFIER SERVICES artwork. It is a planning and evidence record, not proof that an NFT has been minted.
 
 - Preserve the existing artwork and metadata CIDs; do not replace or regenerate the artwork.
-- No contract has been deployed by this preparation workflow.
+- User-selected target network: **Base mainnet**.
+- User-selected implementation: **custom ERC-721 contract**.
+- No contract has been deployed by this workflow.
 - No wallet has been asked to sign a transaction.
 - No payment has been made and no mint transaction has been submitted.
-- Do not deploy, sign, pay, or mint without separate explicit user authorization.
-- Budget stated by the user: zero.
+- Do not deploy, sign, pay, or mint without separate explicit user authorization after reviewing the exact transaction and costs.
+- Budget stated by the user: zero; mainnet gas cannot be assumed to be free.
 
 ## Content-addressed assets
 
@@ -25,37 +27,37 @@ This record preserves the current NFT preparation details for the original GLORI
 - **Artwork source URL previously used:** `https://1.gravatar.com/avatar/2debdba15d0c08ab78691048092e465dc74c530e3447e3f584a23e7165272c33?size=512&d=initials`
 - **Previously recorded artwork SHA-256:** `0a0d5b0e485dbd4a5ed7383a7bfd288c893b22d8834680b641475c33dd9c8513`
 
-The SHA-256 above is a previously recorded value, not a fresh calculation performed by this commit. The user reported that the artwork and metadata were pinned in Filebase. That pinning state and live gateway retrieval have not been independently re-verified as part of this GitHub record.
+The SHA-256 above is a previously recorded value, not a fresh calculation. The user reported that both assets were pinned in Filebase; that report has not been independently verified here.
 
-## Network and minting path under consideration
+## Metadata verification attempt — 2026-10-14
 
-- **Preferred planning path:** Base Sepolia (testnet), EVM-compatible custom ERC-721.
-- **No mainnet network has been authorized for deployment.**
-- OpenSea Studio was discussed as a potentially easier no-code option, but compatibility with directly importing the existing metadata URI has not been confirmed here.
-- Deployment and minting require a wallet and network gas; a zero-budget mainnet mint cannot be promised.
-- No exact fee quote is recorded because no live transaction estimate was obtained.
+Attempted to retrieve the metadata CID and artwork CID through public IPFS gateways, including `ipfs.io` and `dweb.link`. The available fetch tools timed out or failed to retrieve the content. This is **inconclusive**: it does not prove that the CIDs are invalid or that the content is absent. It does mean the JSON contents and actual image rendering could not be verified in this session.
 
-## Required checks before minting
+**Do not proceed to deployment until the metadata JSON can be retrieved and its `image` field is confirmed to match the artwork URI above.**
 
-1. Fetch the metadata JSON from the metadata CID and inspect its complete contents.
-2. Confirm that the JSON `image` field exactly matches the artwork URI above.
-3. Open the image through an IPFS gateway and confirm it renders as the intended original logo.
+## Required checks before deployment
+
+1. Fetch the full metadata JSON from the metadata CID and inspect its complete contents.
+2. Confirm the JSON `image` field exactly matches the artwork URI above.
+3. Open the artwork CID through a working IPFS gateway and confirm it renders the intended original logo.
 4. Recalculate the source artwork SHA-256 from the exact original file and compare it with the recorded value.
-5. Confirm the chosen platform supports the target network and the intended metadata workflow.
-6. Review the contract, collection details, network, wallet, and all fees before any signing.
-7. Obtain separate explicit authorization before deployment, wallet signing, payment, or minting.
+5. Prepare and review the custom ERC-721 source, including token URI handling and ownership/mint controls.
+6. Obtain a live Base mainnet deployment and mint gas estimate, including the deploy and mint transactions separately.
+7. Show the exact contract code, deployment parameters, mint recipient, token URI, and total estimated costs for user review.
+8. Stop and obtain separate explicit authorization before any deployment, wallet signing, payment, or minting.
 
 ## Current evidence status
 
 | Item | Status |
 |---|---|
 | Artwork and metadata CIDs recorded | RECORDED |
-| Filebase pinning | USER-REPORTED; not independently re-verified in this commit |
-| Metadata JSON contents and image field | NOT INDEPENDENTLY VERIFIED |
-| Live artwork rendering from IPFS | NOT INDEPENDENTLY VERIFIED |
+| Filebase pinning | USER-REPORTED; not independently re-verified |
+| Metadata JSON contents and image field | NOT VERIFIED — gateway retrieval failed |
+| Live artwork rendering from IPFS | NOT VERIFIED — gateway retrieval failed |
 | Fresh SHA-256 recalculation | NOT PERFORMED |
-| Network selected for actual deployment | NOT FINAL |
-| ERC-721 contract deployed | NO |
+| Target network and implementation | BASE MAINNET / CUSTOM ERC-721 selected for planning |
+| Contract source reviewed by user | NOT YET |
+| Contract deployed | NO |
 | Wallet transaction signed | NO |
 | NFT minted | NO |
 
