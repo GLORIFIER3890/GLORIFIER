@@ -1,5 +1,6 @@
 import { buildGLRAIServiceQuote, divideDecimal } from './glr-commerce';
 
+/** Throws a descriptive error when a GLR commerce regression expectation fails. */
 const expect = (condition: unknown, message: string): void => {
   if (!condition) throw new Error(message);
 };
@@ -39,6 +40,19 @@ const eur = buildGLRAIServiceQuote({
 });
 expect(eur.fiatReferenceAmount === '0.04', 'fractional FX rates must convert USD 0.05 before currency precision rounding');
 expect(eur.quoteStatus === 'GLR_RATE_NOT_CONFIGURED', 'fractional fiat conversion must not invent a GLR market rate');
+
+// Preserve the stated realistic EUR-per-USD fixture as well as the edge cases.
+const realisticEur = buildGLRAIServiceQuote({
+  currency: 'EUR',
+  fiatRate: {
+    currency: 'EUR', ratePerUsd: '0.92',
+    source: 'realistic-rate-regression-fixture', observedAt: '2026-10-13T06:59:00.000Z',
+    retrievedAt: '2026-10-13T06:59:30.000Z', maxAgeSeconds: 3600,
+  },
+  now,
+});
+expect(realisticEur.fiatReferenceAmount === '0.05', '0.05 USD × 0.92 EUR per USD should round to EUR 0.05');
+expect(realisticEur.quoteStatus === 'GLR_RATE_NOT_CONFIGURED', 'realistic FX conversion must not invent a GLR market rate');
 
 // A deliberately discriminating fixture: 0.05 USD × 1.70 = 0.085,
 // which rounds to 0.09 at two decimal places. Inverting the rate would
