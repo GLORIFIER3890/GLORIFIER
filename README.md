@@ -98,6 +98,7 @@ The Docker publishing workflow is gated by successful `GLORIFIER CI` on a push t
 ## Documentation
 
 - [Documentation directory](docs/)
+- [SAP-inspired enterprise operations architecture](docs/sap-inspired-enterprise-operations-architecture.md)
 - [Canonical GLR asset registry](docs/canonical-asset-registry.md)
 - [Tokenomics](docs/tokenomics.md)
 - [Hybrid multichain money architecture](docs/glr-hybrid-multichain-money.md)
