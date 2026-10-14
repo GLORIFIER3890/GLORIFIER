@@ -2567,10 +2567,19 @@ app.post('/api/a2a/handoffs/verify', (req: Request, res: Response) => {
 
 app.post('/api/a2a/e2e-test', requireOwner, async (_req: Request, res: Response) => {
   try {
-    const result = await runA2AE2ETest((prompt, options) => runIntelligenceModel('gemini', prompt, {
-      systemInstruction: typeof options?.systemInstruction === 'string' ? options.systemInstruction : undefined,
-      jsonMode: options?.jsonMode === true,
-    }));
+    // Exercise the same governed provider registry used by production orchestration.
+    // A missing/failed provider remains a failure; this endpoint never fabricates inference.
+    const result = await runA2AE2ETest(async (prompt) => {
+      const registryResult = await executeThroughProviderRegistry({
+        messages: [{ role: 'user', content: prompt }],
+        capability: 'research',
+      });
+      if (!registryResult.response?.text?.trim()) return null;
+      return {
+        text: registryResult.response.text,
+        model: `${registryResult.response.provider}/${registryResult.response.model}`,
+      };
+    });
     return res.status(result.ok ? 200 : 503).json(result);
   } catch (error) {
     return apiError(res, 503, 'A2A E2E test unavailable', error);
