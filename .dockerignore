@@ -1,0 +1,41 @@
+# Version control and local tool state
+.git
+.github
+.vscode
+.idea
+.vercel
+.netlify
+.playwright
+playwright-report
+test-results
+coverage
+
+# Dependencies and generated output are recreated in the image
+node_modules
+dist
+build
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials/
+.firebase/
+.firebase-*
+firebase-debug.log
+
+# Platform-specific or unrelated generated folders
+android/.gradle
+android/.idea
+android/app/build
+.DS_Store
+Thumbs.db
