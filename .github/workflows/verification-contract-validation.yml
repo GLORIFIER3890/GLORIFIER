@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          pattern='(^|[^A-Za-z0-9_-])sk-[A-Za-z0-9_-]{20,}'
+          pattern='(^|[^A-Za-z0-9_])sk-[A-Za-z0-9_-]{20,}'
           if printf '%s\n' 'risk-management-framework' | grep -qE "$pattern"; then
             echo "Secret scanner false-positive regression: ordinary hyphenated text matched."
             exit 1
@@ -63,7 +63,11 @@ jobs:
             echo "Secret scanner regression: token-like material was not detected."
             exit 1
           fi
-          if grep -RniE '((^|[^A-Za-z0-9_-])sk-[A-Za-z0-9_-]{20,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|GLORIFIER_DEPLOYER_PRIVATE_KEY=)' agent-network docs; then
+          if ! printf '%s\n' 'prefix-sk-01234567890123456789' | grep -qE "$pattern"; then
+            echo "Secret scanner regression: token-like material after a hyphen was not detected."
+            exit 1
+          fi
+          if grep -RniE '((^|[^A-Za-z0-9_])sk-[A-Za-z0-9_-]{20,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|GLORIFIER_DEPLOYER_PRIVATE_KEY=)' agent-network docs; then
             echo "Potential credential material found."
             exit 1
           fi
