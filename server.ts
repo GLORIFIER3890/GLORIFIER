@@ -2572,7 +2572,7 @@ app.post('/api/a2a/e2e-test', requireOwner, async (_req: Request, res: Response)
     const result = await runA2AE2ETest(async (prompt) => {
       const registryResult = await executeThroughProviderRegistry({
         messages: [{ role: 'user', content: prompt }],
-        capability: 'research',
+        capability: typeof options?.capability === 'string' ? options.capability : 'research',
       });
       if (!registryResult.response?.text?.trim()) return null;
       return {
