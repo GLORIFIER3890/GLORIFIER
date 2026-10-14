@@ -89,7 +89,7 @@ export const validatePaidDeliveryEvidence = (e: PaidDeliveryEvidence): GateStatu
   if (e.environment !== 'production' || e.settlementIndependentlyVerified !== true || e.reconciled !== true) return 'NOT VERIFIED';
   if (!validZeroVariance(e.unexplainedVarianceMinorUnits)) return 'NOT VERIFIED';
   return 'VERIFIED';
-};;
+};
 
 export const validatePayingCustomerEvidence = (e: PayingCustomerEvidence): GateStatus => {
   const refs = [e.customerRef, e.onboardingCompletedRef, e.independentlyVerifiedSettlementRef, e.deliveryAcceptanceRef];
