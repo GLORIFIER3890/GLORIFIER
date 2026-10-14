@@ -23,6 +23,10 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+.npmrc
+**/.npmrc
+.npmrc.*
+**/.npmrc.*
 *.pem
 *.key
 *.p12
