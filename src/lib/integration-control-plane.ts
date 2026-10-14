@@ -50,8 +50,39 @@ const ensureTable = async () => {
   `);
 };
 
-const digest = async (value: unknown) => {
+const digest = (value: unknown) => {
   return crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
+};
+
+const persistSnapshotIfChanged = async (
+  snapshot: IntegrationControlSnapshot,
+  digestSha256: string
+): Promise<IntegrationControlSnapshot> => {
+  try {
+    await ensureTable();
+    const db = getPostgresPool();
+    const previous = await db.query(
+      'SELECT id, digest_sha256, snapshot FROM integration_control_snapshots ORDER BY synchronized_at DESC LIMIT 1'
+    );
+    if (previous.rows[0]?.digest_sha256 !== digestSha256) {
+      await db.query(
+        'INSERT INTO integration_control_snapshots(id,synchronized_at,last_checked_at,snapshot,digest_sha256) VALUES($1,$2,NOW(),$3,$4)',
+        [snapshot.id, snapshot.synchronizedAt, JSON.stringify(snapshot), digestSha256]
+      );
+      return snapshot;
+    }
+
+    await db.query(
+      'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1',
+      [previous.rows[0].id]
+    );
+    return previous.rows[0].snapshot
+      ? previous.rows[0].snapshot as IntegrationControlSnapshot
+      : snapshot;
+  } catch (error) {
+    console.warn('[IntegrationControlPlane] persistence deferred:', error instanceof Error ? error.message : error);
+    return snapshot;
+  }
 };
 
 export const reconcileIntegrationControlPlane = async (actor = 'system') => {
@@ -103,38 +134,14 @@ export const reconcileIntegrationControlPlane = async (actor = 'system') => {
     compute: snapshotBase.compute,
     invariants: snapshotBase.invariants
   };
-  const digestSha256 = await digest(digestPayload);
+  const digestSha256 = digest(digestPayload);
   const snapshot: IntegrationControlSnapshot = {
     id: `ics-${crypto.randomUUID()}`,
     ...snapshotBase,
     digestSha256
   };
 
-  let effectiveSnapshot = snapshot;
-  try {
-    await ensureTable();
-    const db = getPostgresPool();
-    const previous = await db.query(
-      'SELECT id, digest_sha256, snapshot FROM integration_control_snapshots ORDER BY synchronized_at DESC LIMIT 1'
-    );
-    if (previous.rows[0]?.digest_sha256 === digestSha256) {
-      // Preserve the last material state snapshot and record that reconciliation ran.
-      await db.query(
-        'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1',
-        [previous.rows[0].id]
-      );
-      if (previous.rows[0].snapshot) {
-        effectiveSnapshot = previous.rows[0].snapshot as IntegrationControlSnapshot;
-      }
-    } else {
-      await db.query(
-        'INSERT INTO integration_control_snapshots(id,synchronized_at,last_checked_at,snapshot,digest_sha256) VALUES($1,$2,NOW(),$3,$4)',
-        [snapshot.id, snapshot.synchronizedAt, JSON.stringify(snapshot), digestSha256]
-      );
-    }
-  } catch (error) {
-    console.warn('[IntegrationControlPlane] persistence deferred:', error instanceof Error ? error.message : error);
-  }
+  const effectiveSnapshot = await persistSnapshotIfChanged(snapshot, digestSha256);
 
   latestSnapshot = effectiveSnapshot;
   return { actor, snapshot: effectiveSnapshot };
