@@ -110,12 +110,12 @@ export const reconcileIntegrationControlPlane = async (actor = 'system') => {
     digestSha256
   };
 
-  latestSnapshot = snapshot;
+  let effectiveSnapshot = snapshot;
   try {
     await ensureTable();
     const db = getPostgresPool();
     const previous = await db.query(
-      'SELECT id, digest_sha256 FROM integration_control_snapshots ORDER BY synchronized_at DESC LIMIT 1'
+      'SELECT id, digest_sha256, snapshot FROM integration_control_snapshots ORDER BY synchronized_at DESC LIMIT 1'
     );
     if (previous.rows[0]?.digest_sha256 === digestSha256) {
       // Preserve the last material state snapshot and record that reconciliation ran.
@@ -123,6 +123,9 @@ export const reconcileIntegrationControlPlane = async (actor = 'system') => {
         'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1',
         [previous.rows[0].id]
       );
+      if (previous.rows[0].snapshot) {
+        effectiveSnapshot = previous.rows[0].snapshot as IntegrationControlSnapshot;
+      }
     } else {
       await db.query(
         'INSERT INTO integration_control_snapshots(id,synchronized_at,last_checked_at,snapshot,digest_sha256) VALUES($1,$2,NOW(),$3,$4)',
@@ -133,7 +136,8 @@ export const reconcileIntegrationControlPlane = async (actor = 'system') => {
     console.warn('[IntegrationControlPlane] persistence deferred:', error instanceof Error ? error.message : error);
   }
 
-  return { actor, snapshot };
+  latestSnapshot = effectiveSnapshot;
+  return { actor, snapshot: effectiveSnapshot };
 };
 
 export const getIntegrationControlSnapshot = async () => {
