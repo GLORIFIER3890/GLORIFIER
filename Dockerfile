@@ -23,11 +23,14 @@ RUN apt-get update \
 # Refresh the bundled npm CLI to the maintained Node 22-compatible line;
 # older npm bundles carry vulnerable pacote, sigstore, and brace-expansion copies.
 RUN npm install --global npm@11 --no-audit --no-fund \
+ && npm install --prefix /usr/local/lib/node_modules/npm --no-save --package-lock=false --no-audit --no-fund brace-expansion@5.0.11 undici@6.28.1 \
  && npm --version
 
 # Install application dependencies from the committed lockfile.
 COPY package.json package-lock.json ./
-RUN npm ci --no-audit --no-fund \
+# Resolve patched transitive versions from package.json overrides, then install from that lock.
+RUN npm install --package-lock-only --ignore-scripts --no-audit --no-fund \
+ && npm ci --no-audit --no-fund \
  && npm cache clean --force
 
 COPY --chown=node:node . .
