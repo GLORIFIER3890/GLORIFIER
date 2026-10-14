@@ -95,7 +95,14 @@ export async function reconcileIntegrationControlPlane(actor = 'system') {
 
   // A synchronization timestamp is operational metadata, not snapshot content.
   // Excluding it lets identical state reconcile without inserting another large JSONB row.
-  const { synchronizedAt: _synchronizedAt, ...digestPayload } = snapshotBase;
+  const digestPayload = {
+    authentication: snapshotBase.authentication,
+    connections: snapshotBase.connections,
+    agents: snapshotBase.agents,
+    providers: snapshotBase.providers,
+    compute: snapshotBase.compute,
+    invariants: snapshotBase.invariants
+  };
   const digestSha256 = await digest(digestPayload);
   const snapshot: IntegrationControlSnapshot = {
     id: `ics-${crypto.randomUUID()}`,
