@@ -20,7 +20,12 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Install from the lockfile for repeatable builds.
+# Refresh the bundled npm CLI to the maintained Node 22-compatible line;
+# older npm bundles carry vulnerable pacote, sigstore, and brace-expansion copies.
+RUN npm install --global npm@11 --no-audit --no-fund \
+ && npm --version
+
+# Install application dependencies from the committed lockfile.
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund \
  && npm cache clean --force
