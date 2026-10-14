@@ -37,7 +37,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Audit npm dependencies
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=low
 
       - name: TypeScript static check
         run: npm run lint
