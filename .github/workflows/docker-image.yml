@@ -70,20 +70,28 @@ jobs:
           persist-credentials: false
 
       - name: Confirm the CI commit is still the current main tip
+        id: current_main
         env:
           CI_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
           MAIN_SHA="$(git ls-remote https://github.com/GLORIFIER7/GLORIFIER.git refs/heads/main | cut -f1)"
           test -n "$MAIN_SHA" || { echo "::error::Could not resolve current main tip; refusing to publish."; exit 1; }
-          test "$CI_SHA" = "$MAIN_SHA" || { echo "::notice::Skipping stale CI commit $CI_SHA; main is now $MAIN_SHA."; exit 1; }
+          if [ "$CI_SHA" = "$MAIN_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipping stale CI commit $CI_SHA; main is now $MAIN_SHA."
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Build candidate image
+        if: steps.current_main.outputs.current == 'true'
         env:
           IMAGE_TAG: sha-${{ github.event.workflow_run.head_sha }}
-        run: docker build --pull --tag glorifier/glorifier:${IMAGE_TAG} .
+        run: docker build --pull --tag "glorifier/glorifier:${IMAGE_TAG}" .
 
       - name: Scan candidate image before registry login
+        if: steps.current_main.outputs.current == 'true'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: glorifier/glorifier:sha-${{ github.event.workflow_run.head_sha }}
@@ -94,6 +102,7 @@ jobs:
           severity: CRITICAL,HIGH
 
       - name: Validate Docker Hub publishing credentials exist
+        if: steps.current_main.outputs.current == 'true'
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -103,12 +112,14 @@ jobs:
           test -n "$DOCKERHUB_TOKEN" || { echo "::error::Add repository secret DOCKERHUB_TOKEN."; exit 1; }
 
       - name: Sign in to Docker Hub
+        if: steps.current_main.outputs.current == 'true'
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Tag and publish verified image
+        if: steps.current_main.outputs.current == 'true'
         env:
           IMAGE_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
