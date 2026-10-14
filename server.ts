@@ -2570,9 +2570,15 @@ app.post('/api/a2a/e2e-test', requireOwner, async (_req: Request, res: Response)
     // Exercise the same governed provider registry used by production orchestration.
     // A missing/failed provider remains a failure; this endpoint never fabricates inference.
     const result = await runA2AE2ETest(async (prompt, options) => {
+      const taskCapability = typeof options?.capability === 'string' ? options.capability : 'research';
+      // A2A task labels are broader than provider-registry capabilities.
+      // Map research/synthesis to the governed reasoning capability at this boundary.
+      const providerCapability = taskCapability === 'research' || taskCapability === 'synthesis'
+        ? 'reasoning'
+        : taskCapability;
       const registryResult = await executeThroughProviderRegistry({
         messages: [{ role: 'user', content: prompt }],
-        capability: typeof options?.capability === 'string' ? options.capability : 'research',
+        capability: providerCapability,
       });
       if (!registryResult.response?.text?.trim()) return null;
       return {
