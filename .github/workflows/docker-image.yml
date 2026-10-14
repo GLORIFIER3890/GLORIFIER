@@ -1,0 +1,114 @@
+name: GLORIFIER Docker Image
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - ".dockerignore"
+      - "package.json"
+      - "package-lock.json"
+      - "server.ts"
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "vite.config.ts"
+      - ".github/workflows/docker-image.yml"
+  workflow_run:
+    workflows: ["GLORIFIER CI"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: glorifier-docker-${{ github.event.pull_request.number || github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pull-request-build:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build image
+        run: docker build --pull --tag glorifier/glorifier:pr-${{ github.event.pull_request.number }} .
+
+      - name: Scan image for critical and high vulnerabilities
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: glorifier/glorifier:pr-${{ github.event.pull_request.number }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+  publish-after-ci:
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.name == 'GLORIFIER CI' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact commit that passed GLORIFIER CI
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+
+      - name: Build candidate image
+        env:
+          IMAGE_TAG: sha-${{ github.event.workflow_run.head_sha }}
+        run: docker build --pull --tag glorifier/glorifier:${IMAGE_TAG} .
+
+      - name: Scan candidate image before registry login
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: glorifier/glorifier:sha-${{ github.event.workflow_run.head_sha }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+      - name: Validate Docker Hub publishing credentials exist
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$DOCKERHUB_USERNAME" || { echo "::error::Add repository secret DOCKERHUB_USERNAME."; exit 1; }
+          test -n "$DOCKERHUB_TOKEN" || { echo "::error::Add repository secret DOCKERHUB_TOKEN."; exit 1; }
+
+      - name: Sign in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Tag and publish verified image
+        env:
+          IMAGE_SHA: ${{ github.event.workflow_run.head_sha }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          SOURCE_TAG="glorifier/glorifier:sha-${IMAGE_SHA}"
+          for tag in "latest" "${VERSION}" "sha-${IMAGE_SHA}"; do
+            docker tag "$SOURCE_TAG" "glorifier/glorifier:${tag}"
+            docker push "glorifier/glorifier:${tag}"
+          done
+          echo "Published tags for source commit ${IMAGE_SHA} after GLORIFIER CI and image vulnerability scan passed."
