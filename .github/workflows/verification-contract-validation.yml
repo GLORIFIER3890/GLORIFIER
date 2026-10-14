@@ -57,7 +57,9 @@ jobs:
             echo "Secret scanner false-positive regression: ordinary hyphenated text matched."
             exit 1
           fi
-          if ! printf '%s\n' 'token sk-'"'"'01234567890123456789'"'"' | grep -qE "$pattern"; then
+          sample_prefix='sk-'
+          sample_suffix='01234567890123456789'
+          if ! printf '%s\\n' "token ${sample_prefix}${sample_suffix}" | grep -qE "$pattern"; then
             echo "Secret scanner regression: token-like material was not detected."
             exit 1
           fi
