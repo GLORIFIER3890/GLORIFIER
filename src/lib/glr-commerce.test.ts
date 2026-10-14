@@ -1,8 +1,8 @@
 import { buildGLRAIServiceQuote, divideDecimal } from './glr-commerce';
 
-function expect(condition: unknown, message: string) {
+const expect = (condition: unknown, message: string): void => {
   if (!condition) throw new Error(message);
-}
+};
 
 expect(divideDecimal('0.05', '0.01', 9) === '5', 'decimal division should be exact');
 expect(divideDecimal('1', '3', 6) === '0.333333', 'decimal division should round half-up at target precision');
@@ -66,4 +66,4 @@ const stale = buildGLRAIServiceQuote({
 });
 expect(stale.fiatReferenceAmount === null && stale.quoteStatus === 'STALE_FIAT_RATE', 'stale FX evidence must not create a fiat amount');
 
-console.log('GLR commerce quote tests passed.');
+process.stdout.write('GLR commerce quote tests passed.\\n');
