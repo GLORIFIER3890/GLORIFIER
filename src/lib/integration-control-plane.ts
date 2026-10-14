@@ -35,7 +35,7 @@ export interface IntegrationControlSnapshot {
 
 let latestSnapshot: IntegrationControlSnapshot | null = null;
 
-async function ensureTable() {
+const ensureTable = async () => {
   await getPostgresPool().query(`
     CREATE TABLE IF NOT EXISTS integration_control_snapshots (
       id TEXT PRIMARY KEY,
@@ -48,13 +48,13 @@ async function ensureTable() {
     ALTER TABLE integration_control_snapshots
       ADD COLUMN IF NOT EXISTS last_checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
   `);
-}
+};
 
-async function digest(value: unknown) {
+const digest = async (value: unknown) => {
   return crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
-}
+};
 
-export async function reconcileIntegrationControlPlane(actor = 'system') {
+export const reconcileIntegrationControlPlane = async (actor = 'system') => {
   const synchronizedAt = new Date().toISOString();
   const [connections, agents] = await Promise.all([
     listConnections().catch(() => []),
@@ -134,9 +134,9 @@ export async function reconcileIntegrationControlPlane(actor = 'system') {
   }
 
   return { actor, snapshot };
-}
+};
 
-export async function getIntegrationControlSnapshot() {
+export const getIntegrationControlSnapshot = async () => {
   if (latestSnapshot) return latestSnapshot;
   try {
     await ensureTable();
@@ -151,4 +151,4 @@ export async function getIntegrationControlSnapshot() {
     // Database may be unavailable during boot; a live reconciliation can retry.
   }
   return reconcileIntegrationControlPlane('snapshot-read').then(result => result.snapshot);
-}
+};
