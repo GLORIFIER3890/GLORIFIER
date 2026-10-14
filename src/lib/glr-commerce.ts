@@ -15,38 +15,41 @@ export const GLR_AI_SUMMARY_SERVICE = {
 
 const DECIMAL_RE = /^(?:0|[1-9]\d*)(?:\.\d+)?$/;
 
-function parseDecimal(value: string, label: string) {
+/** Parse a non-negative decimal string into integer units and scale. */
+const parseDecimal = (value: string, label: string) => {
   if (typeof value !== 'string' || !DECIMAL_RE.test(value)) {
     throw new Error(`${label} must be a non-negative decimal string`);
   }
   const [whole, fraction = ''] = value.split('.');
   return { units: BigInt(whole + fraction), scale: fraction.length };
-}
+};
 
-function pow10(n: number): bigint {
-  if (!Number.isInteger(n) || n < 0 || n > 100) throw new Error('Invalid decimal precision');
-  return 10n ** BigInt(n);
-}
+/** Return an exact power of ten for supported decimal precision. */
+const pow10 = (exponent: number): bigint => {
+  if (!Number.isInteger(exponent) || exponent < 0 || exponent > 100) throw new Error('Invalid decimal precision');
+  return 10n ** BigInt(exponent);
+};
 
-function formatDecimal(units: bigint, scale: number): string {
+/** Format integer decimal units without trailing fractional zeroes. */
+const formatDecimal = (units: bigint, scale: number): string => {
   const digits = units.toString().padStart(scale + 1, '0');
   if (scale === 0) return digits;
   const whole = digits.slice(0, -scale);
   const fraction = digits.slice(-scale).replace(/0+$/, '');
   return fraction ? `${whole}.${fraction}` : whole;
-}
+};
 
 /** Exact decimal division, rounded half-up at the requested precision. */
-export function divideDecimal(numerator: string, denominator: string, precision = 9): string {
-  const n = parseDecimal(numerator, 'Numerator');
-  const d = parseDecimal(denominator, 'Denominator');
-  if (d.units <= 0n) throw new Error('Denominator must be greater than zero');
+export const divideDecimal = (numerator: string, denominator: string, precision = 9): string => {
+  const numeratorDecimal = parseDecimal(numerator, 'Numerator');
+  const denominatorDecimal = parseDecimal(denominator, 'Denominator');
+  if (denominatorDecimal.units <= 0n) throw new Error('Denominator must be greater than zero');
   if (!Number.isInteger(precision) || precision < 0 || precision > 30) throw new Error('Invalid precision');
-  const scaledNumerator = n.units * pow10(d.scale + precision);
-  const scaledDenominator = d.units * pow10(n.scale);
+  const scaledNumerator = numeratorDecimal.units * pow10(denominatorDecimal.scale + precision);
+  const scaledDenominator = denominatorDecimal.units * pow10(numeratorDecimal.scale);
   const rounded = (scaledNumerator + scaledDenominator / 2n) / scaledDenominator;
   return formatDecimal(rounded, precision);
-}
+};
 
 export interface FiatRateEvidence {
   currency: string;
@@ -80,22 +83,26 @@ export interface GLRAIServiceQuote {
   warnings: string[];
 }
 
-function isFresh(observedAt: string, retrievedAt: string, maxAgeSeconds: number, now: Date): boolean {
+/** Return true only when both FX timestamps are valid, current, and within age limits. */
+const isFresh = (observedAt: string, retrievedAt: string, maxAgeSeconds: number, now: Date): boolean => {
   const observed = Date.parse(observedAt);
   const retrieved = Date.parse(retrievedAt);
-  if (!Number.isFinite(observed) || !Number.isFinite(retrieved) || !Number.isFinite(maxAgeSeconds) || maxAgeSeconds < 0) return false;
   const current = now.getTime();
-  return observed <= current && retrieved <= current
-    && (current - observed) / 1000 <= maxAgeSeconds
-    && (current - retrieved) / 1000 <= maxAgeSeconds;
-}
+  const validInputs = Number.isFinite(observed) && Number.isFinite(retrieved)
+    && Number.isFinite(maxAgeSeconds) && maxAgeSeconds >= 0;
+  if (!validInputs) return false;
+  const observedIsCurrent = observed <= current && (current - observed) / 1000 <= maxAgeSeconds;
+  const retrievedIsCurrent = retrieved <= current && (current - retrieved) / 1000 <= maxAgeSeconds;
+  return observedIsCurrent && retrievedIsCurrent;
+};
 
-export function buildGLRAIServiceQuote(input: {
+/** Build a non-executable informational service quote from supplied evidence. */
+export const buildGLRAIServiceQuote = (input: {
   currency: string;
   fiatRate?: FiatRateEvidence | null;
   glrPrice?: GLRPriceEvidence | null;
   now?: Date;
-}): GLRAIServiceQuote {
+}): GLRAIServiceQuote => {
   const now = input.now ?? new Date();
   const currency = input.currency.trim().toUpperCase();
   if (!/^[A-Z]{3}$/.test(currency)) throw new Error('Currency must be a three-letter ISO currency code');
@@ -112,8 +119,11 @@ export function buildGLRAIServiceQuote(input: {
     fiatStatus = 'INDICATIVE';
   } else if (input.fiatRate && input.fiatRate.currency.toUpperCase() === currency) {
     const rate = parseDecimal(input.fiatRate.ratePerUsd, 'Fiat rate');
-    if (rate.units > 0n && isFresh(input.fiatRate.observedAt, input.fiatRate.retrievedAt, input.fiatRate.maxAgeSeconds, now)) {
+    const freshRate = rate.units > 0n
+      && isFresh(input.fiatRate.observedAt, input.fiatRate.retrievedAt, input.fiatRate.maxAgeSeconds, now);
+    if (freshRate) {
       const scale = Math.min(6, Math.max(0, rate.scale));
+      // ratePerUsd is foreign-currency units per 1 USD.
       const amountUnits = 5n * rate.units * pow10(scale);
       const divisor = pow10(rate.scale + 2);
       const rounded = (amountUnits + divisor / 2n) / divisor;
@@ -159,4 +169,4 @@ export function buildGLRAIServiceQuote(input: {
       ...(glrPrice ? ['The GLR/USD reference is operator-configured evidence and is not independently validated by this quote endpoint.'] : ['No GLR/USD price source is configured; a fiat value for GLR is not presented.']),
     ],
   };
-}
+};
