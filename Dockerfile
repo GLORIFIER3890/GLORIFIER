@@ -28,9 +28,7 @@ RUN npm install --global npm@11 --no-audit --no-fund \
 
 # Install application dependencies from the committed lockfile.
 COPY package.json package-lock.json ./
-# Resolve patched transitive versions from package.json overrides, then install from that lock.
-RUN npm install --package-lock-only --ignore-scripts --no-audit --no-fund \
- && npm ci --no-audit --no-fund \
+RUN npm ci --no-audit --no-fund \
  && npm cache clean --force
 
 COPY --chown=node:node . .
