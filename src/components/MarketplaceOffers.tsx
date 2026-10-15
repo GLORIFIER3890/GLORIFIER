@@ -28,13 +28,14 @@ const isValidVerdict = (verdict: unknown): verdict is OfferAssessment['verdict']
 const isValidReasoning = (reasoning: unknown): reasoning is string =>
   typeof reasoning === 'string' && reasoning.trim().length > 0;
 
-const isValidAssessment = (value: unknown): value is OfferAssessment => {
-  if (typeof value !== 'object' || value === null) return false;
-  const assessment = value as Record<string, unknown>;
-  return isValidScore(assessment.score) &&
-    isValidVerdict(assessment.verdict) &&
-    isValidReasoning(assessment.reasoning);
-};
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const isValidAssessment = (value: unknown): value is OfferAssessment =>
+  isRecord(value) &&
+  isValidScore(value.score) &&
+  isValidVerdict(value.verdict) &&
+  isValidReasoning(value.reasoning);
 
 const requestOfferAssessment = async (
   offer: BuyerOffer,
@@ -52,6 +53,22 @@ const requestOfferAssessment = async (
     throw new Error('AI evaluation response was incomplete or invalid.');
   }
   return data;
+};
+
+const runOfferAssessment = async (
+  offer: BuyerOffer,
+  policy: MonetizationPolicy,
+  onSuccess: (assessment: OfferAssessment) => void,
+  onFailure: (error: unknown) => void,
+  onFinally: () => void
+): Promise<void> => {
+  try {
+    onSuccess(await requestOfferAssessment(offer, policy));
+  } catch (error) {
+    onFailure(error);
+  } finally {
+    onFinally();
+  }
 };
 
 interface MarketplaceOffersProps {
@@ -139,14 +156,13 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
     const requestId = (evaluationRequestIds.current[offer.id] || 0) + 1;
     evaluationRequestIds.current[offer.id] = requestId;
     setEvaluatingIds(previous => ({ ...previous, [offer.id]: true }));
-    try {
-      const assessment = await requestOfferAssessment(offer, policy);
-      storeEvaluationSuccess(offer.id, requestId, assessment);
-    } catch (error) {
-      storeCurrentEvaluationFailure(offer.id, requestId, error);
-    } finally {
-      finishCurrentEvaluation(offer.id, requestId);
-    }
+    await runOfferAssessment(
+      offer,
+      policy,
+      assessment => storeEvaluationSuccess(offer.id, requestId, assessment),
+      error => storeCurrentEvaluationFailure(offer.id, requestId, error),
+      () => finishCurrentEvaluation(offer.id, requestId)
+    );
   };
 
   return (
