@@ -32,10 +32,11 @@ const isValidAssessment = (value: unknown): value is OfferAssessment => {
   if (typeof value !== 'object' || value === null) return false;
 
   const assessment = value as Record<string, unknown>;
-  if (!isValidScore(assessment.score)) return false;
-  if (!isValidVerdict(assessment.verdict)) return false;
-
-  return isValidReasoning(assessment.reasoning);
+  return [
+    isValidScore(assessment.score),
+    isValidVerdict(assessment.verdict),
+    isValidReasoning(assessment.reasoning),
+  ].every(Boolean);
 };
 
 interface MarketplaceOffersProps {
