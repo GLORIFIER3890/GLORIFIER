@@ -350,7 +350,7 @@ export default function App() {
     // A payout success callback is only allowed to update state after an authoritative
   // payout provider has returned qualifying settlement evidence.
   const handleWithdrawSuccess = (amount: number, method: string, txHash: string) => {
-    void recordGovernedAction('payout-settlement-callback', {
+    void recordGovernedAction('payout-request-submitted', {
       amount,
       method,
       txHash,
