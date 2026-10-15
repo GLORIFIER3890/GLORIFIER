@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Header } from './components/Header';
 import { OverviewTab } from './components/OverviewTab';
-import { FootprintManager } from './components/FootprintManager';
-import { AiBrokerConsole } from './components/AiBrokerConsole';
-import { DataControlDashboard } from './components/DataControlDashboard';
-import { AiCodeSentinelManagement } from './components/AiCodeSentinelManagement';
-import { ComplianceScientistBot } from './components/ComplianceScientistBot';
-import { IntegrationControl } from './components/IntegrationControl';
-import { AICeoControl } from './components/AICeoControl';
-import { AiScientistFleetConsole } from './components/AiScientistFleetConsole';
-import { OpportunityDiscoveryDashboard } from './components/OpportunityDiscoveryDashboard';
-import { ConnectionAuthorizationDashboard } from './components/ConnectionAuthorizationDashboard';
-import { GeasArchitectureScientistDashboard } from './components/GeasArchitectureScientistDashboard';
-import { MobileDeviceControl } from './components/MobileDeviceControl';
-import { AgentMinerDashboard } from './components/AgentMinerDashboard';
-import { AgentNetworkDashboard } from './components/AgentNetworkDashboard';
+const FootprintManager = React.lazy(() => import('./components/FootprintManager').then((module) => ({ default: module.FootprintManager })));
+const AiBrokerConsole = React.lazy(() => import('./components/AiBrokerConsole').then((module) => ({ default: module.AiBrokerConsole })));
+const DataControlDashboard = React.lazy(() => import('./components/DataControlDashboard').then((module) => ({ default: module.DataControlDashboard })));
+const AiCodeSentinelManagement = React.lazy(() => import('./components/AiCodeSentinelManagement').then((module) => ({ default: module.AiCodeSentinelManagement })));
+const ComplianceScientistBot = React.lazy(() => import('./components/ComplianceScientistBot').then((module) => ({ default: module.ComplianceScientistBot })));
+const IntegrationControl = React.lazy(() => import('./components/IntegrationControl').then((module) => ({ default: module.IntegrationControl })));
+const AICeoControl = React.lazy(() => import('./components/AICeoControl').then((module) => ({ default: module.AICeoControl })));
+const AiScientistFleetConsole = React.lazy(() => import('./components/AiScientistFleetConsole').then((module) => ({ default: module.AiScientistFleetConsole })));
+const OpportunityDiscoveryDashboard = React.lazy(() => import('./components/OpportunityDiscoveryDashboard').then((module) => ({ default: module.OpportunityDiscoveryDashboard })));
+const ConnectionAuthorizationDashboard = React.lazy(() => import('./components/ConnectionAuthorizationDashboard').then((module) => ({ default: module.ConnectionAuthorizationDashboard })));
+const GeasArchitectureScientistDashboard = React.lazy(() => import('./components/GeasArchitectureScientistDashboard').then((module) => ({ default: module.GeasArchitectureScientistDashboard })));
+const MobileDeviceControl = React.lazy(() => import('./components/MobileDeviceControl').then((module) => ({ default: module.MobileDeviceControl })));
+const AgentMinerDashboard = React.lazy(() => import('./components/AgentMinerDashboard').then((module) => ({ default: module.AgentMinerDashboard })));
+const AgentNetworkDashboard = React.lazy(() => import('./components/AgentNetworkDashboard').then((module) => ({ default: module.AgentNetworkDashboard })));
 
 import { 
   initialStats, 
@@ -41,21 +41,7 @@ import {
   CodeSentinelError,
   SentinelBotState
 } from './types';
-import { 
-  auth, 
-  loginWithGoogle, 
-  completeGoogleRedirectSignIn, 
-  logout, 
-  testFirestoreConnection 
-} from './lib/firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { 
-  saveUserPolicy, 
-  saveActiveGrant, 
-  recordTelemetryEvent, 
-  subscribeToUserPolicy, 
-  subscribeToUserGrants 
-} from './services/firestoreService';
+import type { User } from 'firebase/auth';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -91,21 +77,26 @@ export default function App() {
     }
   };
 
-  // Initialize Firebase Auth listener and test Firestore connection
+  // Load Firebase only after the first paint so the initial shell can render quickly.
   useEffect(() => {
-    testFirestoreConnection();
-
-    // Complete Google OAuth redirect sign-in after Firebase returns to the app.
-    // This is required for mobile browsers and popup-restricted environments.
-    completeGoogleRedirectSignIn().catch((error) => {
-      console.error('Google redirect sign-in completion failed:', error);
+    let active = true;
+    let unsubscribe = () => {};
+    void import('./lib/firebase').then(async (firebase) => {
+      if (!active) return;
+      void firebase.testFirestoreConnection();
+      void firebase.completeGoogleRedirectSignIn().catch((error) => {
+        console.error('Google redirect sign-in completion failed:', error);
+      });
+      const { onAuthStateChanged } = await import('firebase/auth');
+      if (!active) return;
+      unsubscribe = onAuthStateChanged(firebase.auth, (user) => setCurrentUser(user));
+    }).catch((error) => {
+      console.error('Firebase authentication initialization failed:', error);
     });
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-    });
-
-    return () => unsubscribe();
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   // Verify the complete authenticated frontend → API → Neon session path.
@@ -162,26 +153,27 @@ export default function App() {
     return () => { cancelled = true; };
   }, [currentUser]);
 
-  // Keep the existing Firestore policy/grant compatibility layer, but no longer treat
-  // local React state as the authoritative Command Center store.
+  // Load the Firestore compatibility layer only for an authenticated session.
   useEffect(() => {
     if (!currentUser) return;
-    const unsubPolicy = subscribeToUserPolicy(currentUser.uid, (remotePolicy) => {
-      if (remotePolicy) setPolicy(remotePolicy);
-    });
-    const unsubGrants = subscribeToUserGrants(currentUser.uid, (remoteGrants) => {
-      if (remoteGrants && remoteGrants.length) setGrants(remoteGrants);
-    });
-    return () => { unsubPolicy(); unsubGrants(); };
+    let cancelled = false;
+    let unsubPolicy = () => {};
+    let unsubGrants = () => {};
+    void import('./services/firestoreService').then((service) => {
+      if (cancelled) return;
+      unsubPolicy = service.subscribeToUserPolicy(currentUser.uid, (remotePolicy) => {
+        if (remotePolicy) setPolicy(remotePolicy);
+      });
+      unsubGrants = service.subscribeToUserGrants(currentUser.uid, (remoteGrants) => {
+        if (remoteGrants && remoteGrants.length) setGrants(remoteGrants);
+      });
+    }).catch((error) => console.error('Firestore compatibility subscription unavailable:', error));
+    return () => {
+      cancelled = true;
+      unsubPolicy();
+      unsubGrants();
+    };
   }, [currentUser]);
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
-  };
 
   const recordGovernedAction = async (action: string, details: Record<string, unknown>, evidence: unknown[] = []) => {
     if (!currentUser) return null;
@@ -299,7 +291,9 @@ export default function App() {
       }));
 
       if (currentUser) {
-        saveUserPolicy(currentUser.uid, updated).catch(console.error);
+        void import('./services/firestoreService')
+          .then(({ saveUserPolicy }) => saveUserPolicy(currentUser.uid, updated))
+          .catch(console.error);
         void recordGovernedAction('monetization-policy-change', { policy: updated });
       }
 
@@ -505,6 +499,7 @@ export default function App() {
 
       {/* Main View Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <Suspense fallback={<div role="status" className="rounded-xl border border-slate-800 bg-slate-900 p-6 text-sm text-slate-300">Loading module… live service status has not been checked by this loading state.</div>}>
         {activeTab === 'overview' && (
           <OverviewTab
             stats={stats}
@@ -568,15 +563,16 @@ export default function App() {
             footprints={footprints}
           />
         )}
+        </Suspense>
       </main>
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950/60 py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>GLORIFIER AI &bull; Provider-Neutral Intelligence Orchestration</span>
           <div className="flex items-center gap-4 font-mono text-[11px]">
-            <span>ZK-Attestation: Active</span>
-            <span>Differential Privacy: \u03b5={policy.globalEpsilon}</span>
-            <span>CCPA / GDPR Statutory Rights: Protected</span>
+            <span>ZK attestation: NOT VERIFIED</span>
+            <span>Privacy policy target ε={policy.globalEpsilon} (runtime enforcement not verified)</span>
+            <span>CCPA / GDPR compliance: NOT VERIFIED by this interface</span>
           </div>
         </div>
       </footer>
