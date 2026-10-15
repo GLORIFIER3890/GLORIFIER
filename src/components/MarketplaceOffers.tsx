@@ -31,9 +31,9 @@ const isValidReasoning = (reasoning: unknown): reasoning is string =>
 const isValidAssessment = (value: unknown): value is OfferAssessment => {
   if (typeof value !== 'object' || value === null) return false;
   const assessment = value as Record<string, unknown>;
-  if (!isValidScore(assessment.score)) return false;
-  if (!isValidVerdict(assessment.verdict)) return false;
-  return isValidReasoning(assessment.reasoning);
+  return isValidScore(assessment.score) &&
+    isValidVerdict(assessment.verdict) &&
+    isValidReasoning(assessment.reasoning);
 };
 
 const requestOfferAssessment = async (
@@ -108,25 +108,44 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
     }));
   };
 
+  const storeEvaluationSuccess = (
+    offerId: string,
+    requestId: number,
+    assessment: OfferAssessment
+  ) => {
+    if (!isCurrentEvaluation(offerId, requestId)) return;
+    setEvaluationResults(previous => ({ ...previous, [offerId]: assessment }));
+    setEvaluationErrors(previous => Object.fromEntries(
+      Object.entries(previous).filter(([id]) => id !== offerId)
+    ));
+  };
+
+  const storeCurrentEvaluationFailure = (
+    offerId: string,
+    requestId: number,
+    error: unknown
+  ) => {
+    if (!isCurrentEvaluation(offerId, requestId)) return;
+    console.error('Offer AI evaluation failed:', error);
+    storeEvaluationFailure(offerId, error);
+  };
+
+  const finishCurrentEvaluation = (offerId: string, requestId: number) => {
+    if (!isCurrentEvaluation(offerId, requestId)) return;
+    setEvaluatingIds(previous => ({ ...previous, [offerId]: false }));
+  };
+
   const handleRunAiEvaluation = async (offer: BuyerOffer) => {
     const requestId = (evaluationRequestIds.current[offer.id] || 0) + 1;
     evaluationRequestIds.current[offer.id] = requestId;
     setEvaluatingIds(previous => ({ ...previous, [offer.id]: true }));
     try {
       const assessment = await requestOfferAssessment(offer, policy);
-      if (!isCurrentEvaluation(offer.id, requestId)) return;
-      setEvaluationResults(previous => ({ ...previous, [offer.id]: assessment }));
-      setEvaluationErrors(previous => Object.fromEntries(
-        Object.entries(previous).filter(([id]) => id !== offer.id)
-      ));
+      storeEvaluationSuccess(offer.id, requestId, assessment);
     } catch (error) {
-      if (!isCurrentEvaluation(offer.id, requestId)) return;
-      console.error('Offer AI evaluation failed:', error);
-      storeEvaluationFailure(offer.id, error);
+      storeCurrentEvaluationFailure(offer.id, requestId, error);
     } finally {
-      if (isCurrentEvaluation(offer.id, requestId)) {
-        setEvaluatingIds(previous => ({ ...previous, [offer.id]: false }));
-      }
+      finishCurrentEvaluation(offer.id, requestId);
     }
   };
 
