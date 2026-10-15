@@ -183,11 +183,11 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
   const getStatusBadge = (status: ErrorLifecycleStatus) => {
     switch (status) {
       case 'resolved':
-        return <span className="flex items-center gap-1 text-emerald-400 text-xs font-semibold"><CheckCircle2 className="w-3.5 h-3.5" /> Resolved</span>;
+        return <span className="flex items-center gap-1 text-emerald-400 text-xs font-semibold"><CheckCircle2 className="w-3.5 h-3.5" /> Recorded resolved · evidence not verified</span>;
       case 'patch_ready':
-        return <span className="flex items-center gap-1 text-amber-300 text-xs font-semibold"><Zap className="w-3.5 h-3.5" /> Patch Ready</span>;
+        return <span className="flex items-center gap-1 text-amber-300 text-xs font-semibold"><Zap className="w-3.5 h-3.5" /> Patch record only</span>;
       case 'analyzing':
-        return <span className="flex items-center gap-1 text-cyan-300 text-xs font-semibold"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> GPT Analyzing</span>;
+        return <span className="flex items-center gap-1 text-cyan-300 text-xs font-semibold"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Analysis status not verified</span>;
       default:
         return <span className="flex items-center gap-1 text-rose-400 text-xs font-semibold"><AlertTriangle className="w-3.5 h-3.5" /> Active</span>;
     }
