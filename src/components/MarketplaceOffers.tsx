@@ -363,7 +363,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                     </div>
                     {isCountered && (
                       <div className="text-[10px] font-mono text-amber-400 mt-0.5">
-                        Counter-offer submitted: ${offer.counterOfferAmount?.toFixed(2)}/mo
+                        Counter-offer recorded locally (not sent): ${offer.counterOfferAmount?.toFixed(2)}/mo
                       </div>
                     )}
                   </div>
@@ -427,7 +427,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                       }}
                       className="mt-4 px-4 py-2 text-xs font-bold rounded bg-amber-500 hover:bg-amber-400 text-slate-950 transition-colors"
                     >
-                      Submit Counter
+                      Save Counter-Offer Draft
                     </button>
                   </div>
                   <p className="text-[10px] text-slate-400">
@@ -451,14 +451,14 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                         id={`counter-btn-${offer.id}`}
                         className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
                       >
-                        Counter-Offer
+                        Draft Counter-Offer
                       </button>
                       <button
                         onClick={() => onRejectOffer(offer.id)}
                         id={`reject-btn-${offer.id}`}
                         className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 transition-colors"
                       >
-                        Reject
+                        Record Rejection (Local Only)
                       </button>
                       <button
                         onClick={() => onAcceptOffer(offer.id)}
@@ -466,7 +466,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                         className="px-4 py-1.5 text-xs font-bold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20 transition-colors flex items-center gap-1.5"
                       >
                         <Check className="w-3.5 h-3.5" />
-                        Accept Offer
+                        Record Acceptance (Local Only)
                       </button>
                     </>
                   )}
@@ -485,7 +485,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
 
                   {isRejected && (
                     <span className="text-xs text-slate-500 flex items-center gap-1">
-                      <XCircle className="w-3.5 h-3.5" /> Bid Declined
+                      <XCircle className="w-3.5 h-3.5" /> Rejection recorded locally
                     </span>
                   )}
                 </div>
