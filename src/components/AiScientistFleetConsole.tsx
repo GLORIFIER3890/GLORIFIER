@@ -45,6 +45,7 @@ export const AiScientistFleetConsole: React.FC<AiScientistFleetConsoleProps> = (
   const [state, setState] = useState<ScientistMonetizationState | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
@@ -88,15 +89,19 @@ export const AiScientistFleetConsole: React.FC<AiScientistFleetConsoleProps> = (
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: !state.is247AutonomousRunning }),
       });
-      if (response.ok) {
-        const data = await response.json();
-        setState((current) =>
-          current
-            ? { ...current, is247AutonomousRunning: data.is247AutonomousRunning }
-            : current,
-        );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data?.ok !== true) {
+        throw new Error(data?.error || 'Scientist execution is unavailable; no background work was started.');
       }
+      setState((current) =>
+        current
+          ? { ...current, is247AutonomousRunning: data.is247AutonomousRunning }
+          : current,
+      );
+      setActionError(null);
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Scientist execution is unavailable.';
+      setActionError(message);
       console.error('Scientist fleet toggle failed:', error);
     } finally {
       setBusy(false);
@@ -121,7 +126,7 @@ export const AiScientistFleetConsole: React.FC<AiScientistFleetConsoleProps> = (
               SCIENTIST FLEET
             </div>
             <h2 className="mt-1 text-xl font-semibold tracking-tight text-white">
-              Autonomous intelligence workers
+              Scientist Fleet (execution not verified)
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-400">
               Five domain specialists continuously discover, diagnose, test, and report issues under GLORIFIER governance.
