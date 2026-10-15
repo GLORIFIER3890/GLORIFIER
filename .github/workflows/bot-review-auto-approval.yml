@@ -11,12 +11,13 @@ on:
         type: number
 
 permissions:
+  actions: read
   contents: read
   pull-requests: write
   checks: read
 
 concurrency:
-  group: bot-review-auto-approval-${{ github.event.pull_request.number || inputs.pull_request_number || github.event.check_suite.head_sha || github.event.review.id }}
+  group: bot-review-auto-approval-${{ github.event.pull_request.number || inputs.pull_request_number || github.event.check_suite.head_sha || github.run_id }}
   cancel-in-progress: false
 
 jobs:
