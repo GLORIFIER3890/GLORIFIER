@@ -39,11 +39,11 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
       }).then(async (response) => {
         const data = await response.json().catch(() => ({}));
         const confirmed = data?.subscription;
-        if (!response.ok || data?.ok !== true || !confirmed || confirmed.status !== 'active') {
-          throw new Error(data?.error || 'The server did not confirm an active subscription.');
+        if (!response.ok || data?.ok !== true || confirmed?.active !== true || confirmed?.verifiedRevenue !== true || !confirmed?.plan?.id || !confirmed?.revenueEvent?.eventId) {
+          throw new Error(data?.error || 'The server did not confirm a completed PayPal capture and active subscription.');
         }
         if (cancelled) return;
-        setSubscription(confirmed);
+        setSubscription({ plan_id: confirmed.plan.id, status: 'active' });
         setPaymentMessage('Payment capture and active subscription were confirmed by the server.');
         window.history.replaceState({}, '', window.location.pathname);
       }).catch((error) => {
