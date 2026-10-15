@@ -364,7 +364,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="font-bold text-slate-200">AI Broker Assessment</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono font-semibold uppercase">
-                      {policy.aiModel || 'AI model not configured'}
+                      {policy.aiModel || 'Server default: gpt-4o'}
                     </span>
                   </div>
                   <span className="text-slate-300">{assessment?.reasoning || evaluationErrors[offer.id] || 'No verified AI assessment is available yet. Run an evaluation; a failed request will not produce a score or recommendation.'}</span>
