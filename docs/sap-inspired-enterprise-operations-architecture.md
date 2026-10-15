@@ -99,7 +99,7 @@ GLR is a settlement option within the workflow, not the source of truth for busi
 
 1. Quote the current service tariff with a tariff version and expiry.
 2. Create a server-controlled intent bound to the authenticated customer, exact network/token, amount, payer, recipient and requested service.
-3. Verify finalized settlement independently using the existing network verifier.
+3. Verify settlement independently using the existing network-specific verifier. A confirmation threshold alone is not finality: for Ethereum, require consensus-layer finality (or verify a finalized checkpoint) before executing the service. For other networks, use their documented finality semantics and do not treat a transaction as final merely because it has confirmations.
 4. Reject mismatched, expired, duplicated or replayed proofs.
 5. Run the service only after successful verification and an eligible provider is available.
 6. Persist delivery receipt and evidence; reconcile settlement, work performed, and any provider cost.
