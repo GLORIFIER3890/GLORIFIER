@@ -90,10 +90,22 @@ export const getIdToken = async (): Promise<string | null> => {
 // receives the current Firebase ID token. Existing UI modules can continue using
 // fetch(), while privileged backend routes still enforce verification server-side.
 const nativeFetch = typeof window !== 'undefined' ? window.fetch.bind(window) : null;
+const configuredApiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+let configuredApiOrigin: string | null = null;
+try {
+  if (configuredApiBase) configuredApiOrigin = new URL(configuredApiBase).origin;
+} catch {
+  console.error('VITE_API_BASE_URL is invalid; external API requests will not receive automatic Firebase auth.');
+}
 if (typeof window !== 'undefined' && nativeFetch) {
   window.fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-    const sameOriginApi = url.startsWith('/api/') || (url.startsWith(window.location.origin + '/api/'));
+    let parsedUrl: URL | null = null;
+    try { parsedUrl = new URL(url, window.location.origin); } catch { /* let fetch report invalid URLs */ }
+    const isApiPath = parsedUrl?.pathname.startsWith('/api/') === true;
+    const trustedApiOrigin = parsedUrl?.origin === window.location.origin ||
+      (configuredApiOrigin !== null && parsedUrl?.origin === configuredApiOrigin);
+    const sameOriginApi = isApiPath && trustedApiOrigin;
     if (!sameOriginApi) return nativeFetch(input, init);
     const headers = new Headers(init.headers || (typeof input !== 'string' && !(input instanceof URL) ? input.headers : undefined));
     if (!headers.has('Authorization')) {
