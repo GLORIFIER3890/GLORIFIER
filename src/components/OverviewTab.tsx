@@ -163,7 +163,26 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateToTab }) => 
             <section className="rounded-xl bg-slate-950 border border-slate-800 p-5">
         <div className="flex items-center justify-between gap-4 mb-4"><div><h2 className="text-base font-bold text-white flex items-center gap-2"><Layers className="w-4 h-4 text-emerald-400" />GLORIFIER Revenue Control Plane</h2><p className="text-xs text-slate-400 mt-1">One governance boundary for every value-creation machine.</p></div><span className="text-[10px] font-mono px-2 py-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">GRCP-1.0</span></div>
         {controlPlaneError && <div className="text-xs text-amber-300 mb-3">Control plane: {controlPlaneError}</div>}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">{[['Verified Revenue',controlPlane?.economicTruth?.verifiedRevenue == null ? 'NOT OBSERVABLE' : '$' + Number(controlPlane.economicTruth.verifiedRevenue).toFixed(2),controlPlane?.economicTruth?.verifiedRevenueLabel || 'NOT VERIFIED'],['Pending Approvals',controlPlane?.governance?.pendingApprovals??'—','HUMAN'],['Blocked Actions',controlPlane?.governance?.blockedActions??'—','GOVERNED'],['Connections',controlPlane?.machines?.connections?.total??'—','REGISTERED']].map(([label,value,badge])=><div key={String(label)} className="rounded-lg bg-slate-900 border border-slate-800 p-3"><div className="text-[10px] uppercase font-bold text-slate-500">{label}</div><div className="text-lg font-bold text-white mt-1">{value}</div><div className="text-[9px] font-mono text-emerald-400 mt-1">{badge}</div></div>)}</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          {[
+            {
+              label: 'Verified Revenue',
+              value: controlPlane?.economicTruth?.verifiedRevenue == null
+                ? 'NOT OBSERVABLE'
+                : `${Number(controlPlane.economicTruth.verifiedRevenue).toFixed(2)}`,
+              badge: controlPlane?.economicTruth?.verifiedRevenueLabel || 'NOT VERIFIED',
+            },
+            { label: 'Pending Approvals', value: controlPlane?.governance?.pendingApprovals ?? '—', badge: 'HUMAN' },
+            { label: 'Blocked Actions', value: controlPlane?.governance?.blockedActions ?? '—', badge: 'GOVERNED' },
+            { label: 'Connections', value: controlPlane?.machines?.connections?.total ?? '—', badge: 'REGISTERED' },
+          ].map(({ label, value, badge }) => (
+            <div key={label} className="rounded-lg bg-slate-900 border border-slate-800 p-3">
+              <div className="text-[10px] uppercase font-bold text-slate-500">{label}</div>
+              <div className="text-lg font-bold text-white mt-1">{value}</div>
+              <div className="text-[9px] font-mono text-emerald-400 mt-1">{badge}</div>
+            </div>
+          ))}
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">{Object.keys(controlPlane?.policy?.machines||{}).map(key=><div key={key} className="rounded-md bg-slate-900/80 border border-slate-800 px-3 py-2 text-[10px] text-slate-300"><span className="text-emerald-400 mr-1">●</span>{key}</div>)}</div>
         <div className="mt-4 rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-[10px] text-slate-400">Economic truth: estimates and expected value are <span className="text-amber-300 font-semibold">NOT VERIFIED</span>. Market value is not revenue. Missing evidence is not zero. Consequential actions remain human-authorized.</div>
       </section>
