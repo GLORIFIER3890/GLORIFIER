@@ -119,5 +119,5 @@ async function run(): Promise<void> {
 
 void run().catch((error) => {
   console.error(error);
-  throw error;
+  process.exitCode = 1;
 });
