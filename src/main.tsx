@@ -5,20 +5,20 @@ import './index.css';
 
 const configuredApiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 
-function isLoopbackHttp(url: URL): boolean {
-  return url.protocol === 'http:' &&
-    ['localhost', '127.0.0.1', '[::1]', '::1'].includes(url.hostname);
-}
+const isLoopbackHttp = (url: URL): boolean =>
+  url.protocol === 'http:' &&
+  ['localhost', '127.0.0.1', '[::1]', '::1'].includes(url.hostname);
 
-function isAllowedApiUrl(url: URL): boolean {
-  return url.protocol === 'https:' || isLoopbackHttp(url);
-}
+const isAllowedApiUrl = (url: URL): boolean =>
+  url.protocol === 'https:' || isLoopbackHttp(url);
 
-function getNativeApiBase(value: string): string {
+const getNativeApiBase = (value: string): string => {
   if (!value) return '';
   try {
     const configuredUrl = new URL(value);
-    return isAllowedApiUrl(configuredUrl) ? value : '';
+    return isAllowedApiUrl(configuredUrl) && !configuredUrl.search && !configuredUrl.hash
+      ? value
+      : '';
   } catch {
     return '';
   }
@@ -26,34 +26,32 @@ function getNativeApiBase(value: string): string {
 
 const nativeApiBase = getNativeApiBase(configuredApiBase);
 
-function resolveRequestUrl(input: RequestInfo | URL): URL | null {
+const resolveRequestUrl = (input: RequestInfo | URL): URL | null => {
   try {
     const rawUrl = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     return new URL(rawUrl, window.location.href);
   } catch {
     return null;
   }
-}
+};
 
-function isApiPath(pathname: string): boolean {
-  return /^\/api(?:\/|$)/.test(pathname);
-}
+const isApiPath = (pathname: string): boolean => /^\/api(?:\/|$)/.test(pathname);
 
-function rewriteApiRequest(
+const rewriteApiRequest = (
   input: RequestInfo | URL,
   requestUrl: URL,
   apiBase: string,
   currentOrigin: string,
-): { input: RequestInfo | URL; requestUrl: URL } {
+): { input: RequestInfo | URL; requestUrl: URL } => {
   if (!apiBase || requestUrl.origin !== currentOrigin || !isApiPath(requestUrl.pathname)) {
     return { input, requestUrl };
   }
   const rewrittenUrl = new URL(apiBase + requestUrl.pathname + requestUrl.search);
   const rewrittenInput = input instanceof Request ? new Request(rewrittenUrl.href, input) : rewrittenUrl;
   return { input: rewrittenInput, requestUrl: rewrittenUrl };
-}
+};
 
-function reportHtmlApiResponse(response: Response, requestUrl: URL, isApiRequest: boolean): Response {
+const reportHtmlApiResponse = (response: Response, requestUrl: URL, isApiRequest: boolean): Response => {
   const isHtml = response.headers.get('content-type')?.toLowerCase().includes('text/html') || false;
   if (!isApiRequest || !isHtml) return response;
 
