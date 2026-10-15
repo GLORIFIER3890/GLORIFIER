@@ -376,8 +376,13 @@ app.get('/api/payouts', requireOwner, async (req: Request, res: Response) => {
 
 app.post('/api/payouts/request', requireOwner, async (req: Request, res: Response) => {
   try {
+    const authenticatedUid = String((req as any).auth?.uid || '').trim();
+    const userReference = String(req.body?.userReference || '').trim();
+    if (!authenticatedUid || userReference !== authenticatedUid) {
+      return res.status(403).json({ ok: false, error: 'Payout requests are limited to the authenticated owner account.' });
+    }
     const result = await createPayoutRequest({
-      userReference: String(req.body?.userReference || ''),
+      userReference,
       amountUsd: Number(req.body?.amount),
       method: String(req.body?.method || ''),
       destination: String(req.body?.destination || ''),
