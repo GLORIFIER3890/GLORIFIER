@@ -205,8 +205,8 @@ export default function App() {
       : f);
     const requestedEnabled = next.find(f => f.id === id)?.isMonetized === true;
     setFootprints(next);
-    persistAppState({ footprints: next });
-    recordGovernedAction('footprint-local-configuration-change', {
+    void persistAppState({ footprints: next });
+    void recordGovernedAction('footprint-local-configuration-change', {
       footprintId: id,
       requestedEnabled,
       externalDataConnectionVerified: false,
@@ -221,7 +221,7 @@ export default function App() {
       : f);
     setFootprints(next);
     void persistAppState({ footprints: next });
-    recordGovernedAction('footprint-privacy-configuration-change', {
+    void recordGovernedAction('footprint-privacy-configuration-change', {
       footprintId: id,
       privacyTier: tier,
       epsilon,
@@ -234,10 +234,10 @@ export default function App() {
     const updated = { ...policy, ...newPolicy };
     setPolicy(updated);
     if (currentUser) {
-      import('./services/firestoreService')
+      void import('./services/firestoreService')
         .then(({ saveUserPolicy }) => saveUserPolicy(currentUser.uid, updated))
         .catch(console.error);
-      recordGovernedAction('monetization-policy-change', {
+      void recordGovernedAction('monetization-policy-change', {
         policy: updated,
         privacyRuntimeEnforcementVerified: false,
         revenueForecastVerified: false,
