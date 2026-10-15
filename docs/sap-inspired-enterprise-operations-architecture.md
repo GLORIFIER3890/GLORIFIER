@@ -9,6 +9,10 @@ Reference material:
 - SAP, [Business Suite unites AI, data and applications](https://news.sap.com/2025/10/sap-connect-business-suite-unites-ai-data-applications/)
 - SAP, [end-to-end enterprise management processes](https://news.sap.com/2025/06/sap-business-suite-delivers-enterprise-management/)
 
+## Organizational purpose and motto
+
+**Official organization motto: _Committed to Glorify, Passion to Evangelize_.** Apply it as a values-level guide for accountable leadership, service quality, honest customer communication, and responsible stewardship. The canonical interpretation is in [Official Motto and Organizational Architecture](official-motto-and-organizational-architecture.md). It never overrides customer consent, legal duties, data protection, GEAS risk and approval gates, or verified financial and operational evidence. No agent or workflow receives extra authority from the motto.
+
 ## Architecture recommendation
 
 Add an **Enterprise Operations Plane** above the existing application, orchestration, and governed-execution components. It coordinates business outcomes; it does not bypass GEAS, identity, policy, approvals, existing service APIs, or payment verification.
