@@ -4,18 +4,27 @@ import App from './App.tsx';
 import './index.css';
 
 const configuredApiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-const nativeApiBase = (() => {
-  if (!configuredApiBase) return '';
+
+function isLoopbackHttp(url: URL): boolean {
+  return url.protocol === 'http:' &&
+    ['localhost', '127.0.0.1', '[::1]', '::1'].includes(url.hostname);
+}
+
+function isAllowedApiUrl(url: URL): boolean {
+  return url.protocol === 'https:' || isLoopbackHttp(url);
+}
+
+function getNativeApiBase(value: string): string {
+  if (!value) return '';
   try {
-    const configuredUrl = new URL(configuredApiBase);
-    const isHttps = configuredUrl.protocol === 'https:';
-    const isLoopbackHttp = configuredUrl.protocol === 'http:' &&
-      ['localhost', '127.0.0.1', '[::1]', '::1'].includes(configuredUrl.hostname);
-    return isHttps || isLoopbackHttp ? configuredApiBase : '';
+    const configuredUrl = new URL(value);
+    return isAllowedApiUrl(configuredUrl) ? value : '';
   } catch {
     return '';
   }
-})();
+}
+
+const nativeApiBase = getNativeApiBase(configuredApiBase);
 
 function resolveRequestUrl(input: RequestInfo | URL): URL | null {
   try {
