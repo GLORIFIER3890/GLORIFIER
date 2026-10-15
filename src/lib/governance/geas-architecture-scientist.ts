@@ -892,7 +892,7 @@ function drift(): DriftFinding[] {
   ];
 }
 
-export async function initializeGeasArchitectureScientist() {
+export const initializeGeasArchitectureScientist = async (): Promise<void> => {
   const db = getPostgresPool();
   await db.query(`
     CREATE TABLE IF NOT EXISTS geas_architecture_scans (
@@ -915,6 +915,12 @@ export async function initializeGeasArchitectureScientist() {
       etag TEXT,
       last_modified TEXT
     );
+    -- CREATE TABLE IF NOT EXISTS does not add columns to pre-existing legacy tables.
+    -- Add every column consumed by GEAS reads/writes using safe, idempotent migrations.
+    ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS status INTEGER;
+    ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS content_hash TEXT;
+    ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS evidence_status TEXT NOT NULL DEFAULT 'unavailable';
+    ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS error TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS evidence_excerpt TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS final_url TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS etag TEXT;
@@ -998,7 +1004,7 @@ export async function initializeGeasArchitectureScientist() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
-}
+};
 
 async function acquireArchitectureScanLease(ownerId: string, ttlMinutes = 30): Promise<boolean> {
   try {
