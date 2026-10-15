@@ -43,12 +43,16 @@ export default {
       requestHeaders.set('x-forwarded-host', incomingUrl.host);
       requestHeaders.set('x-forwarded-proto', incomingUrl.protocol.slice(0, -1));
       const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
-      const upstreamRequest = new Request(upstreamUrl, {
+      const requestInit: RequestInit & { duplex?: 'half' } = {
         method: request.method,
         headers: requestHeaders,
-        body: hasBody ? request.body : undefined,
         redirect: 'manual',
-      });
+      };
+      if (hasBody && request.body) {
+        requestInit.body = request.body;
+        requestInit.duplex = 'half';
+      }
+      const upstreamRequest = new Request(upstreamUrl, requestInit);
 
       const upstreamResponse = await fetch(upstreamRequest);
       const responseHeaders = new Headers(upstreamResponse.headers);
