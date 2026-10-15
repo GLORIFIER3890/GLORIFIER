@@ -73,14 +73,10 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
       setEvaluationResults(previous => ({ ...previous, [offer.id]: {
         score: data.score, verdict: data.verdict, reasoning: data.reasoning
       }}));
-      setEvaluationErrors(previous => { const next = { ...previous }; delete next[offer.id]; return next; });
+      setEvaluationErrors(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => id !== offer.id)));
     } catch (e) {
       console.error('Offer AI evaluation failed:', e);
-      setEvaluationResults(previous => {
-        const next = { ...previous };
-        delete next[offer.id];
-        return next;
-      });
+      setEvaluationResults(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => id !== offer.id)));
       setEvaluationErrors(previous => ({
         ...previous,
         [offer.id]: e instanceof Error ? e.message : 'AI evaluation unavailable.'
