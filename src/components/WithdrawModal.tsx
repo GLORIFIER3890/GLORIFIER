@@ -127,9 +127,11 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
 
   useEffect(() => {
     let cancelled = false;
+    setPayoutError(null);
     if (!userReference || userReference === 'anonymous') {
       setVerifiedAvailableUsd(null);
       setAmount(0);
+      setBalanceLoading(false);
       return;
     }
     setBalanceLoading(true);
@@ -141,6 +143,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
         }
         if (cancelled) return;
         const available = Math.max(0, Number(data.balance.availableUsd));
+        setPayoutError(null);
         setVerifiedAvailableUsd(available);
         setAmount(available);
       })
