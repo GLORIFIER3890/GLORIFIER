@@ -32,7 +32,20 @@ export default {
 
     // Backend endpoints must never fall through to the SPA's index.html.
     if (!isBackendPath(incomingUrl.pathname)) {
-      return env.ASSETS.fetch(request);
+      const assetResponse = await env.ASSETS.fetch(request);
+      const looksLikeStaticAsset = /\.(?:m?js|css|map|png|jpe?g|gif|svg|webp|ico|woff2?|ttf|otf|json|webmanifest)$/i.test(incomingUrl.pathname);
+      const contentType = assetResponse.headers.get('content-type')?.toLowerCase() || '';
+      if (looksLikeStaticAsset && contentType.includes('text/html')) {
+        return new Response('Static asset not found. The SPA shell was not substituted for the missing asset.', {
+          status: 404,
+          headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Cache-Control': 'no-store',
+            'X-Content-Type-Options': 'nosniff',
+          },
+        });
+      }
+      return assetResponse;
     }
 
     try {
