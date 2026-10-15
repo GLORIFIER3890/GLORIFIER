@@ -159,6 +159,9 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
           }
 
           const getVerdictBadge = () => {
+            if (evaluationError) {
+              return <span role="status" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-amber-200 border border-amber-500/30">NOT VERIFIED · evaluation unavailable</span>;
+            }
             if (!assessment) {
               return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Not evaluated</span>;
             }
