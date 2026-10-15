@@ -54,20 +54,26 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  const request = event.request;
-  if (request.method !== 'GET') return;
-
+function shouldIgnoreRequest(request) {
+  if (request.method !== 'GET') return true;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin || isBackendRequest(url.pathname)) return;
+  return url.origin !== self.location.origin || isBackendRequest(url.pathname);
+}
 
+function isCacheableAsset(request) {
+  return ['script', 'style', 'image', 'font'].includes(request.destination);
+}
+
+function dispatchFetch(event) {
+  const request = event.request;
+  if (shouldIgnoreRequest(request)) return;
   if (request.mode === 'navigate') {
     event.respondWith(serveNavigation(request));
     return;
   }
+  if (isCacheableAsset(request)) {
+    event.respondWith(cacheSuccessfulAsset(request, event));
+  }
+}
 
-  const cacheableTypes = ['script', 'style', 'image', 'font'];
-  if (!cacheableTypes.includes(request.destination)) return;
-
-  event.respondWith(cacheSuccessfulAsset(request, event));
-});
+self.addEventListener('fetch', dispatchFetch);
