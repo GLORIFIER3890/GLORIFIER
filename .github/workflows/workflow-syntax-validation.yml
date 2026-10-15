@@ -22,5 +22,5 @@ jobs:
       - name: Validate workflow syntax
         uses: reviewdog/action-actionlint@v1
         with:
-          actionlint_flags: ".github/workflows/"
+          actionlint_flags: "-color"
           fail_level: error
