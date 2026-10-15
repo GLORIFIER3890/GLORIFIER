@@ -1,7 +1,38 @@
 const CACHE_NAME = 'glorifier-shell-v2';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest'];
+
 function isBackendRequest(pathname) {
   return /^\/(?:api|auth)(?:\/|$)/.test(pathname);
+}
+
+function offlineResponse(message) {
+  return new Response(message, {
+    status: 503,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+  });
+}
+
+async function serveNavigation(request) {
+  try {
+    return await fetch(request);
+  } catch {
+    return (await caches.match('./index.html')) ||
+      offlineResponse('GLORIFIER is offline. Reconnect and reload to try again.');
+  }
+}
+
+async function cacheSuccessfulAsset(request, event) {
+  try {
+    const response = await fetch(request);
+    if (response.ok && response.type !== 'opaque') {
+      const copy = response.clone();
+      event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)));
+    }
+    return response;
+  } catch {
+    return (await caches.match(request)) ||
+      offlineResponse('Asset unavailable while offline.');
+  }
 }
 
 self.addEventListener('install', (event) => {
@@ -28,36 +59,15 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
-  if (isBackendRequest(url.pathname)) return;
+  if (url.origin !== self.location.origin || isBackendRequest(url.pathname)) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request).catch(async () => {
-        const cachedShell = await caches.match('./index.html');
-        return cachedShell || new Response(
-          'GLORIFIER is offline. Reconnect and reload to try again.',
-          { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }
-        );
-      })
-    );
+    event.respondWith(serveNavigation(request));
     return;
   }
 
-  if (!['script', 'style', 'image', 'font'].includes(request.destination)) return;
+  const cacheableTypes = ['script', 'style', 'image', 'font'];
+  if (!cacheableTypes.includes(request.destination)) return;
 
-  event.respondWith(
-    fetch(request).then((response) => {
-      if (!response.ok || response.type === 'opaque') return response;
-      const copy = response.clone();
-      event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)));
-      return response;
-    }).catch(async () => {
-      const cachedAsset = await caches.match(request);
-      return cachedAsset || new Response('Asset unavailable while offline.', {
-        status: 503,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-      });
-    })
-  );
+  event.respondWith(cacheSuccessfulAsset(request, event));
 });
