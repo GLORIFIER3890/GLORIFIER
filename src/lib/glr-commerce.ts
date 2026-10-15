@@ -130,7 +130,7 @@ const getStaleFiatQuote = (rate: FiatRateEvidence): FiatQuoteFields => ({
 });
 
 /** Convert the USD tariff with a fresh foreign-currency rate. */
-const getFreshFiatQuote = (rate: FiatRateEvidence, now: Date): FiatQuoteFields => {
+const getFreshFiatQuote = (rate: FiatRateEvidence): FiatQuoteFields => {
   const decimal = parseDecimal(rate.ratePerUsd, 'Fiat rate');
   const scale = Math.min(6, Math.max(0, decimal.scale));
   const amountUnits = 5n * decimal.units * pow10(scale);
@@ -144,14 +144,19 @@ const getFreshFiatQuote = (rate: FiatRateEvidence, now: Date): FiatQuoteFields =
   };
 };
 
+/** Resolve a supplied FX source as either fresh or stale evidence. */
+const getValidatedFiatQuote = (rate: FiatRateEvidence, now: Date): FiatQuoteFields => {
+  const decimal = parseDecimal(rate.ratePerUsd, 'Fiat rate');
+  const fresh = decimal.units > 0n
+    && isFresh(rate.observedAt, rate.retrievedAt, rate.maxAgeSeconds, now);
+  return fresh ? getFreshFiatQuote(rate) : getStaleFiatQuote(rate);
+};
+
 /** Validate and resolve an indicative fiat amount for a requested currency. */
 const getFiatQuote = (currency: string, rate: FiatRateEvidence | null | undefined, now: Date): FiatQuoteFields => {
   if (currency === 'USD') return getUsdFiatQuote(now);
   if (!rate || rate.currency.toUpperCase() !== currency) return getMissingFiatQuote();
-  const decimal = parseDecimal(rate.ratePerUsd, 'Fiat rate');
-  const fresh = decimal.units > 0n
-    && isFresh(rate.observedAt, rate.retrievedAt, rate.maxAgeSeconds, now);
-  return fresh ? getFreshFiatQuote(rate, now) : getStaleFiatQuote(rate);
+  return getValidatedFiatQuote(rate, now);
 };
 
 /** Determine quote status from fiat evidence and optional GLR reference pricing. */
@@ -180,6 +185,13 @@ const getQuoteWarnings = (glrPrice: GLRPriceEvidence | null | undefined): string
   return warnings;
 };
 
+/** Normalize a three-letter ISO currency code for quote generation. */
+const normalizeQuoteCurrency = (currency: string): string => {
+  const normalized = currency.trim().toUpperCase();
+  if (!/^[A-Z]{3}$/.test(normalized)) throw new Error('Currency must be a three-letter ISO currency code');
+  return normalized;
+};
+
 /** Build a non-executable informational service quote from supplied evidence. */
 export const buildGLRAIServiceQuote = (input: {
   currency: string;
@@ -188,10 +200,8 @@ export const buildGLRAIServiceQuote = (input: {
   now?: Date;
 }): GLRAIServiceQuote => {
   const now = input.now ?? new Date();
-  const currency = input.currency.trim().toUpperCase();
-  if (!/^[A-Z]{3}$/.test(currency)) throw new Error('Currency must be a three-letter ISO currency code');
+  const currency = normalizeQuoteCurrency(input.currency);
   const fiat = getFiatQuote(currency, input.fiatRate, now);
-  const quoteStatus = getQuoteStatus(fiat.fiatStatus, input.glrPrice, now);
   const glrPrice = input.glrPrice;
   return {
     service: GLR_AI_SUMMARY_SERVICE.id,
@@ -204,7 +214,7 @@ export const buildGLRAIServiceQuote = (input: {
     glrUsdReferencePrice: glrPrice?.usdPerGlr ?? null,
     glrPriceSource: glrPrice?.source ?? null,
     glrPriceObservedAt: glrPrice?.observedAt ?? null,
-    quoteStatus,
+    quoteStatus: getQuoteStatus(fiat.fiatStatus, glrPrice, now),
     executable: false,
     warnings: getQuoteWarnings(glrPrice),
   };
