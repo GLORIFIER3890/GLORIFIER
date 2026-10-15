@@ -2,6 +2,11 @@ const CACHE_NAME = 'glorifier-shell-v2';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest'];
 const API_PREFIXES = ['/api/', '/auth/'];
 
+function isBackendRequest(pathname) {
+  return pathname === '/api' || pathname === '/auth' ||
+    API_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -27,7 +32,7 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (API_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) return;
+  if (isBackendRequest(url.pathname)) return;
 
   if (request.mode === 'navigate') {
     event.respondWith(
