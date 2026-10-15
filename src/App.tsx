@@ -489,6 +489,72 @@ const App = () => {
 
   const pendingOffersCount = offers.filter(o => o.status === 'PENDING').length;
 
+  const tabViews: Record<string, React.ReactNode> = {
+    overview: (
+      <OverviewTab
+        stats={stats}
+        footprints={footprints}
+        policy={policy}
+        onUpdatePolicy={handleUpdatePolicy}
+        onToggleFootprint={handleToggleFootprint}
+        onNavigateToTab={setActiveTab}
+        transactions={transactions}
+      />
+    ),
+    geas_architecture: <GeasArchitectureScientistDashboard />,
+    ai_ceo: <AICeoControl />,
+    integrations: <IntegrationControl />,
+    agent_network: <AgentNetworkDashboard />,
+    discovery: <OpportunityDiscoveryDashboard />,
+    sentinel: (
+      <AiCodeSentinelManagement
+        errors={sentinelErrors}
+        sentinelState={sentinelState}
+        onUpdateError={handleUpdateSentinelError}
+        onDeleteError={handleDeleteSentinelError}
+        onCreateError={handleCreateSentinelError}
+        onAutoFixError={handleAutoFixSentinelError}
+        onToggleMonitoring={enabled => setSentinelState(state => ({ ...state, isMonitoringActive: enabled }))}
+        onToggleAutoHeal={enabled => setSentinelState(state => ({ ...state, autoHealEnabled: enabled }))}
+      />
+    ),
+    connections: <ConnectionAuthorizationDashboard />,
+    mobile: <MobileDeviceControl />,
+    scientists: <AiScientistFleetConsole />,
+    agent_miner: <AgentMinerDashboard />,
+    compliance: (
+      <ComplianceScientistBot
+        policy={policy}
+        footprints={footprints}
+        exposures={exposures}
+        onOpenClawbackTab={() => setActiveTab('broker')}
+        onOpenGptCoWorkTab={() => setActiveTab('ai_ceo')}
+      />
+    ),
+    control: (
+      <DataControlDashboard
+        grants={grants}
+        onRevokeGrant={handleRevokeGrant}
+        onUpdateGrantPermissions={handleUpdateGrantPermissions}
+      />
+    ),
+    footprints: (
+      <FootprintManager
+        footprints={footprints}
+        onToggleMonetization={handleToggleFootprint}
+        onUpdatePrivacyTier={handleUpdatePrivacyTier}
+        onInspectDataSamples={() => undefined}
+      />
+    ),
+    broker: (
+      <AiBrokerConsole
+        policy={policy}
+        onUpdatePolicy={handleUpdatePolicy}
+        footprints={footprints}
+      />
+    ),
+  };
+
   useEffect(() => {
     if (!validTabs.has(activeTab)) setActiveTab('overview');
   }, [activeTab]);
@@ -505,69 +571,7 @@ const App = () => {
 
       {/* Main View Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {activeTab === 'overview' && (
-          <OverviewTab
-            stats={stats}
-            footprints={footprints}
-            policy={policy}
-            onUpdatePolicy={handleUpdatePolicy}
-            onToggleFootprint={handleToggleFootprint}
-            onNavigateToTab={setActiveTab}
-            transactions={transactions}
-          />
-        )}
-        {activeTab === 'geas_architecture' && <GeasArchitectureScientistDashboard />}
-        {activeTab === 'ai_ceo' && <AICeoControl />}
-        {activeTab === 'integrations' && <IntegrationControl />}
-        {activeTab === 'agent_network' && <AgentNetworkDashboard />}
-        {activeTab === 'discovery' && <OpportunityDiscoveryDashboard />}
-        {activeTab === 'sentinel' && (
-          <AiCodeSentinelManagement
-            errors={sentinelErrors}
-            sentinelState={sentinelState}
-            onUpdateError={handleUpdateSentinelError}
-            onDeleteError={handleDeleteSentinelError}
-            onCreateError={handleCreateSentinelError}
-            onAutoFixError={handleAutoFixSentinelError}
-            onToggleMonitoring={(enabled) => setSentinelState(s => ({ ...s, isMonitoringActive: enabled }))}
-            onToggleAutoHeal={(enabled) => setSentinelState(s => ({ ...s, autoHealEnabled: enabled }))}
-          />
-        )}
-        {activeTab === 'connections' && <ConnectionAuthorizationDashboard />}
-        {activeTab === 'mobile' && <MobileDeviceControl />}
-        {activeTab === 'scientists' && <AiScientistFleetConsole />}
-        {activeTab === 'agent_miner' && <AgentMinerDashboard />}
-        {activeTab === 'compliance' && (
-          <ComplianceScientistBot
-            policy={policy}
-            footprints={footprints}
-            exposures={exposures}
-            onOpenClawbackTab={() => setActiveTab('broker')}
-            onOpenGptCoWorkTab={() => setActiveTab('ai_ceo')}
-          />
-        )}
-        {activeTab === 'control' && (
-          <DataControlDashboard
-            grants={grants}
-            onRevokeGrant={handleRevokeGrant}
-            onUpdateGrantPermissions={handleUpdateGrantPermissions}
-          />
-        )}
-        {activeTab === 'footprints' && (
-          <FootprintManager
-            footprints={footprints}
-            onToggleMonetization={handleToggleFootprint}
-            onUpdatePrivacyTier={handleUpdatePrivacyTier}
-            onInspectDataSamples={() => undefined}
-          />
-        )}
-        {activeTab === 'broker' && (
-          <AiBrokerConsole
-            policy={policy}
-            onUpdatePolicy={handleUpdatePolicy}
-            footprints={footprints}
-          />
-        )}
+        {tabViews[activeTab] ?? null}
       </main>
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950/60 py-4 text-center text-xs text-slate-500">
