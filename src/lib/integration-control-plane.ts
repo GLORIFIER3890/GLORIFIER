@@ -34,20 +34,33 @@ export interface IntegrationControlSnapshot {
 }
 
 let latestSnapshot: IntegrationControlSnapshot | null = null;
+let schemaReady: Promise<void> | null = null;
 
-const ensureTable = async () => {
-  await getPostgresPool().query(`
-    CREATE TABLE IF NOT EXISTS integration_control_snapshots (
-      id TEXT PRIMARY KEY,
-      synchronized_at TIMESTAMPTZ NOT NULL,
-      snapshot JSONB NOT NULL,
-      digest_sha256 TEXT NOT NULL
-    );
-    CREATE INDEX IF NOT EXISTS idx_integration_control_snapshots_time
-      ON integration_control_snapshots(synchronized_at DESC);
-    ALTER TABLE integration_control_snapshots
-      ADD COLUMN IF NOT EXISTS last_checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
-  `);
+// Run schema setup once per process. The ALTER is idempotent for rolling upgrades,
+// but is not executed on every snapshot read or reconciliation request.
+const ensureTable = (): Promise<void> => {
+  if (!schemaReady) {
+    schemaReady = (async () => {
+      await getPostgresPool().query(`
+        CREATE TABLE IF NOT EXISTS integration_control_snapshots (
+          id TEXT PRIMARY KEY,
+          synchronized_at TIMESTAMPTZ NOT NULL,
+          last_checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          snapshot JSONB NOT NULL,
+          digest_sha256 TEXT NOT NULL
+        );
+        ALTER TABLE integration_control_snapshots
+          ADD COLUMN IF NOT EXISTS last_checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+        CREATE INDEX IF NOT EXISTS idx_integration_control_snapshots_time
+          ON integration_control_snapshots(synchronized_at DESC);
+      `);
+    })().catch(error => {
+      // Permit a later request to retry schema setup after a transient DB failure.
+      schemaReady = null;
+      throw error;
+    });
+  }
+  return schemaReady;
 };
 
 const digest = (value: unknown) =>
@@ -77,30 +90,44 @@ const persistSnapshotIfChanged = async (
   snapshot: IntegrationControlSnapshot,
   digestSha256: string
 ): Promise<IntegrationControlSnapshot> => {
+  let client: Awaited<ReturnType<ReturnType<typeof getPostgresPool>['connect']>> | null = null;
   try {
     await ensureTable();
-    const db = getPostgresPool();
-    const previous = await db.query(
+    const pool = getPostgresPool();
+    client = await pool.connect();
+    await client.query('BEGIN');
+    // Transaction-scoped advisory lock serializes comparison + insert across instances.
+    await client.query("SELECT pg_advisory_xact_lock(hashtext('glorifier.integration_control_snapshots'))");
+    const previous = await client.query(
       'SELECT id, digest_sha256, snapshot FROM integration_control_snapshots ORDER BY synchronized_at DESC LIMIT 1'
     );
+
+    let effectiveSnapshot = snapshot;
     if (previous.rows[0]?.digest_sha256 !== digestSha256) {
-      await db.query(
+      await client.query(
         'INSERT INTO integration_control_snapshots(id,synchronized_at,last_checked_at,snapshot,digest_sha256) VALUES($1,$2,NOW(),$3,$4)',
         [snapshot.id, snapshot.synchronizedAt, JSON.stringify(snapshot), digestSha256]
       );
-      return snapshot;
+    } else {
+      await client.query(
+        'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1',
+        [previous.rows[0].id]
+      );
+      if (previous.rows[0].snapshot) {
+        effectiveSnapshot = previous.rows[0].snapshot as IntegrationControlSnapshot;
+      }
     }
 
-    await db.query(
-      'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1',
-      [previous.rows[0].id]
-    );
-    return previous.rows[0].snapshot
-      ? previous.rows[0].snapshot as IntegrationControlSnapshot
-      : snapshot;
+    await client.query('COMMIT');
+    return effectiveSnapshot;
   } catch (error) {
+    if (client) {
+      try { await client.query('ROLLBACK'); } catch { /* preserve original error */ }
+    }
     console.warn('[IntegrationControlPlane] persistence deferred:', error instanceof Error ? error.message : error);
     return snapshot;
+  } finally {
+    client?.release();
   }
 };
 
@@ -145,7 +172,6 @@ export const reconcileIntegrationControlPlane = async (actor = 'system') => {
   };
 
   const effectiveSnapshot = await persistSnapshotIfChanged(snapshot, digestSha256);
-
   latestSnapshot = effectiveSnapshot;
   return { actor, snapshot: effectiveSnapshot };
 };
