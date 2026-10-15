@@ -207,30 +207,37 @@ export async function executeThroughProviderRegistry(
       errors.push(`${provider.id}: circuit cooldown active until ${providerCooldownUntil.get(provider.id)}`);
       continue;
     }
-    attemptedProviders.push(provider.id);
-    providerStatuses[provider.id] = 'connected';
-    attempts += 1;
-    try {
-      const providerRequest = { ...request, model: request.model && provider.models().includes(request.model) ? request.model : undefined };
-      const response = await provider.generate(providerRequest);
-      if (response.text?.trim()) {
-        providerCooldownUntil.delete(provider.id);
-        providerLastFailure.delete(provider.id);
-        return { response, provider: provider.id, attemptedProviders, errors, providerStatuses };
+    let retryCurrentProvider = true;
+    while (retryCurrentProvider && attempts < policy.maxAttempts) {
+      retryCurrentProvider = false;
+      attemptedProviders.push(provider.id);
+      providerStatuses[provider.id] = 'connected';
+      attempts += 1;
+      try {
+        const providerRequest = { ...request, model: request.model && provider.models().includes(request.model) ? request.model : undefined };
+        const response = await provider.generate(providerRequest);
+        if (response.text?.trim()) {
+          providerCooldownUntil.delete(provider.id);
+          providerLastFailure.delete(provider.id);
+          return { response, provider: provider.id, attemptedProviders, errors, providerStatuses };
+        }
+        errors.push(`${provider.id}: empty response`);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const availability = getProviderAvailability(error);
+        providerStatuses[provider.id] = availability === 'unavailable' ? 'unavailable' : 'error';
+        errors.push(`${provider.id}: ${message}`);
+        providerCooldownUntil.set(provider.id, Date.now() + cooldownFor(error));
+        const rateLimited = /429|RESOURCE_EXHAUSTED|quota|rate.?limit/i.test(message) || parseRetryAfterMs(error) !== null;
+        const transient = !rateLimited && /408|425|500|502|503|504|timeout|temporar|overloaded|unavailable/i.test(message);
+        if (policy.retryTransientFailures && transient && transientRetries < 1 && attempts < policy.maxAttempts) {
+          transientRetries += 1;
+          providerCooldownUntil.delete(provider.id);
+          retryCurrentProvider = true;
+          errors.push(`${provider.id}: retrying once after transient failure`);
+        }
+        providerLastFailure.set(provider.id, message.slice(0, 1000));
       }
-      errors.push(`${provider.id}: empty response`);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      const availability = getProviderAvailability(error);
-      providerStatuses[provider.id] = availability === 'unavailable' ? 'unavailable' : 'error';
-      errors.push(`${provider.id}: ${message}`);
-      providerCooldownUntil.set(provider.id, Date.now() + cooldownFor(error));
-      const transient = /429|408|425|500|502|503|504|timeout|temporar|overloaded|unavailable/i.test(message);
-      if (policy.retryTransientFailures && transient && transientRetries < 1) {
-        transientRetries += 1;
-        providerCooldownUntil.delete(provider.id);
-      }
-      providerLastFailure.set(provider.id, message.slice(0, 1000));
     }
   }
 
