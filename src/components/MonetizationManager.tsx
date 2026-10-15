@@ -54,13 +54,13 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
       setCheckoutLoading(null);
     }
   };
-  const [goal, setGoal] = useState('Find privacy-preserving ways to increase monthly data compensation without exceeding my current privacy settings.');
+  const [goal, setGoal] = useState('Find a zero-budget first customer for GLORIFIER. Do not assume revenue, verified privacy enforcement, or connected data sources.');
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(false);
 
   const projected = useMemo(() => {
     const multiplier = policy.brokerMode === 'autonomous-maximize' ? 1.35 : policy.brokerMode === 'balanced-protective' ? 1.15 : 0.9;
-    return Math.max(stats.monthlyPacingUsd, stats.monthlyPacingUsd * multiplier);
+    return Math.max(0, stats.monthlyPacingUsd * multiplier);
   }, [policy.brokerMode, stats.monthlyPacingUsd]);
 
   const runManager = async () => {
@@ -103,7 +103,7 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
             </p>
           </div>
           <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
-            <div className="text-xs text-slate-400">Projected monthly pacing</div>
+            <div className="text-xs text-slate-400">Illustrative projection (not verified revenue)</div>
             <div className="text-2xl font-bold font-mono text-emerald-400">{projected.toFixed(2)}</div>
           </div>
         </div>
@@ -141,10 +141,10 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {[
-          { label: 'Current Pacing', value: '$' + stats.monthlyPacingUsd.toFixed(2), icon: TrendingUp },
-          { label: 'Active Streams', value: String(stats.activeDataStreamsCount), icon: Gauge },
-          { label: 'Privacy Shield', value: String(stats.privacyShieldIndex) + '%', icon: ShieldCheck },
-          { label: 'Claimable Yield', value: '$' + stats.totalEarnedUsd.toFixed(2), icon: Wallet },
+          { label: 'Current Pacing', value: 'NOT VERIFIED', icon: TrendingUp },
+          { label: 'Active Streams', value: 'NOT VERIFIED', icon: Gauge },
+          { label: 'Privacy Enforcement', value: 'NOT VERIFIED', icon: ShieldCheck },
+          { label: 'Verified Available Balance', value: 'NOT VERIFIED', icon: Wallet },
         ].map((item) => (
           <div key={item.label} className="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
             <div className="flex items-center justify-between">
