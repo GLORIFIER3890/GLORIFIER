@@ -18,9 +18,7 @@ if (typeof window !== 'undefined') {
     }
 
     const isApiRequest = requestUrl.pathname === '/api' ||
-      requestUrl.pathname.startsWith('/api/') ||
-      requestUrl.pathname === '/auth' ||
-      requestUrl.pathname.startsWith('/auth/');
+      requestUrl.pathname.startsWith('/api/');
 
     if (nativeApiBase && requestUrl.origin === window.location.origin &&
         (requestUrl.pathname === '/api' || requestUrl.pathname.startsWith('/api/'))) {
