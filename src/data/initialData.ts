@@ -36,10 +36,10 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'URL browsing history, search intentions, topical clickstream, reading dwell times.',
     leakRiskScore: 68,
     samples: [
-      { field: 'Search Query', rawValue: 'best low latency AI inference engine 2026', anonymizedValue: '[Tech / Machine Learning Infrastructure query]', noiseLevel: 'Laplacian ε=0.45' },
-      { field: 'Domain Visited', rawValue: 'github.com/vllm-project/vllm', anonymizedValue: 'Top 500 Open-Source Repository', noiseLevel: 'Category Masking' },
-      { field: 'Session IP / Geo', rawValue: '203.0.113.0 (Example Metro)', anonymizedValue: 'US West Coastal Metro (Radius > 45km)', noiseLevel: 'Coarse Truncation' },
-      { field: 'Dwell Time', rawValue: '4m 32s on technical documentation', anonymizedValue: 'Medium Engagement [3m - 6m bucket]', noiseLevel: 'k=50 Binning' }
+      { field: 'Search Query', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[Tech / Machine Learning Infrastructure query]', noiseLevel: 'Laplacian ε=0.45' },
+      { field: 'Domain Visited', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Top 500 Open-Source Repository', noiseLevel: 'Category Masking' },
+      { field: 'Session IP / Geo', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'US West Coastal Metro (Radius > 45km)', noiseLevel: 'Coarse Truncation' },
+      { field: 'Dwell Time', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Medium Engagement [3m - 6m bucket]', noiseLevel: 'k=50 Binning' }
     ]
   },
   {
@@ -59,10 +59,10 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Transaction frequency, category baskets, subscription cadence, price elasticity.',
     leakRiskScore: 74,
     samples: [
-      { field: 'Item Purchased', rawValue: 'Sony WH-1000XM5 Noise Cancelling Headphones ($348)', anonymizedValue: 'ZK-Proof: Consumer Tech item > $250 purchased in Q1', noiseLevel: 'Zero-Knowledge Attestation' },
-      { field: 'Grocery Intent', rawValue: 'Organic Almond Milk, Fair-trade Dark Roast Coffee', anonymizedValue: 'High-Affinity Organic Food Consumer cluster', noiseLevel: 'Differential ε=0.2' },
-      { field: 'Delivery Address', rawValue: '[REDACTED DEMO ADDRESS]', anonymizedValue: 'ZIP3 Code Prefix: 941XX (San Francisco metro)', noiseLevel: 'k-Anonymity (k=100)' },
-      { field: 'Payment Medium', rawValue: '[REDACTED DEMO PAYMENT TOKEN]', anonymizedValue: 'Tier-1 Credit Card Network', noiseLevel: 'Tokenized Redaction' }
+      { field: 'Item Purchased', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'ZK-Proof: Consumer Tech item > $250 purchased in Q1', noiseLevel: 'Zero-Knowledge Attestation' },
+      { field: 'Grocery Intent', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'High-Affinity Organic Food Consumer cluster', noiseLevel: 'Differential ε=0.2' },
+      { field: 'Delivery Address', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'ZIP3 Code Prefix: 941XX (San Francisco metro)', noiseLevel: 'k-Anonymity (k=100)' },
+      { field: 'Payment Medium', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Tier-1 Credit Card Network', noiseLevel: 'Tokenized Redaction' }
     ]
   },
   {
@@ -82,10 +82,10 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Language distributions, framework trends, debugging logs, commit cadence (NO proprietary code).',
     leakRiskScore: 35,
     samples: [
-      { field: 'Primary Stack', rawValue: 'TypeScript, Rust, Python, PyTorch', anonymizedValue: 'Senior AI/Systems Engineering profile', noiseLevel: 'Synthetic Profiling' },
-      { field: 'Commit Message', rawValue: 'Fix auth race condition in OAuth token refresh loop', anonymizedValue: '[Security / Authentication Refactoring]', noiseLevel: 'Vector Sanitization' },
-      { field: 'IDE Usage', rawValue: 'VS Code with Cursor AI copilot extensions', anonymizedValue: 'Modern AI-Assisted Developer', noiseLevel: 'Feature Extraction' },
-      { field: 'Build Output', rawValue: 'Container build in 42.1s on Ubuntu 24.04', anonymizedValue: 'Linux CI/CD Performance Metric', noiseLevel: 'Gaussian Perturbation' }
+      { field: 'Primary Stack', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Senior AI/Systems Engineering profile', noiseLevel: 'Synthetic Profiling' },
+      { field: 'Commit Message', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[Security / Authentication Refactoring]', noiseLevel: 'Vector Sanitization' },
+      { field: 'IDE Usage', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Modern AI-Assisted Developer', noiseLevel: 'Feature Extraction' },
+      { field: 'Build Output', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Linux CI/CD Performance Metric', noiseLevel: 'Gaussian Perturbation' }
     ]
   },
   {
@@ -105,10 +105,10 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Resting heart rate, sleep architecture, daily step cadence, cardio fitness trends.',
     leakRiskScore: 89,
     samples: [
-      { field: 'Resting Heart Rate', rawValue: '[REDACTED DEMO HEALTH DATA]', anonymizedValue: 'Synthetic Twin: 57.8 ± 1.2 bpm distribution', noiseLevel: 'Generative Synthetic Twin' },
-      { field: 'Sleep Metrics', rawValue: '[REDACTED DEMO HEALTH DATA]', anonymizedValue: 'Normal circadian restorative score (88/100)', noiseLevel: 'Differential ε=0.15' },
-      { field: 'Activity Calorie', rawValue: '[REDACTED DEMO HEALTH DATA]', anonymizedValue: 'Cardio fitness group: Top 15th percentile', noiseLevel: 'Decile Cohort' },
-      { field: 'Medical Conditions', rawValue: '[REDACTED DEMO HEALTH DATA]', anonymizedValue: 'ZK-Proof: Verified Clean Health Status for Research', noiseLevel: 'Cryptographic ZK Proof' }
+      { field: 'Resting Heart Rate', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Synthetic Twin: 57.8 ± 1.2 bpm distribution', noiseLevel: 'Generative Synthetic Twin' },
+      { field: 'Sleep Metrics', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Normal circadian restorative score (88/100)', noiseLevel: 'Differential ε=0.15' },
+      { field: 'Activity Calorie', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Cardio fitness group: Top 15th percentile', noiseLevel: 'Decile Cohort' },
+      { field: 'Medical Conditions', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'ZK-Proof: Verified Clean Health Status for Research', noiseLevel: 'Cryptographic ZK Proof' }
     ]
   },
   {
@@ -128,9 +128,9 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Video watch times, forum topics, upvoted engineering discussions, media consumption clusters.',
     leakRiskScore: 55,
     samples: [
-      { field: 'Video Watch Trail', rawValue: '3Blue1Brown: Neural Networks from Scratch (28 mins)', anonymizedValue: 'STEM Educational Video (Tier 1 Engagement)', noiseLevel: 'k=200 Cluster' },
-      { field: 'Subreddits', rawValue: 'r/LocalLLaMA, r/MachineLearning, r/sysadmin', anonymizedValue: 'Open Source AI & Tech Communities', noiseLevel: 'Broad Cohort' },
-      { field: 'Sentiment Reaction', rawValue: 'Positive reaction to open-weights releases', anonymizedValue: 'Tech Optimist Sentiment Index: 0.82', noiseLevel: 'Scalar Normalization' }
+      { field: 'Video Watch Trail', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'STEM Educational Video (Tier 1 Engagement)', noiseLevel: 'k=200 Cluster' },
+      { field: 'Subreddits', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Open Source AI & Tech Communities', noiseLevel: 'Broad Cohort' },
+      { field: 'Sentiment Reaction', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Tech Optimist Sentiment Index: 0.82', noiseLevel: 'Scalar Normalization' }
     ]
   },
   {
@@ -150,8 +150,8 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Precise GPS traces, commute patterns, visited merchants, airport check-ins.',
     leakRiskScore: 96,
     samples: [
-      { field: 'Daily Commute', rawValue: 'Home -> Tech Campus (18.4 miles via US-101)', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' },
-      { field: 'Frequent Stops', rawValue: 'Coffee Shop, Rock Climbing Gym, Supermarket', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' }
+      { field: 'Daily Commute', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' },
+      { field: 'Frequent Stops', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' }
     ]
   },
   {
@@ -171,8 +171,8 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Cashflow stability, discretionary vs essential ratio, recurring subscription load.',
     leakRiskScore: 92,
     samples: [
-      { field: 'Monthly Net Savings', rawValue: '34% of net income allocated to index funds', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' },
-      { field: 'Recurring SaaS', rawValue: 'AWS ($42), GitHub Copilot ($20), Spotify ($11)', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' }
+      { field: 'Monthly Net Savings', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' },
+      { field: 'Recurring SaaS', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' }
     ]
   },
   {
@@ -192,10 +192,10 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'E-commerce receipts, flight itineraries, newsletter clusters, and consumer interest signals (No raw email bodies or names).',
     leakRiskScore: 82,
     samples: [
-      { field: 'Commerce Order Confirmation', rawValue: 'Receipt for $142.50 at Electronics Store', anonymizedValue: 'ZK-Proof: Consumer Tech transaction bucketed in $100-$200 range', noiseLevel: 'Zero-Knowledge Proof' },
-      { field: 'Travel Itinerary', rawValue: 'Flight SFO -> SEA departing in 14 days', anonymizedValue: 'Synthetic Twin: West Coast domestic corridor traveler', noiseLevel: 'Laplacian ε=0.25' },
-      { field: 'Newsletter Digest', rawValue: 'Subscribed to 6 AI and Systems Engineering digests', anonymizedValue: 'Professional Technical Researcher cohort', noiseLevel: 'k-Anonymity (k=100)' },
-      { field: 'Vendor Tracking Pixels', rawValue: '18 marketing trackers identified and blocked', anonymizedValue: 'AdTech Pixel Disarm: 100% neutralized', noiseLevel: 'Privacy Shield Lockdown' }
+      { field: 'Commerce Order Confirmation', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'ZK-Proof: Consumer Tech transaction bucketed in $100-$200 range', noiseLevel: 'Zero-Knowledge Proof' },
+      { field: 'Travel Itinerary', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Synthetic Twin: West Coast domestic corridor traveler', noiseLevel: 'Laplacian ε=0.25' },
+      { field: 'Newsletter Digest', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Professional Technical Researcher cohort', noiseLevel: 'k-Anonymity (k=100)' },
+      { field: 'Vendor Tracking Pixels', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'AdTech Pixel Disarm: 100% neutralized', noiseLevel: 'Privacy Shield Lockdown' }
     ]
   },
   {
@@ -215,10 +215,10 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Cloud documents, spreadsheets, presentations, and technical architecture schemas. Raw files remain shielded in your cloud enclave.',
     leakRiskScore: 68,
     samples: [
-      { field: 'Financial Modeling Sheet', rawValue: 'Quarterly budget sheet with $18k operating expenses', anonymizedValue: 'DP-Laplace Vector: Enterprise SaaS operating cost distribution (±$2.5k noise)', noiseLevel: 'Laplacian ε=0.35' },
-      { field: 'Architecture Technical Spec', rawValue: 'System design diagram for distributed microservices', anonymizedValue: 'Synthetic Twin: High-scale cloud infrastructure pattern', noiseLevel: 'ZK-Proof Synthesized' },
-      { field: 'Public Shared Link', rawValue: 'Open public view link on product backlog document', anonymizedValue: 'Shadow Link Neutralizer: Access restricted to authorized domain', noiseLevel: 'Enclave Access Control' },
-      { field: 'Contract / Legal Template', rawValue: 'Standard commercial consulting engagement agreement', anonymizedValue: '[ENCLAVE SHIELDED - ZERO RAW EXPOSURE]', noiseLevel: 'Strict Lockdown' }
+      { field: 'Financial Modeling Sheet', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'DP-Laplace Vector: Enterprise SaaS operating cost distribution (±$2.5k noise)', noiseLevel: 'Laplacian ε=0.35' },
+      { field: 'Architecture Technical Spec', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Synthetic Twin: High-scale cloud infrastructure pattern', noiseLevel: 'ZK-Proof Synthesized' },
+      { field: 'Public Shared Link', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Shadow Link Neutralizer: Access restricted to authorized domain', noiseLevel: 'Enclave Access Control' },
+      { field: 'Contract / Legal Template', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[ENCLAVE SHIELDED - ZERO RAW EXPOSURE]', noiseLevel: 'Strict Lockdown' }
     ]
   }
 ];
