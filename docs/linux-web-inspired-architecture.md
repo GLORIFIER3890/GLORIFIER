@@ -10,6 +10,10 @@ Use lessons from Linux and the World Wide Web to make GLORIFIER modular, portabl
 - **Web-inspired:** open protocols, stable resource identifiers, linkable documentation, interoperable APIs, explicit identity and authorization, cacheable reads where safe, and graceful degradation.
 - **GLORIFIER-specific:** GEAS governance, human authority, provider-neutral AI orchestration, evidence-backed status, and governed GLR commerce.
 
+## Organizational purpose and motto
+
+**Official organization motto: _Committed to Glorify, Passion to Evangelize_.** The canonical interpretation is documented in [Official Motto and Organizational Architecture](official-motto-and-organizational-architecture.md). In architecture decisions, this motto informs purpose and stewardship; it does not grant permissions or override GEAS identity, least privilege, policy, human approval, privacy, security, or evidence requirements. Communicate the mission respectfully, and represent capabilities and outcomes only as strongly as the evidence supports.
+
 ## Logical layers
 
 1. **Runtime and infrastructure:** containerized or otherwise reproducible services; explicit health/readiness signals; resource limits; graceful shutdown; structured logs; dependency and software-bill-of-materials review; backup/restore drills.
