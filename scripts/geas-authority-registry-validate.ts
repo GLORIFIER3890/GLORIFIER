@@ -87,7 +87,7 @@ if (failures.length > 0) {
 }
 
 const registry = parsed as Registry;
-const domains = [...new Set(registry.sources.map(source => source.domain))].sort();
+const domains = [...new Set(registry.sources.map(source => source.domain))].sort((left, right) => left.localeCompare(right));
 process.stdout.write(`${JSON.stringify({
   valid: true,
   version: registry.version,
