@@ -67,21 +67,19 @@ export const ComplianceScientistBot: React.FC<ComplianceScientistBotProps> = ({
     {
       role: 'assistant',
       mode: 'gdpr_erasure_dpia',
-      modelUsed: 'DeepMind Gemini 3.8 Flash',
-      timestamp: 'Just now',
-      text: `### STATUTORY COMPLIANCE & REGULATORY PRIVACY SCIENTIST BRIEF
-**Title:** Senior Regulatory Counsel (CIPP/E, CIPP/US) & Principal Privacy Research Scientist (Ph.D. Statistical Governance)  
-**Governing Mandates:** GDPR (Reg. 2016/679) | CCPA/CPRA (Cal. Civ. Code § 1798.100 et seq.) | EU AI Act (Reg. 2024/1689) | HIPAA § 164.514  
+      modelUsed: 'Starter template (not an AI result)',
+      timestamp: 'Template — not generated at runtime',
+      text: `### Compliance review starter template — NOT A LEGAL OPINION
 
----
+This is static starter text, not a live compliance check, legal advice, certification, or evidence that a control is operating.
 
-#### 1. Real-Time Regulatory Integrity Status
-- **GDPR Article 25 (Data Protection by Design):** Full compliance verified. All outbound telemetry transactions are shielded with client-side differential privacy perturbation ($Y \\sim \\text{Lap}(\\Delta f / \\varepsilon)$) calibrated to $\\varepsilon = ${policy?.globalEpsilon || 0.30}$.
-- **CCPA § 1798.105 & California SB 362 (Delete Act):** Autonomous statutory clawback pipeline stands armed. Detected broker exposures are queued with immutable SHA-256 evidence tokens.
-- **EU AI Act Classification:** The platform's multi-model dynamic failover routing is certified as **Class 1 (Minimal Risk / Permitted AI Systems)** with Article 50 transparency obligations satisfied.
-- **HIPAA Expert Determination Standard (§ 164.514(b)(1)):** Re-identification risk is quantitatively bounded at $P(\\text{re-id}) \\le 0.0004$, well below regulatory thresholds.
+- **GDPR / CCPA / CPRA:** Compliance depends on the actual data flows, legal basis, notices, contracts, retention, rights handling, and operational evidence. This interface does not certify compliance.
+- **Privacy transformations:** This panel has not verified that differential privacy, anonymization, or another privacy mechanism is applied to outbound data.
+- **Deletion / clawback:** This panel has not verified that a statutory deletion or broker-clawback pipeline is active, or that any evidence token is immutable.
+- **EU AI Act / HIPAA:** This interface does not certify an AI risk classification, Article 50 compliance, HIPAA compliance, or a quantitative re-identification bound.
+- **Next step:** Request a source-backed review, then validate the findings with qualified privacy/legal counsel and operational evidence.
 
-How may I assist your compliance prosecution, statutory clawback demands, or DPIA certification today?`
+AI-generated responses, when available, are advisory and require human review.`
     }
   ]);
 
