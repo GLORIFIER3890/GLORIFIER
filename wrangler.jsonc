@@ -4,7 +4,33 @@
   "compatibility_date": "2026-10-12",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api",
+      "/api/*",
+      "/auth",
+      "/auth/*",
+      "/assets/*",
+      "/*.js",
+      "/*.mjs",
+      "/*.css",
+      "/*.map",
+      "/*.png",
+      "/*.jpg",
+      "/*.jpeg",
+      "/*.gif",
+      "/*.svg",
+      "/*.webp",
+      "/*.ico",
+      "/*.woff",
+      "/*.woff2",
+      "/*.ttf",
+      "/*.otf",
+      "/*.json",
+      "/*.webmanifest"
+    ]
   },
-  "previews": {}
+  "previews": {},
+  "main": "./src/worker.ts"
 }

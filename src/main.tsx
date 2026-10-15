@@ -4,18 +4,69 @@ import App from './App.tsx';
 import './index.css';
 
 const nativeApiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-if (nativeApiBase && typeof window !== 'undefined') {
-  const originalFetch = window.fetch.bind(window);
-  window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
-    if (typeof input === 'string' && input.startsWith('/api/')) {
-      input = nativeApiBase + input;
-    } else if (input instanceof URL && input.pathname.startsWith('/api/')) {
-      input = new URL(nativeApiBase + input.pathname + input.search);
-    }
-    return originalFetch(input, init);
-  };
+
+function resolveRequestUrl(input: RequestInfo | URL): URL | null {
+  try {
+    const rawUrl = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    return new URL(rawUrl, window.location.href);
+  } catch {
+    return null;
+  }
 }
 
+function isApiPath(pathname: string): boolean {
+  return /^\/api(?:\/|$)/.test(pathname);
+}
+
+function rewriteApiRequest(
+  input: RequestInfo | URL,
+  requestUrl: URL,
+  apiBase: string,
+  currentOrigin: string,
+): { input: RequestInfo | URL; requestUrl: URL } {
+  if (!apiBase || requestUrl.origin !== currentOrigin || !isApiPath(requestUrl.pathname)) {
+    return { input, requestUrl };
+  }
+  const rewrittenUrl = new URL(apiBase + requestUrl.pathname + requestUrl.search);
+  const rewrittenInput = input instanceof Request ? new Request(rewrittenUrl.href, input) : rewrittenUrl;
+  return { input: rewrittenInput, requestUrl: rewrittenUrl };
+}
+
+function reportHtmlApiResponse(response: Response, requestUrl: URL, isApiRequest: boolean): Response {
+  const isHtml = response.headers.get('content-type')?.toLowerCase().includes('text/html') || false;
+  if (!isApiRequest || !isHtml) return response;
+
+  console.error('[GLORIFIER API] Expected an API response but received HTML.', {
+    path: requestUrl.pathname,
+    status: response.status,
+  });
+  return new Response(JSON.stringify({
+    ok: false,
+    error: 'The API route returned HTML instead of an API response. Backend routing is unavailable or misconfigured.',
+    code: 'API_HTML_RESPONSE',
+    path: requestUrl.pathname,
+    upstreamStatus: response.status,
+  }), {
+    status: 502,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  });
+}
+
+if (typeof window !== 'undefined') {
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const resolvedUrl = resolveRequestUrl(input);
+    if (!resolvedUrl) return originalFetch(input, init);
+
+    const isApiRequest = isApiPath(resolvedUrl.pathname);
+    const rewritten = rewriteApiRequest(input, resolvedUrl, nativeApiBase, window.location.origin);
+    const response = await originalFetch(rewritten.input, init);
+    return reportHtmlApiResponse(response, rewritten.requestUrl, isApiRequest);
+  };
+}
 
 class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   state = { error: null as Error | null };
@@ -38,8 +89,8 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error
             </div>
             <h1 className="text-2xl font-bold">The Command Center could not render.</h1>
             <p className="mt-3 text-slate-300">
-              The backend is reachable, but the browser encountered a frontend runtime error.
-              The details below are included so the problem is visible instead of showing a blank screen.
+              The frontend encountered a runtime error and could not render.
+              This screen has not checked backend connectivity; the details below help identify the frontend failure.
             </p>
             <pre className="mt-5 overflow-auto rounded-xl bg-black/50 p-4 text-sm text-red-200 whitespace-pre-wrap">
               {this.state.error.message}

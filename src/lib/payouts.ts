@@ -109,7 +109,7 @@ export async function createPayoutRequest(input: PayoutRequest) {
     currency: 'USD',
     method: input.method,
     governanceEventId: governance.id,
-    humanApprovalRequired: autonomous ? false : true,
+    humanApprovalRequired: true,
     executionEnabled: false,
     autonomousRequest: autonomous,
     verifiedRevenue: true,

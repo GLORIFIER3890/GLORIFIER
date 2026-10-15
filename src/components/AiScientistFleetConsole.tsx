@@ -45,6 +45,7 @@ export const AiScientistFleetConsole: React.FC<AiScientistFleetConsoleProps> = (
   const [state, setState] = useState<ScientistMonetizationState | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
@@ -88,15 +89,19 @@ export const AiScientistFleetConsole: React.FC<AiScientistFleetConsoleProps> = (
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: !state.is247AutonomousRunning }),
       });
-      if (response.ok) {
-        const data = await response.json();
-        setState((current) =>
-          current
-            ? { ...current, is247AutonomousRunning: data.is247AutonomousRunning }
-            : current,
-        );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data?.ok !== true) {
+        throw new Error(data?.error || 'Scientist execution is unavailable; no background work was started.');
       }
+      setState((current) =>
+        current
+          ? { ...current, is247AutonomousRunning: data.is247AutonomousRunning }
+          : current,
+      );
+      setActionError(null);
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Scientist execution is unavailable.';
+      setActionError(message);
       console.error('Scientist fleet toggle failed:', error);
     } finally {
       setBusy(false);
@@ -121,10 +126,10 @@ export const AiScientistFleetConsole: React.FC<AiScientistFleetConsoleProps> = (
               SCIENTIST FLEET
             </div>
             <h2 className="mt-1 text-xl font-semibold tracking-tight text-white">
-              Autonomous intelligence workers
+              Scientist Fleet (execution not verified)
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-400">
-              Five domain specialists continuously discover, diagnose, test, and report issues under GLORIFIER governance.
+              No live agents or issue records are configured. This panel will show activity only when the backend provides verifiable evidence.
             </p>
           </div>
 
@@ -137,12 +142,12 @@ export const AiScientistFleetConsole: React.FC<AiScientistFleetConsoleProps> = (
               <span className={`h-1.5 w-1.5 rounded-full ${
                 running ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'
               }`} />
-              {running ? 'Running 24/7' : 'Paused'}
+              {running ? 'Running (not independently verified)' : 'Disabled / NOT VERIFIED'}
             </span>
             <button
               type="button"
               onClick={toggleFleet}
-              disabled={busy || !state}
+              disabled={busy || !state || fleet.length === 0}
               className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-200 transition hover:border-slate-600 hover:bg-slate-800 disabled:opacity-50"
             >
               {busy ? (
@@ -152,14 +157,17 @@ export const AiScientistFleetConsole: React.FC<AiScientistFleetConsoleProps> = (
               ) : (
                 <Play className="h-3.5 w-3.5" />
               )}
-              {running ? 'Pause' : 'Resume'}
+              {running ? 'Pause' : fleet.length === 0 ? 'Unavailable' : 'Resume'}
             </button>
           </div>
         </div>
+        {actionError && (
+          <p role="alert" className="text-xs text-amber-400">{actionError}</p>
+        )}
 
         <div className="grid grid-cols-2 gap-2 border-t border-slate-800 pt-4 sm:grid-cols-4">
           {[
-            ['Agents', fleet.length || 5],
+            ['Agents', fleet.length],
             ['Active issues', activeIssues.length],
             ['Resolved', resolvedCount],
             ['Cycle', state?.cycleCount || 0],

@@ -154,13 +154,13 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
       status: 'active',
       timestamp: 'Just now',
       occurrences: 1,
-      rootCause: 'Runtime diagnostic or error-watch observation recorded by the Sentinel.',
-      gptAnalysis: 'OpenAI GPT-4o: Diagnostic registered. Monitoring upstream token limits and connection states.',
-      geminiAnalysis: 'Google Gemini 3.8 Flash: Mathematical bounds and retry thresholds configured.',
-      collaborativeFixProposal: 'Continuous health check and proactive circuit breaker enabled.',
-      patchDiff: `// Proactive safeguard for ${newErrorCode}\nif (isUnavailable) { failoverToFastModel(); }`,
-      canAutoFix: true,
-      assignedBot: 'Dual-Consensus-Healer'
+      rootCause: 'Manual watch record created in the interface; runtime detection has not been verified.',
+      gptAnalysis: 'NOT RUN — no provider-backed analysis has been recorded.',
+      geminiAnalysis: 'NOT RUN — no provider-backed analysis has been recorded.',
+      collaborativeFixProposal: 'No fix proposal has been generated or tested.',
+      patchDiff: '',
+      canAutoFix: false,
+      assignedBot: 'unassigned'
     };
     onCreateError(newErr);
     setIsCreateModalOpen(false);
@@ -183,11 +183,11 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
   const getStatusBadge = (status: ErrorLifecycleStatus) => {
     switch (status) {
       case 'resolved':
-        return <span className="flex items-center gap-1 text-emerald-400 text-xs font-semibold"><CheckCircle2 className="w-3.5 h-3.5" /> Resolved</span>;
+        return <span className="flex items-center gap-1 text-emerald-400 text-xs font-semibold"><CheckCircle2 className="w-3.5 h-3.5" /> Recorded resolved · evidence not verified</span>;
       case 'patch_ready':
-        return <span className="flex items-center gap-1 text-amber-300 text-xs font-semibold"><Zap className="w-3.5 h-3.5" /> Patch Ready</span>;
+        return <span className="flex items-center gap-1 text-amber-300 text-xs font-semibold"><Zap className="w-3.5 h-3.5" /> Patch record only</span>;
       case 'analyzing':
-        return <span className="flex items-center gap-1 text-cyan-300 text-xs font-semibold"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> GPT Analyzing</span>;
+        return <span className="flex items-center gap-1 text-cyan-300 text-xs font-semibold"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Analysis status not verified</span>;
       default:
         return <span className="flex items-center gap-1 text-rose-400 text-xs font-semibold"><AlertTriangle className="w-3.5 h-3.5" /> Active</span>;
     }
@@ -207,14 +207,14 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold text-white tracking-tight">24/7 Autonomous AI Code Sentinel</h2>
+                  <h2 className="text-xl font-bold text-white tracking-tight">AI Code Sentinel — issue management</h2>
                   <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    LIVE 24/7 ACTIVE
+                    MONITORING NOT VERIFIED
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-400">
-                  Internal bots continuously monitor runtime exceptions, synthesize GPT + Gemini collaborative code fixes, and perform CRUD operations.
+                  This screen manages issue records. Runtime monitoring, model availability, verified patches, and automatic healing are not established by this interface.
                 </p>
               </div>
             </div>
@@ -225,15 +225,15 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
             <div className="bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 flex items-center gap-3">
               <Activity className="w-5 h-5 text-emerald-400" />
               <div>
-                <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Health Score</div>
-                <div className="text-lg font-bold text-emerald-400 font-mono">{sentinelState.healthScore}/100</div>
+                <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Health status</div>
+                <div className="text-lg font-bold text-emerald-400 font-mono">NOT VERIFIED</div>
               </div>
             </div>
 
             <div className="bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 flex items-center gap-3">
               <CheckCircle2 className="w-5 h-5 text-teal-400" />
               <div>
-                <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Healed Errors</div>
+                <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Recorded resolved entries</div>
                 <div className="text-lg font-bold text-teal-300 font-mono">{sentinelState.resolvedTotalCount}</div>
               </div>
             </div>
@@ -247,7 +247,7 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
               }`}
             >
               <Zap className="w-4 h-4 text-emerald-400" />
-              <span>Auto-Heal: {sentinelState.autoHealEnabled ? 'ON' : 'OFF'}</span>
+              <span>Local auto-heal preference: {sentinelState.autoHealEnabled ? 'ON' : 'OFF'} · execution NOT VERIFIED</span>
             </button>
 
             {onOpenCoWorkingStudio && (
@@ -275,19 +275,13 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
         <div className="mt-5 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2 text-slate-400">
             <Cpu className="w-4 h-4 text-cyan-400" />
-            <span className="font-medium text-slate-300">Active Multi-Model Sentinel Guild:</span>
-            <span className="text-emerald-400 font-mono font-semibold">OpenAI GPT-4o</span>
-            <span>•</span>
-            <span className="text-teal-400 font-mono font-semibold">Google Gemini 3.8 Flash</span>
-            <span>•</span>
-            <span className="text-cyan-400 font-mono font-semibold">Meta LLaMA 3.3</span>
-            <span>•</span>
-            <span className="text-purple-400 font-mono font-semibold">Sovereign Core</span>
+            <span className="font-medium text-slate-300">Configured model labels (availability not verified):</span>
+            <span className="text-amber-300 font-mono font-semibold">Provider availability NOT VERIFIED</span>
           </div>
 
           <div className="flex items-center gap-2 text-slate-400 text-[11px]">
             <Clock className="w-3.5 h-3.5 text-slate-400" />
-            <span>Scan cadence: continuous every 5s</span>
+            <span>Actual scan cadence: NOT VERIFIED</span>
           </div>
         </div>
       </div>
@@ -418,7 +412,7 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
               <div className="text-center py-12 bg-slate-900/40 border border-slate-800/80 rounded-xl">
                 <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
                 <h4 className="text-sm font-semibold text-white">All Clear! No Matching Errors</h4>
-                <p className="text-xs text-slate-400 mt-1">Sentinel 24/7 monitoring is clean under current filter criteria.</p>
+                <p className="text-xs text-slate-400 mt-1">No issue records match these filters. This does not prove that monitoring ran or that the system is clean.</p>
               </div>
             )}
           </div>
@@ -520,7 +514,7 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-sm font-bold text-white">24/7 Sentinel Activity Audit Stream</h3>
+            <h3 className="text-sm font-bold text-white">Recorded Sentinel Activity (execution not verified)</h3>
           </div>
           <span className="text-[11px] text-slate-400 font-mono">Real-time internal logger</span>
         </div>
@@ -692,7 +686,7 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Plus className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-sm font-bold text-white">Create 24/7 Error Watch Probe</h3>
+                <h3 className="text-sm font-bold text-white">Create Manual Issue Record</h3>
               </div>
               <button onClick={() => setIsCreateModalOpen(false)} className="text-slate-400 hover:text-white">
                 <X className="w-4 h-4" />

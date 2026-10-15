@@ -69,25 +69,25 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
           <div>
             <h2 className="text-base font-bold text-white flex items-center gap-2">
               <SlidersHorizontal className="w-5 h-5 text-emerald-400" />
-              User Data Control Dashboard & Access Governance
+              Data Grant Records & Local Controls
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Inspect active cryptographic licenses, audit which data points are being shared, with whom, and under what retention windows. Execute 1-click revocations with verifiable proof of shredding.
+              Review stored grant records and update their local status. Provider-side revocation, data deletion, key erasure, and cryptographic attestation are NOT VERIFIED by this interface.
             </p>
           </div>
 
           <div className="flex items-center gap-4 bg-slate-950 px-4 py-2.5 rounded-lg border border-slate-800">
             <div>
-              <div className="text-[10px] uppercase font-semibold text-slate-400">Active Licenses</div>
+              <div className="text-[10px] uppercase font-semibold text-slate-400">Active grant records</div>
               <div className="text-sm font-bold font-mono text-emerald-400">
                 {activeGrantsCount} Grants
               </div>
             </div>
             <div className="w-px h-8 bg-slate-800"></div>
             <div>
-              <div className="text-[10px] uppercase font-semibold text-slate-400">Grant Royalties Accrued</div>
+              <div className="text-[10px] uppercase font-semibold text-slate-400">Illustrative grant value (not payable)</div>
               <div className="text-sm font-bold font-mono text-emerald-400">
-                ${totalAccruedFromGrants.toFixed(2)} USD
+                NOT VERIFIED
               </div>
             </div>
           </div>
@@ -211,7 +211,7 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                       className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center gap-1"
                     >
                       <Key className="w-3.5 h-3.5 text-emerald-400" />
-                      Verify Token
+                      View grant record
                     </button>
 
                     {isActive ? (
@@ -225,11 +225,11 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                         ) : (
                           <Trash2 className="w-3.5 h-3.5 text-rose-400" />
                         )}
-                        Revoke Access
+                        Revoke local grant
                       </button>
                     ) : (
                       <span className="text-xs font-semibold text-rose-400 flex items-center gap-1">
-                        <XCircle className="w-3.5 h-3.5" /> Access Revoked
+                        <XCircle className="w-3.5 h-3.5" /> Local record marked revoked
                       </span>
                     )}
                   </div>
@@ -253,7 +253,7 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
             <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileCheck className="w-5 h-5 text-emerald-400" />
-                <h3 className="text-sm font-bold text-white">Cryptographic License Grant Attestation</h3>
+                <h3 className="text-sm font-bold text-white">Grant record details (not cryptographically attested)</h3>
               </div>
               <button
                 onClick={() => setInspectingGrant(null)}
@@ -265,7 +265,7 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
 
             <div className="p-5 space-y-4 text-xs font-mono">
               <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-1.5">
-                <div className="text-slate-500 text-[10px]">VERIFIABLE LICENSE TOKEN:</div>
+                <div className="text-slate-500 text-[10px]">Stored token/reference (not verified):</div>
                 <div className="text-emerald-400 break-all">{inspectingGrant.verifiableToken}</div>
               </div>
 
@@ -275,21 +275,21 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                   <span>{inspectingGrant.recipientOrg}</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-slate-500">Protection Primitive:</span>
+                  <span className="text-slate-500">Configured protection target (not enforced):</span>
                   <span>{inspectingGrant.protectionTech}</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-slate-500">Smart Contract Escrow:</span>
-                  <span>0x882a...94f1 (Solana Verifier)</span>
+                  <span className="text-slate-500">On-chain escrow evidence:</span>
+                  <span>NOT VERIFIED — no on-chain reference checked</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-slate-500">Cryptographic Shred Guarantee:</span>
-                  <span className="text-emerald-400">Verifiable Key Erasure upon TTL Expiry</span>
+                  <span className="text-slate-500">Deletion/key-erasure evidence:</span>
+                  <span className="text-amber-300">NOT VERIFIED</span>
                 </div>
               </div>
 
               <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
-                Revoking access immediately burns the recipient's decryption capability at the trusted query gateway, rendering any cached intermediate tokens unexecutable.
+                This control updates the local grant record only. It does not prove that an external provider revoked access, deleted cached data, or erased decryption keys.
               </p>
             </div>
 

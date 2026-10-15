@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { 
   Scale, 
   CheckCircle2, 
@@ -16,6 +16,16 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { BuyerOffer, MonetizationPolicy } from '../types';
+
+type OfferAssessment = { score: number; verdict: 'RECOMMEND' | 'CAUTION' | 'REJECT'; reasoning: string };
+
+const isValidAssessment = (value: unknown): value is OfferAssessment => {
+  if (typeof value !== 'object' || value === null) return false;
+  const assessment = value as Record<string, unknown>;
+  return typeof assessment.score === 'number' && Number.isFinite(assessment.score) && assessment.score >= 0 && assessment.score <= 100
+    && (assessment.verdict === 'RECOMMEND' || assessment.verdict === 'CAUTION' || assessment.verdict === 'REJECT')
+    && typeof assessment.reasoning === 'string' && assessment.reasoning.trim().length > 0;
+};
 
 interface MarketplaceOffersProps {
   offers: BuyerOffer[];
@@ -35,7 +45,15 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
   const [filter, setFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
   const [counteringOfferId, setCounteringOfferId] = useState<string | null>(null);
   const [counterPrice, setCounterPrice] = useState<number>(0);
-  const [evaluatingId, setEvaluatingId] = useState<string | null>(null);
+  const [evaluatingIds, setEvaluatingIds] = useState<Record<string, boolean>>({});
+  const [evaluationResults, setEvaluationResults] = useState<Record<string, { key: string; assessment: OfferAssessment }>>({});
+  const [evaluationErrors, setEvaluationErrors] = useState<Record<string, { key: string; message: string }>>({});
+  const evaluationRequestIds = useRef<Record<string, number>>({});
+  const currentEvaluationKeys = useRef<Record<string, string>>({});
+
+  offers.forEach(offer => {
+    currentEvaluationKeys.current[offer.id] = JSON.stringify({ offer, policy });
+  });
 
   const filteredOffers = offers.filter(o => {
     if (filter === 'all') return true;
@@ -52,30 +70,31 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
   };
 
   const handleRunAiEvaluation = async (offer: BuyerOffer) => {
-    setEvaluatingId(offer.id);
+    const evaluationKey = JSON.stringify({ offer, policy });
+    const requestId = (evaluationRequestIds.current[offer.id] || 0) + 1;
+    evaluationRequestIds.current[offer.id] = requestId;
+    setEvaluatingIds(previous => ({ ...previous, [offer.id]: true }));
     try {
       const res = await fetch('/api/ai/evaluate-offer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ offer, userPolicy: policy })
       });
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-      const data = await res.json();
-      if (data.score) {
-        offer.aiBrokerScore = data.score;
-        offer.aiVerdict = data.verdict;
-        offer.aiBrokerReasoning = data.reasoning;
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: unknown = await res.json();
+      if (!isValidAssessment(data)) throw new Error('AI evaluation response was incomplete or invalid.');
+      if (evaluationRequestIds.current[offer.id] !== requestId || currentEvaluationKeys.current[offer.id] !== evaluationKey) return;
+      setEvaluationResults(previous => ({ ...previous, [offer.id]: { key: evaluationKey, assessment: data } }));
+      setEvaluationErrors(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => id !== offer.id)));
     } catch (e) {
-      console.error(e);
-      // Resilient sovereign valuation fallback
-      offer.aiBrokerScore = offer.offeredCompUsd >= policy.minimumMonthlyFloorUsd ? 88 : 62;
-      offer.aiVerdict = offer.offeredCompUsd >= policy.minimumMonthlyFloorUsd ? 'RECOMMEND' : 'CAUTION';
-      offer.aiBrokerReasoning = `Autonomous valuation: Offer at $${offer.offeredCompUsd} meets baseline requirements with differential privacy bounds (${offer.maxEpsilonAllowed} \u03b5).`;
+      if (evaluationRequestIds.current[offer.id] !== requestId || currentEvaluationKeys.current[offer.id] !== evaluationKey) return;
+      console.error('Offer evaluation unavailable; no recommendation was inferred:', e);
+      setEvaluationResults(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => id !== offer.id)));
+      setEvaluationErrors(previous => ({ ...previous, [offer.id]: { key: evaluationKey, message: e instanceof Error ? e.message : 'AI evaluation unavailable.' } }));
     } finally {
-      setEvaluatingId(null);
+      if (evaluationRequestIds.current[offer.id] === requestId && currentEvaluationKeys.current[offer.id] === evaluationKey) {
+        setEvaluatingIds(previous => ({ ...previous, [offer.id]: false }));
+      }
     }
   };
 
@@ -87,14 +106,18 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
           <div>
             <h2 className="text-base font-bold text-white flex items-center gap-2">
               <Scale className="w-5 h-5 text-emerald-400" />
-              Live Data Buyer Marketplace & Bid Clearing
+              Buyer Offer Review (live marketplace status not verified)
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Commercial AI labs, biomedical research institutes, and economic analysts bid for access to your differentially private data vault. Your AI broker scrutinizes every bid before you license.
+              This panel displays offers only when returned by the configured backend. Buyer identity, bid authenticity, privacy enforcement, and settlement must be verified independently before any license or data transfer.
             </p>
           </div>
 
-          {/* Filter tabs */}
+          <div role="note" className="rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-100">
+        Offer status, buyer-verification flags, scores, and proposed compensation are stored claims only. Accepting or countering here changes a local record; it does not create a verified contract, transfer data, or confirm payment.
+      </div>
+
+      {/* Filter tabs */}
           <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 self-start sm:self-auto">
             {(['all', 'pending', 'accepted', 'rejected'] as const).map((f) => (
               <button
@@ -120,29 +143,48 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
           const isAccepted = offer.status === 'ACCEPTED';
           const isRejected = offer.status === 'REJECTED';
           const isCountered = offer.status === 'COUNTERED';
-          const isEvaluating = evaluatingId === offer.id;
+          const evaluationKey = currentEvaluationKeys.current[offer.id];
+          const isEvaluating = evaluatingIds[offer.id] === true;
+          const persistedAssessment = { score: offer.aiBrokerScore, verdict: offer.aiVerdict, reasoning: offer.aiBrokerReasoning };
+          const storedResult = evaluationResults[offer.id];
+          const storedError = evaluationErrors[offer.id];
+          const evaluationError = storedError?.key === evaluationKey ? storedError.message : undefined;
+          let assessment: OfferAssessment | null = null;
+          if (!evaluationError) {
+            if (storedResult?.key === evaluationKey) {
+              assessment = storedResult.assessment;
+            } else if (isValidAssessment(persistedAssessment)) {
+              assessment = persistedAssessment;
+            }
+          }
 
           const getVerdictBadge = () => {
-            if (offer.aiVerdict === 'RECOMMEND') {
+            if (evaluationError) {
+              return <span role="status" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-amber-200 border border-amber-500/30">NOT VERIFIED · evaluation unavailable</span>;
+            }
+            if (!assessment) {
+              return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Not evaluated</span>;
+            }
+            if (assessment.verdict === 'RECOMMEND') {
               return (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  {offer.aiBrokerScore}/100 Match • RECOMMEND
+                  Stored verdict: RECOMMEND · score {assessment.score}/100 · NOT VERIFIED
                 </span>
               );
             }
-            if (offer.aiVerdict === 'CAUTION') {
+            if (assessment.verdict === 'CAUTION') {
               return (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  {offer.aiBrokerScore}/100 Match • CAUTION
+                  Stored verdict: CAUTION · score {assessment.score}/100 · NOT VERIFIED
                 </span>
               );
             }
             return (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30">
                 <XCircle className="w-3.5 h-3.5" />
-                {offer.aiBrokerScore}/100 Match • REJECT
+                Stored verdict: REJECT · score {assessment.score}/100 · NOT VERIFIED
               </span>
             );
           };
@@ -169,11 +211,11 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                     </span>
                     {offer.buyerVerified && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/30 font-semibold flex items-center gap-1">
-                        <ShieldCheck className="w-3 h-3" /> Audited Entity
+                        <ShieldCheck className="w-3 h-3" /> Verification claim (not independently checked)
                       </span>
                     )}
                     <span className="text-[10px] font-mono text-slate-400">
-                      Reputation: {offer.reputationScore}/100
+                      Stored reputation claim: {offer.reputationScore}/100 · NOT VERIFIED
                     </span>
                   </div>
 
@@ -222,7 +264,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                     </div>
                     {isCountered && (
                       <div className="text-[10px] font-mono text-amber-400 mt-0.5">
-                        Counter-offer submitted: ${offer.counterOfferAmount?.toFixed(2)}/mo
+                        Counter-offer recorded locally (not sent): ${offer.counterOfferAmount?.toFixed(2)}/mo
                       </div>
                     )}
                   </div>
@@ -238,10 +280,10 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="font-bold text-slate-200">AI Broker Assessment</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono font-semibold uppercase">
-                      {policy.aiModel || 'GPT-4o'}
+                      {policy.aiModel || 'Server default model (reported as GPT-4o; not independently verified)'}
                     </span>
                   </div>
-                  <span className="text-slate-300">{offer.aiBrokerReasoning}</span>
+                  <span className="text-slate-300">{evaluationError || assessment?.reasoning || 'No verified AI assessment is available. Run an evaluation; failed requests will not produce a score or recommendation.'}</span>
                 </div>
                 <button
                   onClick={() => handleRunAiEvaluation(offer)}
@@ -286,11 +328,11 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                       }}
                       className="mt-4 px-4 py-2 text-xs font-bold rounded bg-amber-500 hover:bg-amber-400 text-slate-950 transition-colors"
                     >
-                      Submit Counter
+                      Save Counter-Offer Draft
                     </button>
                   </div>
                   <p className="text-[10px] text-slate-400">
-                    Your AI broker will transmit cryptographic counter-terms stipulating strict retention limits and a revised compensation fee of ${counterPrice}/mo.
+                    This local counter-offer draft does not transmit a contract or enforce retention limits. Proposed compensation (not verified): ${counterPrice}/mo.
                   </p>
                 </div>
               )}
@@ -310,14 +352,14 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                         id={`counter-btn-${offer.id}`}
                         className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
                       >
-                        Counter-Offer
+                        Draft Counter-Offer
                       </button>
                       <button
                         onClick={() => onRejectOffer(offer.id)}
                         id={`reject-btn-${offer.id}`}
                         className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 transition-colors"
                       >
-                        Reject
+                        Record Rejection (Local Only)
                       </button>
                       <button
                         onClick={() => onAcceptOffer(offer.id)}
@@ -325,26 +367,26 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                         className="px-4 py-1.5 text-xs font-bold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20 transition-colors flex items-center gap-1.5"
                       >
                         <Check className="w-3.5 h-3.5" />
-                        Accept & Sign License
+                        Record Acceptance (Local Only)
                       </button>
                     </>
                   )}
 
                   {isCountered && (
                     <span className="text-xs text-amber-400 font-semibold flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" /> Awaiting Buyer Response
+                      <Clock className="w-3.5 h-3.5" /> Counter-offer recorded locally (not sent)
                     </span>
                   )}
 
                   {isAccepted && (
                     <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Active Licensing Contract
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Accepted offer record (local only)
                     </span>
                   )}
 
                   {isRejected && (
                     <span className="text-xs text-slate-500 flex items-center gap-1">
-                      <XCircle className="w-3.5 h-3.5" /> Bid Declined
+                      <XCircle className="w-3.5 h-3.5" /> Rejection recorded locally
                     </span>
                   )}
                 </div>

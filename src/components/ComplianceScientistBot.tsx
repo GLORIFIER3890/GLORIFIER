@@ -67,21 +67,19 @@ export const ComplianceScientistBot: React.FC<ComplianceScientistBotProps> = ({
     {
       role: 'assistant',
       mode: 'gdpr_erasure_dpia',
-      modelUsed: 'DeepMind Gemini 3.8 Flash',
-      timestamp: 'Just now',
-      text: `### STATUTORY COMPLIANCE & REGULATORY PRIVACY SCIENTIST BRIEF
-**Title:** Senior Regulatory Counsel (CIPP/E, CIPP/US) & Principal Privacy Research Scientist (Ph.D. Statistical Governance)  
-**Governing Mandates:** GDPR (Reg. 2016/679) | CCPA/CPRA (Cal. Civ. Code § 1798.100 et seq.) | EU AI Act (Reg. 2024/1689) | HIPAA § 164.514  
+      modelUsed: 'Starter template (not an AI result)',
+      timestamp: 'Template — not generated at runtime',
+      text: `### Compliance review starter template — NOT A LEGAL OPINION
 
----
+This is static starter text, not a live compliance check, legal advice, certification, or evidence that a control is operating.
 
-#### 1. Real-Time Regulatory Integrity Status
-- **GDPR Article 25 (Data Protection by Design):** Full compliance verified. All outbound telemetry transactions are shielded with client-side differential privacy perturbation ($Y \\sim \\text{Lap}(\\Delta f / \\varepsilon)$) calibrated to $\\varepsilon = ${policy?.globalEpsilon || 0.30}$.
-- **CCPA § 1798.105 & California SB 362 (Delete Act):** Autonomous statutory clawback pipeline stands armed. Detected broker exposures are queued with immutable SHA-256 evidence tokens.
-- **EU AI Act Classification:** The platform's multi-model dynamic failover routing is certified as **Class 1 (Minimal Risk / Permitted AI Systems)** with Article 50 transparency obligations satisfied.
-- **HIPAA Expert Determination Standard (§ 164.514(b)(1)):** Re-identification risk is quantitatively bounded at $P(\\text{re-id}) \\le 0.0004$, well below regulatory thresholds.
+- **GDPR / CCPA / CPRA:** Compliance depends on the actual data flows, legal basis, notices, contracts, retention, rights handling, and operational evidence. This interface does not certify compliance.
+- **Privacy transformations:** This panel has not verified that differential privacy, anonymization, or another privacy mechanism is applied to outbound data.
+- **Deletion / clawback:** This panel has not verified that a statutory deletion or broker-clawback pipeline is active, or that any evidence token is immutable.
+- **EU AI Act / HIPAA:** This interface does not certify an AI risk classification, Article 50 compliance, HIPAA compliance, or a quantitative re-identification bound.
+- **Next step:** Request a source-backed review, then validate the findings with qualified privacy/legal counsel and operational evidence.
 
-How may I assist your compliance prosecution, statutory clawback demands, or DPIA certification today?`
+AI-generated responses, when available, are advisory and require human review.`
     }
   ]);
 
@@ -106,7 +104,7 @@ How may I assist your compliance prosecution, statutory clawback demands, or DPI
   const handleExportAudit = () => {
     const header = `# COMPLIANCE AI SCIENTIST & REGULATORY PRIVACY AUDIT DOSSIER
 **Generated:** ${new Date().toISOString()}  
-**Lead Authority:** Chief Compliance Officer & Regulatory Data Privacy Scientist (CIPP/E, CIPP/US, Ph.D. Statistical Governance)  
+**Lead Authority:** Compliance Review Assistant & Privacy Risk Checklist (CIPP/E, CIPP/US, Ph.D. Statistical Governance)  
 **Governing Laws:** GDPR (EU 2016/679), CCPA/CPRA (Cal. Civ. Code § 1798), EU AI Act (Reg. 2024/1689), HIPAA § 164.514  
 **Active Epsilon Budget:** ε = ${policy?.globalEpsilon || 0.30}  
 
@@ -168,7 +166,7 @@ How may I assist your compliance prosecution, statutory clawback demands, or DPI
       const data = await res.json();
       const assistantMsg: ComplianceChatMessage = {
         role: 'assistant',
-        text: data.content || 'Regulatory evaluation complete.',
+        text: data.content || 'No evaluation content was returned. No conclusion was verified.',
         mode: specialtyMode,
         modelUsed: data.modelUsed || (aiModel === 'gpt-4o' ? 'OpenAI GPT-4o' : 'Google Gemini 3.8 Flash'),
         timestamp: new Date().toLocaleTimeString()
@@ -197,21 +195,18 @@ How may I assist your compliance prosecution, statutory clawback demands, or DPI
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                <ShieldAlert className="w-3.5 h-3.5" /> A.I. Bot Compliance Scientist
+              <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold uppercase tracking-wider">
+                Compliance review assistant · NOT legal counsel or certification
               </span>
-              <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
-                CIPP/E &bull; CIPP/US &bull; CIPM &bull; Ph.D. Statistical Privacy
-              </span>
-              <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono">
-                GDPR &bull; CCPA &bull; EU AI Act (2024/1689) Ready
+              <span className="px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-xs font-mono">
+                GDPR · CCPA · EU AI Act topics
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
               Chief Compliance Officer & Regulatory Data Privacy Scientist
             </h2>
             <p className="text-sm text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              Autonomous statutory counsel and mathematical privacy verification engine. Audits global data monetization workflows against GDPR Articles 17 & 25, drafts binding CCPA § 1798.105 deletion clawbacks, evaluates EU AI Act conformity, and mathematically verifies differential privacy leakage.
+              Assists with regulatory checklists and draft language only. This is not legal advice, legal counsel, a compliance certification, a completed conformity assessment, or a mathematical privacy verification. Qualified review and implementation evidence are required.
             </p>
           </div>
 
@@ -228,9 +223,9 @@ How may I assist your compliance prosecution, statutory clawback demands, or DPI
             <button
               onClick={handleExportAudit}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs transition-colors shadow-lg shadow-amber-950/40"
-              title="Download full statutory audit memo in Markdown format"
+              title="Download a draft compliance review memo in Markdown format"
             >
-              <Download className="w-4 h-4" /> Download Audit Memo (.MD)
+              <Download className="w-4 h-4" /> Download Draft Review Memo (.MD)
             </button>
             {onOpenClawbackTab && (
               <button
@@ -254,13 +249,13 @@ How may I assist your compliance prosecution, statutory clawback demands, or DPI
         </div>
       </div>
 
-      {/* Real-time Regulatory Scorecard */}
+      {/* Compliance topic checklist (not an assessment) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">GDPR & CCPA Erasure</span>
             <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold">
-              100% Gated
+              NOT VERIFIED
             </span>
           </div>
           <div className="text-xl font-bold text-white flex items-center gap-2">
@@ -268,7 +263,7 @@ How may I assist your compliance prosecution, statutory clawback demands, or DPI
             <span>Articles 17 & 25</span>
           </div>
           <p className="text-[11px] text-slate-400">
-            Immutable SHA-256 evidence tokens attached to all statutory erasure notices.
+            Deletion request processing, provider completion, and evidence immutability are NOT VERIFIED.
           </p>
         </div>
 
@@ -276,23 +271,23 @@ How may I assist your compliance prosecution, statutory clawback demands, or DPI
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">EU AI Act (2024/1689)</span>
             <span className="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-[10px] font-mono font-bold">
-              Class 1 (Permitted)
+              Classification not assessed
             </span>
           </div>
           <div className="text-xl font-bold text-white flex items-center gap-2">
             <Cpu className="w-5 h-5 text-cyan-400" />
-            <span>Article 50 Ready</span>
+            <span>Conformity NOT VERIFIED</span>
           </div>
           <p className="text-[11px] text-slate-400">
-            Zero prohibited practices; multi-model dynamic routing complies with GPAI oversight.
+            No legal classification or EU AI Act conformity assessment has been performed by this interface.
           </p>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">HIPAA Expert Method</span>
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Re-identification risk assessment</span>
             <span className="px-2 py-0.5 rounded bg-teal-500/10 text-teal-400 border border-teal-500/30 text-[10px] font-mono font-bold">
-              P ≤ 0.0004
+              NOT CALCULATED
             </span>
           </div>
           <div className="text-xl font-bold text-white flex items-center gap-2">
@@ -300,23 +295,23 @@ How may I assist your compliance prosecution, statutory clawback demands, or DPI
             <span>§ 164.514(b)(1)</span>
           </div>
           <p className="text-[11px] text-slate-400">
-            Statistical re-identification probability verified far below standard de-id threshold.
+            No dataset-specific statistical test or HIPAA expert determination has been performed.
           </p>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Differential Privacy Budget</span>
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Configured ε target (not enforced)</span>
             <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30 text-[10px] font-mono font-bold">
-              ε = {policy?.globalEpsilon || 0.30}
+              ε = {policy?.globalEpsilon ?? 'NOT CONFIGURED'}
             </span>
           </div>
           <div className="text-xl font-bold text-white flex items-center gap-2">
             <Lock className="w-5 h-5 text-purple-400" />
-            <span>Strict Laplacian</span>
+            <span>Runtime enforcement NOT VERIFIED</span>
           </div>
           <p className="text-[11px] text-slate-400">
-            Noise scale b = Δf / ε guarantees mathematical resistance to reconstruction attacks.
+            No Laplace mechanism or runtime privacy guarantee has been verified.
           </p>
         </div>
       </div>

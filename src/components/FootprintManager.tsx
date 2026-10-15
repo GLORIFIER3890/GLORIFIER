@@ -70,17 +70,19 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
           sampleData: fp.samples
         })
       });
-      const data = await res.json();
-      setAuditResult({ id: fp.id, data });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.ok === false) {
+        throw new Error(data?.error || `Audit API unavailable (HTTP ${res.status})`);
+      }
+      setAuditResult({ id: fp.id, data: { ...data, status: 'response-received' } });
     } catch (err) {
-      console.error(err);
+      console.error('Footprint audit did not return a verified result:', err);
       setAuditResult({
         id: fp.id,
         data: {
-          reidentificationRisk: 'Low (14%)',
-          recommendedEpsilon: 0.3,
-          kAnonymityMin: 50,
-          sanitizationReport: 'Differential privacy shield verified. No quasi-identifiers leak personal identity under current parameters.'
+          status: 'unavailable',
+          error: err instanceof Error ? err.message : 'Audit API unavailable',
+          sanitizationReport: 'No audit result was returned. No risk score, valuation, or privacy guarantee was inferred.'
         }
       });
     } finally {
@@ -106,23 +108,25 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
               Digital Footprint Governance & Privacy Tiers
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Inspect your telemetry trail across the web. You decide which streams remain sealed, which are sanitized with differential privacy, and what compensation rate you receive from approved buyers.
+              Illustrative governance controls only. These starter records are sample data; changing a setting here does not connect a data source, apply a privacy transform, contact a buyer, or create earnings.
             </p>
           </div>
 
           <div className="flex items-center gap-4 bg-slate-950 px-4 py-2.5 rounded-lg border border-slate-800/80">
             <div>
-              <div className="text-[10px] uppercase font-semibold text-slate-400">Corporations Earned</div>
-              <div className="text-sm font-bold font-mono text-slate-400 line-through">
+              <div className="text-[10px] uppercase font-semibold text-slate-400">Sample value inputs (illustrative)</div>
+              <div className="text-sm font-bold font-mono text-slate-400">
                 ${totalMarketValue.toFixed(2)}/mo
               </div>
+              <div className="text-[9px] text-amber-300">SAMPLE ONLY · NOT MARKET EVIDENCE</div>
             </div>
             <ArrowRight className="w-4 h-4 text-emerald-400" />
             <div>
-              <div className="text-[10px] uppercase font-semibold text-emerald-400">Your Current Yield</div>
+              <div className="text-[10px] uppercase font-semibold text-emerald-400">Sample model output</div>
               <div className="text-sm font-bold font-mono text-emerald-400">
                 ${userCapturedValue.toFixed(2)}/mo
               </div>
+              <div className="text-[9px] text-amber-300">NOT REVENUE · NOT PAYABLE</div>
             </div>
           </div>
         </div>
@@ -184,7 +188,7 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
                           ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
                           : 'bg-slate-800 text-slate-400 border border-slate-700'
                       }`}>
-                        {fp.isMonetized ? 'MONETIZING' : 'SEALED / PRIVATE'}
+                        {fp.isMonetized ? 'LOCAL SETTING: ON' : 'LOCAL SETTING: OFF'}
                       </span>
                     </div>
 
@@ -195,17 +199,17 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
                     {/* Stats bar */}
                     <div className="flex items-center gap-4 text-xs text-slate-300 mt-3 pt-2.5 border-t border-slate-800/80">
                       <div>
-                        <span className="text-slate-500">Volume: </span>
+                        <span className="text-slate-500">Sample volume: </span>
                         <span className="font-mono font-medium">{(fp.dataPointsMonthly / 1000).toFixed(0)}k records/mo</span>
                       </div>
                       <div>
-                        <span className="text-slate-500">Gross Broker Value: </span>
+                        <span className="text-slate-500">Sample value input: </span>
                         <span className="font-mono text-slate-400 line-through">${fp.marketMonthlyValueUsd.toFixed(2)}</span>
                       </div>
                       <div>
-                        <span className="text-slate-500">Your Share: </span>
+                        <span className="text-slate-500">Sample model share: </span>
                         <span className="font-mono font-bold text-emerald-400">
-                          {fp.isMonetized ? `$${fp.userMonthlyCompUsd.toFixed(2)}/mo` : '$0.00'}
+                          {fp.isMonetized ? `${fp.userMonthlyCompUsd.toFixed(2)}/mo (sample)` : 'NOT VERIFIED'}
                         </span>
                       </div>
                     </div>
@@ -220,7 +224,7 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
                     className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition-colors"
                   >
                     <Eye className="w-3.5 h-3.5 text-emerald-400" />
-                    Inspect Noise Samples
+                    Inspect sample records
                   </button>
 
                   <button
@@ -234,7 +238,7 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
                     ) : (
                       <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                     )}
-                    AI Leak Audit
+                    Request AI audit
                   </button>
 
                   <button
@@ -246,7 +250,7 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
                         : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20'
                     }`}
                   >
-                    {fp.isMonetized ? 'Shield & Stop' : 'Monetize Stream'}
+                    {fp.isMonetized ? 'Disable local setting' : 'Enable local setting'}
                   </button>
                 </div>
               </div>
@@ -258,14 +262,14 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
                     {/* Privacy Tier Selector */}
                     <div>
                       <label className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider block mb-1.5">
-                        Active Privacy Protection Technique
+                        Selected privacy technique (configuration only)
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         {[
-                          { id: 'differential-privacy', label: 'Differential Privacy (ε)', desc: 'Laplacian mathematical noise injection' },
-                          { id: 'zero-knowledge', label: 'Zero-Knowledge Proof', desc: 'Attest facts without revealing values' },
-                          { id: 'privacy-twin', label: 'Privacy Twin AI', desc: 'Abstract privacy-preserving counterpart model' },
-                          { id: 'k-anonymity', label: 'k-Anonymity (k=50)', desc: 'Grouped into indistinguishable cohorts' },
+                          { id: 'differential-privacy', label: 'Differential Privacy (ε)', desc: 'Selection only; runtime enforcement not verified' },
+                          { id: 'zero-knowledge', label: 'Zero-Knowledge Proof', desc: 'Selection only; runtime enforcement not verified' },
+                          { id: 'privacy-twin', label: 'Privacy Twin AI', desc: 'Selection only; runtime enforcement not verified' },
+                          { id: 'k-anonymity', label: 'k-Anonymity (k=50)', desc: 'Selection only; runtime enforcement not verified' },
                         ].map((tierOption) => (
                           <div
                             key={tierOption.id}
@@ -287,10 +291,10 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
-                          Differential Privacy Budget (ε = {fp.privacyEpsilon})
+                          Epsilon target (configuration only): ε = {fp.privacyEpsilon}
                         </label>
                         <span className="text-[10px] font-mono text-emerald-400">
-                          {fp.privacyEpsilon <= 0.25 ? 'Maximum Obfuscation' : fp.privacyEpsilon <= 0.6 ? 'Balanced High Security' : 'High Buyer Yield'}
+                          {fp.privacyEpsilon <= 0.25 ? 'Lower ε target' : fp.privacyEpsilon <= 0.6 ? 'Middle ε target' : 'Higher ε target'}
                         </span>
                       </div>
 
@@ -305,42 +309,41 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
                       />
 
                       <div className="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
-                        <span>ε=0.10 (Strict math privacy)</span>
-                        <span>ε=0.50 (Industry Gold Standard)</span>
-                        <span>ε=1.20 (Maximum compensation)</span>
+                        <span>ε=0.10 (configured target)</span>
+                        <span>ε=0.50 (configured target)</span>
+                        <span>ε=1.20 (configured target)</span>
                       </div>
 
                       <div className="mt-2 text-[11px] text-slate-400 leading-relaxed">
-                        Laplace mechanism adds calibrated random perturbation $\sigma = \Delta f / \epsilon$. No single query can determine whether your record was included in the buyer dataset.
+                        This slider changes a local configuration value only. This UI does not apply a Laplace mechanism, prove differential privacy, or calculate compensation.
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* AI Audit Result Box */}
+              {/* API results are displayed as unverified reports; failures never get a synthetic success score. */}
               {audit && (
-                <div className="mt-4 p-3.5 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-xs text-slate-300 space-y-2">
+                <div className={audit.status === 'unavailable' ? 'mt-4 p-3.5 rounded-lg border border-amber-500/30 bg-amber-950/20 text-xs text-slate-300 space-y-2' : 'mt-4 p-3.5 rounded-lg border border-slate-700 bg-slate-950/40 text-xs text-slate-300 space-y-2'}>
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-emerald-400 flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-emerald-400" />
-                      Gemini AI Privacy & Valuation Audit:
+                    <span className={audit.status === 'unavailable' ? 'font-bold text-amber-300' : 'font-bold text-slate-200'}>
+                      {audit.status === 'unavailable' ? 'Audit unavailable — no result returned' : 'Audit API response (NOT VERIFIED)'}
                     </span>
-                    <button 
-                      onClick={() => setAuditResult(null)}
-                      className="text-slate-500 hover:text-slate-300 text-xs"
-                    >
-                      Dismiss
-                    </button>
+                    <button onClick={() => setAuditResult(null)} className="text-slate-500 hover:text-slate-300 text-xs">Dismiss</button>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-[11px] bg-slate-950/60 p-2 rounded">
-                    <div>Re-ID Risk: <span className="text-emerald-300 font-bold">{audit.reidentificationRisk || 'Low'}</span></div>
-                    <div>Recommended ε: <span className="text-emerald-300 font-bold">{audit.recommendedEpsilon || 0.35}</span></div>
-                    <div>Fair Market Value: <span className="text-emerald-300 font-bold">${audit.fairMarketMonthlyUsd || fp.userMonthlyCompUsd}/mo</span></div>
-                  </div>
-                  <p className="text-slate-300 text-[11px] leading-relaxed">
-                    {audit.sanitizationReport}
-                  </p>
+                  {audit.status === 'unavailable' ? (
+                    <p className="text-amber-100 text-[11px]">{audit.error}</p>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-[11px] bg-slate-950/60 p-2 rounded">
+                        <div>Reported re-identification risk: <span className="font-bold">{audit.reidentificationRisk ?? 'NOT PROVIDED'}</span></div>
+                        <div>Reported ε recommendation: <span className="font-bold">{audit.recommendedEpsilon ?? 'NOT PROVIDED'}</span></div>
+                        <div>Reported monthly value: <span className="font-bold">{audit.fairMarketMonthlyUsd != null ? '$' + audit.fairMarketMonthlyUsd + '/mo' : 'NOT PROVIDED'}</span></div>
+                      </div>
+                      <p className="text-slate-300 text-[11px] leading-relaxed">{audit.sanitizationReport || 'The API did not return a sanitization report.'}</p>
+                      <p className="text-amber-300 text-[10px]">This is an API-reported result; this interface has not independently verified the claims.</p>
+                    </>
+                  )}
                 </div>
               )}
             </div>

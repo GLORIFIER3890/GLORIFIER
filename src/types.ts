@@ -1,6 +1,6 @@
 export type PrivacyTier = 'zero-knowledge' | 'differential-privacy' | 'k-anonymity' | 'synthetic-twin';
 
-export type FootprintStatus = 'active-monetizing' | 'shielded-private' | 'opted-out' | 'clawback-pending';
+export type FootprintStatus = 'active-monetizing' | 'shielded-private' | 'opted-out' | 'clawback-pending' | 'configured-not-verified';
 
 export type DataCategoryType = 
   | 'browsing'
@@ -300,7 +300,7 @@ export interface CodeSentinelError {
   patchDiff?: string;
   canAutoFix: boolean;
   autoFixedAt?: string;
-  assignedBot: 'GPT-Sentinel' | 'Gemini-Inspector' | 'Dual-Consensus-Healer';
+  assignedBot: 'GPT-Sentinel' | 'Gemini-Inspector' | 'Dual-Consensus-Healer' | 'unassigned';
 }
 
 export interface SentinelLogEntry {

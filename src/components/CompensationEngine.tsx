@@ -59,16 +59,16 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
           <div>
             <h2 className="text-base font-bold text-white flex items-center gap-2">
               <Coins className="w-5 h-5 text-emerald-400" />
-              Automated Compensation Engine & Telemetry Tracking
+              Compensation Models & Telemetry Review
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Cryptographic usage metering, mathematical valuation formulas (Data Shapley, Laplacian DP queries, cohort pacing), and Layer-2 micro-settlement rollups.
+              Illustrative pricing formulas only. This panel does not meter real usage, apply differential privacy, create buyer obligations, or execute settlement.
             </p>
           </div>
 
           <div className="flex items-center gap-3 bg-slate-950 px-4 py-2.5 rounded-lg border border-slate-800 self-start lg:self-auto">
             <div>
-              <div className="text-[10px] uppercase font-semibold text-slate-400">Unsettled Accrual</div>
+              <div className="text-[10px] uppercase font-semibold text-slate-400">Illustrative model value (not payable)</div>
               <div className="text-sm font-bold font-mono text-emerald-400">
                 ${totalPendingUsd.toFixed(2)} USD
               </div>
@@ -76,6 +76,10 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
 
           </div>
         </div>
+      </div>
+
+      <div role="note" className="rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-100">
+        Calculator outputs are hypothetical model results, not earned compensation, a buyer quote, a receivable, or a verified available balance. Only provider-confirmed payments recorded in the revenue ledger can support payout requests.
       </div>
 
       {/* Model Selection Tabs */}

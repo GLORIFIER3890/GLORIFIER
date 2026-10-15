@@ -67,7 +67,7 @@ export const PrivacyTechLab: React.FC = () => {
     'Local weights initialized on client smartphone/desktop',
     'Local backward pass completed: ΔW computed without sending telemetry',
     'Local Differential Privacy noise (ε=0.5) added to gradient vector',
-    'Zero-Knowledge Proof of valid gradient bounds verified by aggregator'
+    'SIMULATED: gradient threshold check passed; no cryptographic proof was generated'
   ]);
 
   const handleTrainFlRound = () => {
@@ -88,7 +88,8 @@ export const PrivacyTechLab: React.FC = () => {
   const [zkpAttribute, setZkpAttribute] = useState<'credit_score' | 'age_verification' | 'geo_jurisdiction'>('credit_score');
   const [zkpSecretValue, setZkpSecretValue] = useState<number>(765);
   const [zkpPublicThreshold, setZkpPublicThreshold] = useState<number>(700);
-  const [zkpProofHex, setZkpProofHex] = useState<string>('0x7f208acb4198...de09');
+  const [zkpProofHex, setZkpProofHex] = useState<string>('NOT GENERATED — simulation only');
+  const [zkpHasRun, setZkpHasRun] = useState(false);
   const [zkpVerifierResult, setZkpVerifierResult] = useState<boolean>(true);
   const [zkpIsGenerating, setZkpIsGenerating] = useState<boolean>(false);
 
@@ -98,11 +99,16 @@ export const PrivacyTechLab: React.FC = () => {
     const proof = '0x' + seed.toString(16).padStart(12, '0').slice(-12) + '...' + (seed * 53).toString(16).padStart(4, '0').slice(-4);
     setZkpVerifierResult(isValid);
     setZkpProofHex(proof);
+    setZkpHasRun(true);
     setZkpIsGenerating(false);
   };
 
   return (
     <div className="space-y-6">
+      <div role="note" className="rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-100">
+        Educational local simulations only. These controls do not transform real GLORIFIER data, encrypt production records, produce a cryptographic proof, or attest differential privacy. Runtime enforcement is NOT VERIFIED.
+      </div>
+
       {/* Overview Banner */}
       <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -112,12 +118,12 @@ export const PrivacyTechLab: React.FC = () => {
               Privacy-Preserving Technologies (PETs) Engineering Lab
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-3xl">
-              Monetizing data without sacrificing privacy requires cutting-edge cryptographic primitives. Test and inspect how Differential Privacy, Fully Homomorphic Encryption (FHE), Federated Learning, and ZK-Proofs protect user sovereignty.
+              Explore simplified local demonstrations of privacy technologies. No production data is transformed and no cryptographic guarantee is provided by this lab.
             </p>
           </div>
 
           <div className="flex items-center gap-2 font-mono text-xs bg-slate-950 px-3.5 py-2 rounded-lg border border-slate-800 text-emerald-400">
-            <Lock className="w-4 h-4" /> Zero Plaintext Disclosure
+            <Lock className="w-4 h-4" /> Simulation only · NOT VERIFIED
           </div>
         </div>
       </div>
@@ -241,7 +247,7 @@ export const PrivacyTechLab: React.FC = () => {
 
           <div className="lg:col-span-5 rounded-xl bg-slate-900 border border-slate-800 p-5 space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              How Differential Privacy Enables Monetization
+              Illustration: Differential Privacy and Data Licensing
             </h4>
             <p className="text-xs text-slate-400 leading-relaxed">
               Without differential privacy, licensing browsing or location data creates catastrophic re-identification risks (the "Netflix Prize" attack). 
@@ -485,27 +491,27 @@ export const PrivacyTechLab: React.FC = () => {
             {/* Proof result */}
             <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Generated zk-SNARK Proof π:</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400">Generated pseudo-proof (not cryptographic):</span>
                 <button
                   onClick={handleGenerateZkProof}
                   disabled={zkpIsGenerating}
                   className="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center gap-1.5"
                 >
                   {zkpIsGenerating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
-                  Synthesize Proof
+                  Run simulation
                 </button>
               </div>
 
               <div className="font-mono text-xs text-slate-300 bg-slate-900 p-2 rounded border border-slate-800 truncate">
-                Proof = {zkpProofHex}
+                Pseudo-proof output = {zkpProofHex}
               </div>
 
               <div className="flex items-center justify-between pt-1">
-                <span className="text-xs text-slate-400">On-Chain Verifier Output:</span>
+                <span className="text-xs text-slate-400">Local threshold result (simulated):</span>
                 <span className={`text-xs font-bold font-mono px-2 py-0.5 rounded ${
-                  zkpVerifierResult ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
+                  !zkpHasRun ? 'bg-amber-500/20 text-amber-300' : zkpVerifierResult ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
                 }`}>
-                  {zkpVerifierResult ? 'PROOF VALID (STATEMENT TRUE)' : 'PROOF REJECTED (FALSE)'}
+                  {!zkpHasRun ? 'NOT RUN' : zkpVerifierResult ? 'SIMULATED PASS — NOT A CRYPTOGRAPHIC PROOF' : 'SIMULATED FAIL — NOT A CRYPTOGRAPHIC PROOF'}
                 </span>
               </div>
             </div>

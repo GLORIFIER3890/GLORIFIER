@@ -103,5 +103,8 @@ jobs:
       - name: Outcome evidence gate regression tests
         run: npm run test:outcome-evidence-gates
 
+      - name: Cloudflare Worker API proxy tests
+        run: npm run test:cloudflare-worker
+
       - name: Production build
         run: npm run build

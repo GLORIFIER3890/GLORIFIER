@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import {
   ShieldCheck, Wallet, Sparkles, Zap, Database, Scale, Layers,
   ShieldAlert, ArrowUpRight, Coins, Lock, Users,
   Globe, Globe2, Cpu, Bot, Network, FileText, BrainCircuit, Atom, Smartphone, Menu, X
 } from 'lucide-react';
-import { User } from 'firebase/auth';
-import { AuthPanel } from './AuthPanel';
+import type { User } from 'firebase/auth';
+const AuthPanel = React.lazy(() => import('./AuthPanel').then((module) => ({ default: module.AuthPanel })));
 
 interface HeaderProps {
   activeTab: string;
@@ -100,7 +100,9 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </button>
 
-          <AuthPanel currentUser={currentUser} />
+          <Suspense fallback={<div role="status" className="text-[11px] text-slate-500">Loading account status…</div>}>
+            <AuthPanel currentUser={currentUser} />
+          </Suspense>
         </div>
 
         <div className="md:hidden border-t border-slate-900 py-2 flex justify-end">

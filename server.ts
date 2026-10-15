@@ -312,9 +312,13 @@ function classifyIntegration(item: { status: string; detail: string; id: string 
 
 
 // Monetization and payout API contracts.
-app.post('/api/monetization/checkout', async (req: Request, res: Response) => {
+app.post('/api/monetization/checkout', requireAuthentication, async (req: Request, res: Response) => {
   try {
+    const authenticatedUid = String((req as any).auth?.uid || '').trim();
     const customerReference = String(req.body?.customerReference || '').trim();
+    if (!authenticatedUid || customerReference !== authenticatedUid) {
+      return res.status(403).json({ ok: false, error: 'Checkout is limited to the authenticated owner account.' });
+    }
     const planId = String(req.body?.planId || '').trim();
     const result = await createCheckout(customerReference, planId);
     res.status(201).json({ ok: true, checkout: result });
@@ -324,9 +328,13 @@ app.post('/api/monetization/checkout', async (req: Request, res: Response) => {
   }
 });
 
-app.post('/api/monetization/capture', async (req: Request, res: Response) => {
+app.post('/api/monetization/capture', requireAuthentication, async (req: Request, res: Response) => {
   try {
+    const authenticatedUid = String((req as any).auth?.uid || '').trim();
     const customerReference = String(req.body?.customerReference || '').trim();
+    if (!authenticatedUid || customerReference !== authenticatedUid) {
+      return res.status(403).json({ ok: false, error: 'Payment capture is limited to the authenticated owner account.' });
+    }
     const orderId = String(req.body?.orderId || '').trim();
     const result = await captureCheckout(customerReference, orderId);
     res.json({ ok: true, subscription: result });
@@ -336,19 +344,26 @@ app.post('/api/monetization/capture', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/api/monetization/subscription', async (req: Request, res: Response) => {
+app.get('/api/monetization/subscription', requireAuthentication, async (req: Request, res: Response) => {
   try {
+    const authenticatedUid = String((req as any).auth?.uid || '').trim();
     const customerReference = String(req.query.customerReference || '').trim();
-    if (!customerReference) return res.status(400).json({ ok: false, error: 'customerReference is required' });
+    if (!authenticatedUid || customerReference !== authenticatedUid) {
+      return res.status(403).json({ ok: false, error: 'Subscription status is limited to the authenticated owner account.' });
+    }
     res.json({ ok: true, subscription: await getSubscription(customerReference) });
   } catch (error: any) {
     res.status(503).json({ ok: false, error: 'Subscription lookup unavailable' });
   }
 });
 
-app.get('/api/payouts', async (req: Request, res: Response) => {
+app.get('/api/payouts', requireOwner, async (req: Request, res: Response) => {
   try {
+    const authenticatedUid = String((req as any).auth?.uid || '').trim();
     const userReference = String(req.query.userReference || '').trim();
+    if (!authenticatedUid || userReference !== authenticatedUid) {
+      return res.status(403).json({ ok: false, error: 'Payout balance access is limited to the authenticated owner account.' });
+    }
     const [balance, requests] = await Promise.all([
       getAvailablePayoutBalance(userReference),
       listPayoutRequests(userReference),
@@ -361,8 +376,13 @@ app.get('/api/payouts', async (req: Request, res: Response) => {
 
 app.post('/api/payouts/request', requireOwner, async (req: Request, res: Response) => {
   try {
+    const authenticatedUid = String((req as any).auth?.uid || '').trim();
+    const userReference = String(req.body?.userReference || '').trim();
+    if (!authenticatedUid || userReference !== authenticatedUid) {
+      return res.status(403).json({ ok: false, error: 'Payout requests are limited to the authenticated owner account.' });
+    }
     const result = await createPayoutRequest({
-      userReference: String(req.body?.userReference || ''),
+      userReference,
       amountUsd: Number(req.body?.amount),
       method: String(req.body?.method || ''),
       destination: String(req.body?.destination || ''),
@@ -2752,7 +2772,7 @@ app.post('/api/scientists/resolve', async (req: Request, res: Response) => {
     });
     res.json({ ok: true, issue, monetization: getScientistMonetizationState() });
   } catch (err: any) {
-    res.status(500).json({ ok: false, error: err.message || 'Failed to resolve issue' });
+    res.status(503).json({ ok: false, status: 'unavailable', error: err.message || 'Independent issue verification is unavailable; no resolution was recorded.' });
   }
 });
 
@@ -2763,7 +2783,7 @@ app.post('/api/scientists/approve', (req: Request, res: Response) => {
     const issue = approveAndClaimIssueBounty(String(issueId), String(approver));
     res.json({ ok: true, issue, monetization: getScientistMonetizationState() });
   } catch (err: any) {
-    res.status(500).json({ ok: false, error: err.message || 'Failed to approve bounty' });
+    res.status(503).json({ ok: false, status: 'unavailable', error: err.message || 'Provider-confirmed bounty settlement is unavailable; no payout was recorded.' });
   }
 });
 
@@ -2776,19 +2796,23 @@ app.post('/api/scientists/submit', (req: Request, res: Response) => {
     const issue = submitTargetToScientistFleet({ target, domain, title, summary: summary || '', bountyRewardUsd });
     res.json({ ok: true, issue });
   } catch (err: any) {
-    res.status(500).json({ ok: false, error: err.message || 'Failed to submit target' });
+    res.status(503).json({ ok: false, status: 'unavailable', error: err.message || 'Scientist Fleet execution is unavailable; no target was submitted.' });
   }
 });
 
-app.post('/api/scientists/loop/toggle', (req: Request, res: Response) => {
-  const { enabled } = req.body || {};
-  const isRunning = toggle247AutonomousRunning(enabled !== undefined ? Boolean(enabled) : undefined);
-  res.json({ ok: true, is247AutonomousRunning: isRunning });
+app.post('/api/scientists/loop/toggle', (_req: Request, res: Response) => {
+  toggle247AutonomousRunning(false);
+  return res.status(503).json({
+    ok: false,
+    status: 'unavailable',
+    is247AutonomousRunning: false,
+    error: 'The scientist execution loop is disabled until real worker execution and independent verification are configured.'
+  });
 });
 
 app.post('/api/scientists/monetization/claim', (_req: Request, res: Response) => {
   const claim = claimAccruedScientistYield();
-  res.json({ ok: true, ...claim, state: getScientistMonetizationState() });
+  return res.status(503).json({ ok: false, ...claim, state: getScientistMonetizationState() });
 });
 
 // ============================================================================
@@ -3738,7 +3762,7 @@ async function startServer() {
   // Start the 24/7 autonomous scientist multi-agent daemon in the background
   try {
     start247ScientistDaemon(runIntelligenceModel);
-    console.log('[ScientistFleet] 24/7 Autonomous Multi-Agent Scientist Daemon initialized.');
+    console.log('[ScientistFleet] execution intentionally disabled: no independently verified work or provider-confirmed payouts are configured.');
   } catch (daemonErr) {
     console.warn('[ScientistFleet] Daemon init error (deferred):', daemonErr);
   }

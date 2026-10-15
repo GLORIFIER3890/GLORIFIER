@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Bot, BrainCircuit, DollarSign, Gauge, Play, ShieldCheck, TrendingUp, Wallet } from 'lucide-react';
 import { MonetizationPolicy, SovereignStats } from '../types';
 import type { User } from 'firebase/auth';
+import { authenticatedFetch } from '../lib/firebase';
 
 interface MonetizationManagerProps {
   policy: MonetizationPolicy;
@@ -17,50 +18,72 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
 
   useEffect(() => {
     if (!currentUser) { setSubscription(null); return; }
-    fetch('/api/monetization/subscription?customerReference=' + encodeURIComponent(currentUser.uid))
-      .then((r) => r.json()).then((data) => setSubscription(data.subscription || null)).catch(() => undefined);
+    let cancelled = false;
+    void authenticatedFetch('/api/monetization/subscription?customerReference=' + encodeURIComponent(currentUser.uid), { cache: 'no-store' })
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data?.ok !== true) throw new Error(data?.error || 'Subscription status unavailable');
+        if (!cancelled) setSubscription(data.subscription || null);
+      })
+      .catch((error) => {
+        if (!cancelled) setPaymentMessage(error instanceof Error ? error.message : 'Subscription status unavailable');
+      });
 
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get('token');
     if (params.get('payment') === 'success' && orderId) {
-      setPaymentMessage('Confirming your PayPal payment...');
-      fetch('/api/monetization/capture', {
+      setPaymentMessage('Verifying payment with the server…');
+      void authenticatedFetch('/api/monetization/capture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customerReference: currentUser.uid, orderId }),
       }).then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Payment confirmation failed');
-        setSubscription({ plan_id: data.plan?.id, status: 'active', expires_at: data.plan ? new Date(Date.now() + 30 * 86400000).toISOString() : undefined });
-        setPaymentMessage('Payment confirmed. Your GLORIFIER access is active.');
+        const data = await response.json().catch(() => ({}));
+        const confirmed = data?.subscription;
+        if (!response.ok || data?.ok !== true || confirmed?.active !== true || confirmed?.verifiedRevenue !== true || !confirmed?.plan?.id || !confirmed?.revenueEvent?.eventId) {
+          throw new Error(data?.error || 'The server did not confirm a completed PayPal capture and active subscription.');
+        }
+        if (cancelled) return;
+        setSubscription({ plan_id: confirmed.plan.id, status: 'active' });
+        setPaymentMessage('Payment capture and active subscription were confirmed by the server.');
         window.history.replaceState({}, '', window.location.pathname);
-      }).catch((error) => setPaymentMessage(error instanceof Error ? error.message : 'Payment confirmation failed.'));
+      }).catch((error) => {
+        if (!cancelled) setPaymentMessage(error instanceof Error ? error.message : 'Payment confirmation failed.');
+      });
     } else if (params.get('payment') === 'cancelled') {
       setPaymentMessage('PayPal checkout was cancelled. No subscription was activated.');
       window.history.replaceState({}, '', window.location.pathname);
     }
+    return () => { cancelled = true; };
   }, [currentUser]);
 
   const startCheckout = async (planId: 'pro' | 'business') => {
     if (!currentUser) { setPaymentMessage('Sign in with Google before purchasing a plan.'); return; }
     setCheckoutLoading(planId); setPaymentMessage('');
     try {
-      const response = await fetch('/api/monetization/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerReference: currentUser.uid, planId }) });
+      const response = await authenticatedFetch('/api/monetization/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerReference: currentUser.uid, planId }) });
       const data = await response.json();
-      if (!response.ok || !data.approvalUrl) throw new Error(data.error || 'Checkout unavailable');
-      window.location.href = data.approvalUrl;
+      const approvalUrl = data?.checkout?.approvalUrl || data?.approvalUrl;
+      let parsedApprovalUrl: URL | null = null;
+      try { parsedApprovalUrl = new URL(approvalUrl); } catch { parsedApprovalUrl = null; }
+      const allowedPayPalHost = parsedApprovalUrl &&
+        (parsedApprovalUrl.hostname === 'paypal.com' || parsedApprovalUrl.hostname.endsWith('.paypal.com'));
+      if (!response.ok || data?.ok !== true || !parsedApprovalUrl || parsedApprovalUrl.protocol !== 'https:' || !allowedPayPalHost) {
+        throw new Error(data.error || 'Checkout did not return a valid PayPal approval URL');
+      }
+      window.location.href = parsedApprovalUrl.href;
     } catch (error) {
       setPaymentMessage(error instanceof Error ? error.message : 'Checkout unavailable.');
       setCheckoutLoading(null);
     }
   };
-  const [goal, setGoal] = useState('Find privacy-preserving ways to increase monthly data compensation without exceeding my current privacy settings.');
+  const [goal, setGoal] = useState('Find a zero-budget first customer for GLORIFIER. Do not assume revenue, verified privacy enforcement, or connected data sources.');
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(false);
 
   const projected = useMemo(() => {
     const multiplier = policy.brokerMode === 'autonomous-maximize' ? 1.35 : policy.brokerMode === 'balanced-protective' ? 1.15 : 0.9;
-    return Math.max(stats.monthlyPacingUsd, stats.monthlyPacingUsd * multiplier);
+    return Math.max(0, stats.monthlyPacingUsd * multiplier);
   }, [policy.brokerMode, stats.monthlyPacingUsd]);
 
   const runManager = async () => {
@@ -103,7 +126,7 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
             </p>
           </div>
           <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
-            <div className="text-xs text-slate-400">Projected monthly pacing</div>
+            <div className="text-xs text-slate-400">Illustrative projection (not verified revenue)</div>
             <div className="text-2xl font-bold font-mono text-emerald-400">{projected.toFixed(2)}</div>
           </div>
         </div>
@@ -141,10 +164,10 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {[
-          { label: 'Current Pacing', value: '$' + stats.monthlyPacingUsd.toFixed(2), icon: TrendingUp },
-          { label: 'Active Streams', value: String(stats.activeDataStreamsCount), icon: Gauge },
-          { label: 'Privacy Shield', value: String(stats.privacyShieldIndex) + '%', icon: ShieldCheck },
-          { label: 'Claimable Yield', value: '$' + stats.totalEarnedUsd.toFixed(2), icon: Wallet },
+          { label: 'Current Pacing', value: 'NOT VERIFIED', icon: TrendingUp },
+          { label: 'Active Streams', value: 'NOT VERIFIED', icon: Gauge },
+          { label: 'Privacy Enforcement', value: 'NOT VERIFIED', icon: ShieldCheck },
+          { label: 'Verified Available Balance', value: 'NOT VERIFIED', icon: Wallet },
         ].map((item) => (
           <div key={item.label} className="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
             <div className="flex items-center justify-between">

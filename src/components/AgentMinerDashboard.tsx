@@ -14,6 +14,7 @@ type Snapshot = {
 export const AgentMinerDashboard: React.FC = () => {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const load = async () => {
     const r = await fetch('/api/agent-miner/status', { cache: 'no-store' });
     if (!r.ok) throw new Error('Agent Miner status unavailable');
@@ -24,20 +25,25 @@ export const AgentMinerDashboard: React.FC = () => {
     setBusy(true);
     try {
       const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
-      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Agent Miner request failed');
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok || data?.ok === false) throw new Error(data?.error || 'Agent Miner request was not confirmed.');
+      setActionError(null);
       await load();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Agent Miner request unavailable.');
     } finally { setBusy(false); }
   };
   const s = snapshot;
   return <section className="space-y-5">
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <div><div className="flex items-center gap-2"><Cpu className="h-5 w-5 text-emerald-400"/><h2 className="text-xl font-semibold">Agent Miner</h2><span className="text-[10px] uppercase tracking-wider border border-slate-700 px-2 py-1 rounded text-slate-400">24/7</span></div>
-      <p className="text-xs text-slate-500 mt-1">Provider-neutral mining intelligence with explicitly authorized compute execution.</p></div>
+      <div><div className="flex items-center gap-2"><Cpu className="h-5 w-5 text-emerald-400"/><h2 className="text-xl font-semibold">Agent Miner</h2><span className="text-[10px] uppercase tracking-wider border border-slate-700 px-2 py-1 rounded text-slate-400">{s?.status === 'RUNNING' ? 'RUNNING (reported)' : 'NOT RUNNING'}</span></div>
+      <p className="text-xs text-slate-500 mt-1">Provider-neutral orchestration status. No mining hashrate or earnings are implied; actual compute requires explicit authorization.</p></div>
       <div className="flex gap-2">
         <button disabled={busy} onClick={() => void run('/api/agent-miner/run')} className="inline-flex items-center gap-2 rounded-md border border-slate-700 px-3 py-2 text-xs hover:bg-slate-900"><RefreshCw className="h-4 w-4"/>Run cycle</button>
         <button disabled={busy} onClick={() => void run('/api/agent-miner/control', { running: s?.status !== 'RUNNING', mode: 'intelligence' })} className="inline-flex items-center gap-2 rounded-md border border-emerald-500/30 px-3 py-2 text-xs text-emerald-300 hover:bg-emerald-500/10">{s?.status === 'RUNNING' ? <Pause className="h-4 w-4"/> : <Play className="h-4 w-4"/>}{s?.status === 'RUNNING' ? 'Pause' : 'Start'}</button>
       </div>
     </div>
+    {actionError && <div role="alert" className="rounded-md border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-200">{actionError}</div>}
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {[['Status', s?.status || 'Loading'], ['Mode', s?.mode || '—'], ['Cycles', s?.cyclesCompleted ?? '—'], ['Cadence', s?.cadence || '—']].map(([k,v]) => <div key={String(k)} className="rounded-md border border-slate-800 bg-slate-900/40 p-4"><div className="text-[10px] uppercase text-slate-500">{k}</div><div className="mt-1 text-lg font-semibold">{String(v)}</div></div>)}
     </div>

@@ -27,7 +27,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
   </head>
   <body class="bg-slate-950 text-slate-100 antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
-    <div id="root"></div>
+    <div id="root">
+      <main id="boot-status" role="status" aria-live="polite" style="max-width:42rem;margin:12vh auto;padding:2rem;font-family:system-ui,sans-serif;color:#e2e8f0;background:#020617">
+        <h1 style="font-size:1.5rem;font-weight:700">GLORIFIER</h1>
+        <p id="boot-message" style="margin-top:1rem">Starting the application…</p>
+        <p style="margin-top:.75rem;color:#94a3b8">Live services are not verified by this loading screen.</p>
+      </main>
+    </div>
+    <script>
+      window.setTimeout(function () {
+        var status = document.getElementById('boot-status');
+        var message = document.getElementById('boot-message');
+        if (status && message) {
+          message.textContent = 'The application did not start. Check your connection, then reload. Backend and account status have not been verified.';
+        }
+      }, 12000);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

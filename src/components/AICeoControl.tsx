@@ -64,7 +64,7 @@ export const AICeoControl: React.FC = () => {
       const data = await res.json();
       if (data.ok && data.manifest) {
         setManifest(data.manifest);
-        setSyncFeedback('Governed synchronization completed for the connected GLORIFIER registry.');
+        setSyncFeedback('Backend returned a synchronization manifest; external registry synchronization has not been independently verified.');
       } else {
         throw new Error(data.error || 'Synchronization returned non-ok status');
       }
@@ -142,8 +142,8 @@ export const AICeoControl: React.FC = () => {
           <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4">
             <Bot className="mb-2 h-5 w-5 text-violet-400" />
             <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500">A2A Protocol & Fleet State</div>
-            <div className="mt-1 font-bold text-violet-300">GLORIFIER-A2A-v1 • 100% Consensus</div>
-            <p className="mt-1 text-xs text-slate-400">Continuous 24/7 pairing across OpenAI GPT-4o, Gemini & Codex fleet.</p>
+            <div className="mt-1 font-bold text-violet-300">A2A v1 target · live consensus NOT VERIFIED</div>
+            <p className="mt-1 text-xs text-slate-400">Provider availability and continuous multi-model pairing are NOT VERIFIED.</p>
           </div>
         </div>
       </div>
@@ -157,7 +157,7 @@ export const AICeoControl: React.FC = () => {
                 <Radio className="h-5 w-5 text-emerald-400 animate-pulse" />
                 <h3 className="text-lg font-bold text-white">Global Synthesis & Synchronization Manifest</h3>
                 <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
-                  Consensus: {manifest.consensusScore}%
+                  Reported consensus score: {manifest.consensusScore}% · NOT VERIFIED
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">

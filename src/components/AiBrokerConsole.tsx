@@ -40,12 +40,12 @@ export const AiBrokerConsole: React.FC<AiBrokerConsoleProps> = ({
     {
       id: 'msg-welcome',
       sender: 'ai_broker',
-      content: `Hello. I am your autonomous personal data broker, powered by OpenAI GPT-4o. I represent your sovereign data rights across all digital broker syndicates, enforce strict differential privacy (ε), evaluate commercial AI training bids, and block unconsented shadow tracking.
+      content: `Welcome to the GLORIFIER broker console. This is static starter text, not a live AI response. Some panels use local sample policy values. Provider availability, real data streams, privacy enforcement, commercial bids, and revenue have not been verified. Changing a setting here does not earn, collect, or pay money.
 
-Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo under your $${policy.minimumMonthlyFloorUsd}/mo floor. How can I assist you with your digital footprint or revenue strategy today?`,
-      timestamp: 'Just now',
-      modelUsed: 'gpt-4o',
-      provider: 'OpenAI GPT Sovereign Broker',
+Choose an action to request a backend response. Any returned claim must be checked against its source and evidence.`,
+      timestamp: 'Template — not generated at runtime',
+      modelUsed: 'Starter template (not an AI result)',
+      provider: 'Not verified',
       suggestedAction: {
         label: 'Audit Active Tracker Exposure',
         type: 'run_audit'
@@ -72,7 +72,7 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
     const optimizerMsg: AiBrokerChatMessage = {
       id: `optimizer-${Date.now()}`,
       sender: 'ai_broker',
-      content: `[AI Policy Optimizer Applied (${selectedModel.toUpperCase()})]:\n\n${rationale}\n\n• Calibrated Privacy Epsilon: ε = ${optimizedPolicy.globalEpsilon}\n• Recalibrated Monthly Floor: $${optimizedPolicy.minimumMonthlyFloorUsd}/mo\n• Autonomous Stance: ${optimizedPolicy.brokerMode}\n• Status: Differential privacy proof attested. Mathematical risk containment active.`,
+      content: `Local policy preferences updated from the selected optimizer proposal.\n\nProposal rationale: ${rationale}\n\n• Configured privacy target ε: ${optimizedPolicy.globalEpsilon ?? 'unchanged'}\n• Configured monthly floor: ${optimizedPolicy.minimumMonthlyFloorUsd ?? 'unchanged'}\n• Local mode setting: ${optimizedPolicy.brokerMode ?? 'unchanged'}\n• Runtime privacy enforcement, proof attestation, provider execution, and revenue impact: NOT VERIFIED.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       modelUsed: selectedModel,
       provider: 'AI Policy Optimizer'
@@ -87,7 +87,7 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
     const councilMsg: AiBrokerChatMessage = {
       id: `council-${Date.now()}`,
       sender: 'ai_broker',
-      content: `🏛️ **ALL-AI MODEL COUNCIL CONSENSUS ENACTED**\n\n${summary}\n\n• Participating Frontier AI Nodes: OpenAI GPT-4o, Google Gemini 3.8 Flash, Meta LLaMA 3.3 (Open Weights)\n• Consensus Agreement: 98%\n• Calibrated Privacy Epsilon: ε = ${directives.globalEpsilon}\n• Recalibrated Monthly Floor: $${directives.minimumMonthlyFloorUsd}/mo\n• Status: All models have signed the consensus proof. Commercial ad-broker tracking quarantined, and zero-PII sovereign AI pretraining authorized.`,
+      content: `**POLICY PROPOSAL APPLIED LOCALLY — NOT VERIFIED**\n\n${summary}\n\n• Configured privacy target ε: ${directives.globalEpsilon ?? 'unchanged'}\n• Configured monthly floor: ${directives.minimumMonthlyFloorUsd ?? 'unchanged'}\n• Local auto-negotiation setting: ${directives.autoNegotiateHighBids ?? 'unchanged'}\n• Multi-model consensus, signatures, privacy enforcement, tracker quarantine, and external execution: NOT VERIFIED.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       modelUsed: 'all-models',
       provider: 'All-AI Sovereign Collaboration Council'
@@ -143,15 +143,18 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
         })
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.ok === false) {
+        throw new Error(data?.error || `Broker API unavailable (HTTP ${res.status})`);
+      }
       const brokerMsg: AiBrokerChatMessage = {
         id: `broker-${Date.now()}`,
         sender: 'ai_broker',
-        content: data.reply || 'I have audited your data streams and verified cryptographic containment.',
+        content: data.reply || 'The broker API returned no reply text. No audit, privacy enforcement, or revenue outcome is verified.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         suggestedAction: data.suggestedAction,
         modelUsed: data.modelUsed || selectedModel,
-        provider: data.provider || 'OpenAI GPT Valuation Engine'
+        provider: data.provider || 'Provider not reported'
       };
 
       setMessages(prev => [...prev, brokerMsg]);
@@ -162,10 +165,10 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
         {
           id: `broker-err-${Date.now()}`,
           sender: 'ai_broker',
-          content: 'My autonomous GPT reasoning engine has verified your parameters. All unconsented tracker queries from ad networks remain blocked, and active licensing yields are accruing normally.',
+          content: 'Broker unavailable. No audit, privacy enforcement, or licensing revenue was verified. Please retry when the API is reachable.',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          modelUsed: selectedModel,
-          provider: 'OpenAI GPT'
+          modelUsed: 'Not executed',
+          provider: 'Not verified'
         }
       ]);
     } finally {
@@ -194,7 +197,7 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
                 </div>
                 <p className="text-[11px] text-slate-400">
                   {selectedModel === 'all-models' 
-                    ? 'All AI Models Collaborative Council (OpenAI GPT-4o + Google Gemini + Meta LLaMA)' 
+                    ? 'All AI Models Collaborative Council (OpenAI GPT-4o (availability not verified) + Google Gemini (availability not verified) + Meta LLaMA)' 
                     : selectedModel === 'gemini-3.8-flash'
                     ? 'Google Gemini 3.8 Flash Low-Latency Multimodal Reasoning'
                     : selectedModel === 'consensus'
@@ -250,7 +253,7 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
                     ? 'bg-emerald-500 text-slate-950 shadow-sm font-bold'
                     : 'text-slate-400 hover:text-white'
                 }`}
-                title="Dual Consensus: Synthesize analysis from both GPT-4o and Gemini 3.8 Flash"
+                title="Consensus requested (not verified): Synthesize analysis from both GPT-4o and Gemini 3.8 Flash"
               >
                 Consensus
               </button>
@@ -620,10 +623,10 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
             Smart Licensing Protocol
           </div>
           <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-            Every data release is signed with an on-chain zero-knowledge attestation (ZK-SNARK). Buyers verify the statistical validity of the dataset without receiving any raw identifier or unperturbed personal attributes.
+            This panel does not generate or verify a cryptographic proof, sign a data release, or prove that outbound data has been privacy-transformed. Smart-contract licensing, ZK attestation, and runtime epsilon enforcement are NOT VERIFIED.
           </p>
-          <div className="mt-2 text-[10px] font-mono text-emerald-400 flex items-center gap-2">
-            <span>Protocol: ZK-DataShield v3.4</span> • <span>Epsilon Verifier: Active</span>
+          <div className="mt-2 text-[10px] font-mono text-amber-300 flex items-center gap-2">
+            <span>Protocol implementation: NOT VERIFIED</span> • <span>Provider execution: NOT VERIFIED</span>
           </div>
         </div>
 
@@ -632,11 +635,11 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
               <Cpu className="w-4 h-4 text-emerald-400" />
-              AI Intelligence Architecture
+              Configured AI provider preference
             </div>
             <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
               {selectedModel === 'all-models'
-                ? 'All-AI Model Council'
+                ? 'Model selection (not live consensus)'
                 : selectedModel === 'gpt-4o'
                 ? 'OpenAI GPT-4o'
                 : selectedModel === 'gpt-4o-mini'
@@ -648,7 +651,7 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
           </div>
           <div className="space-y-1.5 text-[11px] text-slate-400">
             <div className="flex justify-between border-b border-slate-800/60 pb-1">
-              <span>Active Architecture:</span>
+              <span>Selected provider configuration:</span>
               <span className="text-slate-200 font-mono font-medium">
                 {selectedModel === 'all-models'
                   ? 'OpenAI + Gemini + Meta LLaMA'
@@ -670,7 +673,7 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
             <div className="flex justify-between pt-0.5">
               <span>Negotiation Capability:</span>
               <span className="text-slate-200">
-                {selectedModel === 'all-models' ? 'Multi-Model Consensus & Counter-Offers' : 'Autonomous Counter-Offers'}
+                {selectedModel === 'all-models' ? 'Multi-Model Consensus & Counter-Offers' : 'Counter-offer policy settings (execution not verified)'}
               </span>
             </div>
           </div>
