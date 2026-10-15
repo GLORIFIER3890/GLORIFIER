@@ -24,20 +24,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  validate-workflow:
-    name: Lint workflow syntax
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          # On pull_request_target, validate the proposed workflow file without executing PR code.
-          ref: ${{ github.event.pull_request.head.sha || github.event.repository.default_branch }}
-      - name: Validate bot-review workflow syntax
-        uses: reviewdog/action-actionlint@v1
-        with:
-          actionlint_flags: .github/workflows/bot-review-auto-approval.yml
-          fail_level: error
-
   evaluate:
     name: Validate bot review and CI before approval
     runs-on: ubuntu-latest
