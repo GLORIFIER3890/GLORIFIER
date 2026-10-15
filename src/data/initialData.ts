@@ -33,7 +33,7 @@ export const initialFootprints: DataFootprintSource[] = [
     privacyEpsilon: 0.45,
     status: 'configured-not-verified',
     lastSync: 'NOT VERIFIED',
-    description: 'URL browsing history, search intentions, topical clickstream, reading dwell times.',
+    description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 68,
     samples: [
       { field: 'Search Query', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[Tech / Machine Learning Infrastructure query]', noiseLevel: 'Laplacian ε=0.45' },
@@ -56,7 +56,7 @@ export const initialFootprints: DataFootprintSource[] = [
     privacyEpsilon: 0.20,
     status: 'configured-not-verified',
     lastSync: 'NOT VERIFIED',
-    description: 'Transaction frequency, category baskets, subscription cadence, price elasticity.',
+    description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 74,
     samples: [
       { field: 'Item Purchased', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'ZK-Proof: Consumer Tech item > $250 purchased in Q1', noiseLevel: 'Zero-Knowledge Attestation' },
@@ -79,7 +79,7 @@ export const initialFootprints: DataFootprintSource[] = [
     privacyEpsilon: 0.35,
     status: 'configured-not-verified',
     lastSync: 'NOT VERIFIED',
-    description: 'Language distributions, framework trends, debugging logs, commit cadence (NO proprietary code).',
+    description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 35,
     samples: [
       { field: 'Primary Stack', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Senior AI/Systems Engineering profile', noiseLevel: 'Synthetic Profiling' },
@@ -102,7 +102,7 @@ export const initialFootprints: DataFootprintSource[] = [
     privacyEpsilon: 0.15,
     status: 'configured-not-verified',
     lastSync: 'NOT VERIFIED',
-    description: 'Resting heart rate, sleep architecture, daily step cadence, cardio fitness trends.',
+    description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 89,
     samples: [
       { field: 'Resting Heart Rate', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Synthetic Twin: 57.8 ± 1.2 bpm distribution', noiseLevel: 'Generative Synthetic Twin' },
@@ -125,7 +125,7 @@ export const initialFootprints: DataFootprintSource[] = [
     privacyEpsilon: 0.60,
     status: 'configured-not-verified',
     lastSync: 'NOT VERIFIED',
-    description: 'Video watch times, forum topics, upvoted engineering discussions, media consumption clusters.',
+    description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 55,
     samples: [
       { field: 'Video Watch Trail', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'STEM Educational Video (Tier 1 Engagement)', noiseLevel: 'k=200 Cluster' },
@@ -147,7 +147,7 @@ export const initialFootprints: DataFootprintSource[] = [
     privacyEpsilon: 0.10,
     status: 'configured-not-verified',
     lastSync: 'NOT VERIFIED',
-    description: 'Precise GPS traces, commute patterns, visited merchants, airport check-ins.',
+    description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 96,
     samples: [
       { field: 'Daily Commute', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' },
@@ -168,7 +168,7 @@ export const initialFootprints: DataFootprintSource[] = [
     privacyEpsilon: 0.10,
     status: 'configured-not-verified',
     lastSync: 'NOT VERIFIED',
-    description: 'Cashflow stability, discretionary vs essential ratio, recurring subscription load.',
+    description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 92,
     samples: [
       { field: 'Monthly Net Savings', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' },
@@ -189,7 +189,7 @@ export const initialFootprints: DataFootprintSource[] = [
     privacyEpsilon: 0.25,
     status: 'configured-not-verified',
     lastSync: 'NOT VERIFIED',
-    description: 'E-commerce receipts, flight itineraries, newsletter clusters, and consumer interest signals (No raw email bodies or names).',
+    description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 82,
     samples: [
       { field: 'Commerce Order Confirmation', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'ZK-Proof: Consumer Tech transaction bucketed in $100-$200 range', noiseLevel: 'Zero-Knowledge Proof' },
@@ -212,7 +212,7 @@ export const initialFootprints: DataFootprintSource[] = [
     privacyEpsilon: 0.35,
     status: 'configured-not-verified',
     lastSync: 'NOT VERIFIED',
-    description: 'Cloud documents, spreadsheets, presentations, and technical architecture schemas. Raw files remain shielded in your cloud enclave.',
+    description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 68,
     samples: [
       { field: 'Financial Modeling Sheet', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'DP-Laplace Vector: Enterprise SaaS operating cost distribution (±$2.5k noise)', noiseLevel: 'Laplacian ε=0.35' },
