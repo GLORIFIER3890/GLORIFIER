@@ -2,6 +2,8 @@
 
 **The governed intelligence layer for AI-powered businesses.**
 
+**Official organization motto: _Committed to Glorify, Passion to Evangelize_**
+
 > **The native economic unit for governed AI-agent commerce.**
 
 GLORIFIER is a provider-neutral AI orchestration platform for coordinating models, agents, tools, data, and compute through a governed control plane. Intelligence providers can change; identity, authority, policy, evidence, and human approval remain explicit.
@@ -97,6 +99,7 @@ The Docker publishing workflow is gated by successful `GLORIFIER CI` on a push t
 
 ## Documentation
 
+- [Official motto and organizational architecture](docs/official-motto-and-organizational-architecture.md)
 - [Documentation directory](docs/)
 - [Linux- and Web-inspired architecture](docs/linux-web-inspired-architecture.md)
 - [SAP-inspired enterprise operations architecture](docs/sap-inspired-enterprise-operations-architecture.md)
