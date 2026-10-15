@@ -7,6 +7,12 @@
  */
 export type GateStatus = 'VERIFIED' | 'NOT VERIFIED';
 
+export interface GateResult {
+  status: GateStatus;
+  failedChecks: string[];
+  evidenceBundleSha256: string;
+}
+
 export interface PaidDeliveryEvidence {
   environment: 'test' | 'staging' | 'production';
   customerRef: string;
@@ -26,6 +32,7 @@ export interface PayingCustomerEvidence {
   customerRef: string;
   onboardingCompletedRef: string;
   independentlyVerifiedSettlementRef: string;
+  settlementIndependentlyVerified: boolean;
   deliveryAcceptanceRef: string;
   evidenceBundleSha256: string;
 }
@@ -73,67 +80,78 @@ const NON_BLANK = (value: unknown): value is string =>
 const SHA256 = /^[a-f0-9]{64}$/i;
 const ZERO = '0';
 
-const validZeroVariance = (value: string): boolean => {
-  // Accept only canonical non-negative integer minor/base units.
-  return /^(0|[1-9]\d*)$/.test(value) && value === ZERO;
-};
+const validZeroVariance = (value: string): boolean =>
+  /^(0|[1-9]\d*)$/.test(value) && value === ZERO;
 
-const validCommonEvidence = (refs: unknown[], digests: unknown[]): boolean => {
-  return refs.every(NON_BLANK) && digests.every(x => typeof x === 'string' && SHA256.test(x));
-};
+const validCommonEvidence = (refs: unknown[], digests: unknown[]): boolean =>
+  refs.every(NON_BLANK) && digests.every(x => typeof x === 'string' && SHA256.test(x));
 
-const allChecksPass = (checks: boolean[]): boolean => checks.every(Boolean);
 const isZeroInteger = (value: number): boolean => Number.isInteger(value) && value === 0;
 
+/** Preserve named failed predicates and the evidence-bundle digest with every decision. */
+const result = (evidenceBundleSha256: string, checks: Array<[string, boolean]>): GateResult => {
+  const failedChecks = checks.filter(([, passed]) => !passed).map(([name]) => name);
+  return {
+    status: failedChecks.length === 0 ? 'VERIFIED' : 'NOT VERIFIED',
+    failedChecks,
+    evidenceBundleSha256,
+  };
+};
+
 /** Only a production evidence bundle can support a production paid-delivery claim. */
-export const validatePaidDeliveryEvidence = (e: PaidDeliveryEvidence): GateStatus => {
+export const validatePaidDeliveryEvidence = (e: PaidDeliveryEvidence): GateResult => {
   const refs = [e.customerRef, e.paymentIntentRef, e.settlementRef, e.deliveryArtifactRef, e.customerAcceptanceRef];
-  return allChecksPass([
-    validCommonEvidence(refs, [e.deliveryArtifactSha256, e.evidenceBundleSha256]),
-    e.environment === 'production',
-    e.settlementIndependentlyVerified === true,
-    e.reconciled === true,
-    validZeroVariance(e.unexplainedVarianceMinorUnits),
-  ]) ? 'VERIFIED' : 'NOT VERIFIED';
+  return result(e.evidenceBundleSha256, [
+    ['references_and_digests_valid', validCommonEvidence(refs, [e.deliveryArtifactSha256, e.evidenceBundleSha256])],
+    ['production_environment', e.environment === 'production'],
+    ['settlement_independently_verified', e.settlementIndependentlyVerified === true],
+    ['delivery_reconciled', e.reconciled === true],
+    ['zero_unexplained_variance', validZeroVariance(e.unexplainedVarianceMinorUnits)],
+  ]);
 };
 
-export const validatePayingCustomerEvidence = (e: PayingCustomerEvidence): GateStatus => {
+/**
+ * The settlement reference is only a locator. This gate additionally requires an
+ * explicit upstream verification flag; it does not independently query a settlement provider.
+ */
+export const validatePayingCustomerEvidence = (e: PayingCustomerEvidence): GateResult => {
   const refs = [e.customerRef, e.onboardingCompletedRef, e.independentlyVerifiedSettlementRef, e.deliveryAcceptanceRef];
-  return allChecksPass([
-    validCommonEvidence(refs, [e.evidenceBundleSha256]),
-    e.environment === 'production',
-  ]) ? 'VERIFIED' : 'NOT VERIFIED';
+  return result(e.evidenceBundleSha256, [
+    ['references_and_digest_valid', validCommonEvidence(refs, [e.evidenceBundleSha256])],
+    ['production_environment', e.environment === 'production'],
+    ['settlement_independently_verified', e.settlementIndependentlyVerified === true],
+  ]);
 };
 
-export const validateRevenueReconciliationEvidence = (e: RevenueReconciliationEvidence): GateStatus => {
+export const validateRevenueReconciliationEvidence = (e: RevenueReconciliationEvidence): GateResult => {
   const refs = [e.ledgerSnapshotRef, e.authoritativeSettlementReportRef, e.reconciliationReportRef];
-  return allChecksPass([
-    validCommonEvidence(refs, [e.evidenceBundleSha256]),
-    e.environment === 'production',
-    e.reconciled === true,
-    validZeroVariance(e.unexplainedVarianceMinorUnits),
-  ]) ? 'VERIFIED' : 'NOT VERIFIED';
+  return result(e.evidenceBundleSha256, [
+    ['references_and_digest_valid', validCommonEvidence(refs, [e.evidenceBundleSha256])],
+    ['production_environment', e.environment === 'production'],
+    ['reconciled', e.reconciled === true],
+    ['zero_unexplained_variance', validZeroVariance(e.unexplainedVarianceMinorUnits)],
+  ]);
 };
 
-export const validateRuntimeSecurityEvidence = (e: RuntimeSecurityEvidence): GateStatus => {
+export const validateRuntimeSecurityEvidence = (e: RuntimeSecurityEvidence): GateResult => {
   const refs = [e.runtimeIdentity, e.defaultDenyEgressReportRef, e.toolAllowlistReportRef, e.auditTrailReportRef, e.operatorStopReportRef];
-  return allChecksPass([
-    validCommonEvidence(refs, [e.evidenceBundleSha256]),
-    e.environment === 'production',
-    e.deniedEgressTestPassed === true,
-    e.unauthorizedToolDenied === true,
-    e.auditTrailComplete === true,
-    e.operatorStopPassed === true,
-  ]) ? 'VERIFIED' : 'NOT VERIFIED';
+  return result(e.evidenceBundleSha256, [
+    ['references_and_digest_valid', validCommonEvidence(refs, [e.evidenceBundleSha256])],
+    ['production_environment', e.environment === 'production'],
+    ['denied_egress_test_passed', e.deniedEgressTestPassed === true],
+    ['unauthorized_tool_denied', e.unauthorizedToolDenied === true],
+    ['audit_trail_complete', e.auditTrailComplete === true],
+    ['operator_stop_passed', e.operatorStopPassed === true],
+  ]);
 };
 
-export const validateA2AConformanceEvidence = (e: A2AConformanceEvidence): GateStatus => {
+export const validateA2AConformanceEvidence = (e: A2AConformanceEvidence): GateResult => {
   const refs = [e.endpoint, e.runtimeIdentity, e.suiteName, e.suiteVersion, e.reportRef];
-  return allChecksPass([
-    validCommonEvidence(refs, [e.reportSha256, e.evidenceBundleSha256]),
-    e.environment === 'production',
-    e.passed === true,
-    isZeroInteger(e.failedTests),
-    isZeroInteger(e.skippedTests),
-  ]) ? 'VERIFIED' : 'NOT VERIFIED';
+  return result(e.evidenceBundleSha256, [
+    ['references_and_digests_valid', validCommonEvidence(refs, [e.reportSha256, e.evidenceBundleSha256])],
+    ['production_environment', e.environment === 'production'],
+    ['conformance_suite_passed', e.passed === true],
+    ['zero_failed_tests', isZeroInteger(e.failedTests)],
+    ['zero_skipped_tests', isZeroInteger(e.skippedTests)],
+  ]);
 };
