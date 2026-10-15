@@ -30,7 +30,7 @@ jobs:
     name: Lint workflow syntax
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Validate bot-review workflow syntax
         uses: reviewdog/action-actionlint@v1
         with:
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Evaluate trusted bot review, open threads, and checks
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const owner = context.repo.owner;
