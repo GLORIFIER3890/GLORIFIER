@@ -92,6 +92,7 @@ export const getIdToken = async (): Promise<string | null> => {
 const nativeFetch = typeof window !== 'undefined' ? window.fetch.bind(window) : null;
 const configuredApiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 let configuredApiOrigin: string | null = null;
+let configuredApiPathPrefix = '';
 try {
   if (configuredApiBase) {
     const configuredUrl = new URL(configuredApiBase);
@@ -99,7 +100,12 @@ try {
     const isLoopbackHttp = configuredUrl.protocol === 'http:' &&
       ['localhost', '127.0.0.1', '[::1]', '::1'].includes(configuredUrl.hostname);
     if (isHttps || isLoopbackHttp) {
-      configuredApiOrigin = configuredUrl.origin;
+      if (configuredUrl.search || configuredUrl.hash) {
+        console.error('VITE_API_BASE_URL must not include a query string or fragment; external API requests will not receive automatic Firebase auth.');
+      } else {
+        configuredApiOrigin = configuredUrl.origin;
+        configuredApiPathPrefix = configuredUrl.pathname.replace(/\/$/, '');
+      }
     } else {
       console.error('VITE_API_BASE_URL must use HTTPS (HTTP is allowed only for loopback development); external API requests will not receive automatic Firebase auth.');
     }
@@ -122,12 +128,16 @@ const parseRequestUrl = (input: RequestInfo | URL): URL | null => {
 };
 const shouldAttachFirebaseToken = (input: RequestInfo | URL): boolean => {
   const parsedUrl = parseRequestUrl(input);
-  return Boolean(
-    parsedUrl &&
-    parsedUrl.pathname.startsWith('/api/') &&
-    (parsedUrl.origin === window.location.origin ||
-      (configuredApiOrigin !== null && parsedUrl.origin === configuredApiOrigin))
-  );
+  if (!parsedUrl) return false;
+
+  const isRootApiPath = parsedUrl.pathname.startsWith('/api/');
+  const isConfiguredApiPath = configuredApiPathPrefix !== '' &&
+    parsedUrl.pathname.startsWith(`${configuredApiPathPrefix}/api/`);
+
+  if (parsedUrl.origin === window.location.origin) return isRootApiPath;
+  return configuredApiOrigin !== null &&
+    parsedUrl.origin === configuredApiOrigin &&
+    (isRootApiPath || isConfiguredApiPath);
 };
 const getInputHeaders = (input: RequestInfo | URL): HeadersInit | undefined =>
   input instanceof Request ? input.headers : undefined;
