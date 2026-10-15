@@ -93,7 +93,11 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
             </p>
           </div>
 
-          {/* Filter tabs */}
+          <div role="note" className="rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-100">
+        Offer status, buyer-verification flags, scores, and proposed compensation are stored claims only. Accepting or countering here changes a local record; it does not create a verified contract, transfer data, or confirm payment.
+      </div>
+
+      {/* Filter tabs */}
           <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 self-start sm:self-auto">
             {(['all', 'pending', 'accepted', 'rejected'] as const).map((f) => (
               <button
@@ -126,7 +130,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
               return (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  {offer.aiBrokerScore}/100 Match • RECOMMEND
+                  Stored score {offer.aiBrokerScore}/100 · NOT VERIFIED
                 </span>
               );
             }
@@ -168,7 +172,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                     </span>
                     {offer.buyerVerified && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/30 font-semibold flex items-center gap-1">
-                        <ShieldCheck className="w-3 h-3" /> Audited Entity
+                        <ShieldCheck className="w-3 h-3" /> Verification claim (not independently checked)
                       </span>
                     )}
                     <span className="text-[10px] font-mono text-slate-400">
