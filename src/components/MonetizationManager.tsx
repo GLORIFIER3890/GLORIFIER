@@ -17,28 +17,43 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
 
   useEffect(() => {
     if (!currentUser) { setSubscription(null); return; }
-    fetch('/api/monetization/subscription?customerReference=' + encodeURIComponent(currentUser.uid))
-      .then((r) => r.json()).then((data) => setSubscription(data.subscription || null)).catch(() => undefined);
+    let cancelled = false;
+    void fetch('/api/monetization/subscription?customerReference=' + encodeURIComponent(currentUser.uid), { cache: 'no-store' })
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data?.ok === false) throw new Error(data?.error || 'Subscription status unavailable');
+        if (!cancelled) setSubscription(data.subscription || null);
+      })
+      .catch((error) => {
+        if (!cancelled) setPaymentMessage(error instanceof Error ? error.message : 'Subscription status unavailable');
+      });
 
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get('token');
     if (params.get('payment') === 'success' && orderId) {
-      setPaymentMessage('Confirming your PayPal payment...');
-      fetch('/api/monetization/capture', {
+      setPaymentMessage('Verifying payment with the server…');
+      void fetch('/api/monetization/capture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customerReference: currentUser.uid, orderId }),
       }).then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Payment confirmation failed');
-        setSubscription({ plan_id: data.plan?.id, status: 'active', expires_at: data.plan ? new Date(Date.now() + 30 * 86400000).toISOString() : undefined });
-        setPaymentMessage('Payment confirmed. Your GLORIFIER access is active.');
+        const data = await response.json().catch(() => ({}));
+        const confirmed = data?.subscription;
+        if (!response.ok || data?.ok !== true || !confirmed || confirmed.status !== 'active') {
+          throw new Error(data?.error || 'The server did not confirm an active subscription.');
+        }
+        if (cancelled) return;
+        setSubscription(confirmed);
+        setPaymentMessage('Payment capture and active subscription were confirmed by the server.');
         window.history.replaceState({}, '', window.location.pathname);
-      }).catch((error) => setPaymentMessage(error instanceof Error ? error.message : 'Payment confirmation failed.'));
+      }).catch((error) => {
+        if (!cancelled) setPaymentMessage(error instanceof Error ? error.message : 'Payment confirmation failed.');
+      });
     } else if (params.get('payment') === 'cancelled') {
       setPaymentMessage('PayPal checkout was cancelled. No subscription was activated.');
       window.history.replaceState({}, '', window.location.pathname);
     }
+    return () => { cancelled = true; };
   }, [currentUser]);
 
   const startCheckout = async (planId: 'pro' | 'business') => {
@@ -47,8 +62,9 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
     try {
       const response = await fetch('/api/monetization/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerReference: currentUser.uid, planId }) });
       const data = await response.json();
-      if (!response.ok || !data.approvalUrl) throw new Error(data.error || 'Checkout unavailable');
-      window.location.href = data.approvalUrl;
+      const approvalUrl = data?.checkout?.approvalUrl || data?.approvalUrl;
+      if (!response.ok || data?.ok !== true || typeof approvalUrl !== 'string' || !approvalUrl.startsWith('https://')) throw new Error(data.error || 'Checkout did not return a valid PayPal approval URL');
+      window.location.href = approvalUrl;
     } catch (error) {
       setPaymentMessage(error instanceof Error ? error.message : 'Checkout unavailable.');
       setCheckoutLoading(null);
