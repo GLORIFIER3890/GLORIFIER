@@ -76,7 +76,7 @@ const VERDICT_BADGE_CONFIG = {
 const NOT_EVALUATED_BADGE_CLASS =
   'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700';
 
-function VerdictBadge({ assessment }: { assessment: OfferAssessment }) {
+const VerdictBadge: React.FC<{ assessment: OfferAssessment }> = ({ assessment }) => {
   const config = VERDICT_BADGE_CONFIG[assessment.verdict];
   const BadgeIcon = config.Icon;
   return (
