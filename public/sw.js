@@ -1,7 +1,5 @@
 const CACHE_NAME = 'glorifier-shell-v2';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest'];
-const API_PREFIXES = ['/api/', '/auth/'];
-
 function isBackendRequest(pathname) {
   return /^\/(?:api|auth)(?:\/|$)/.test(pathname);
 }
