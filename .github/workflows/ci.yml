@@ -100,5 +100,8 @@ jobs:
       - name: Solana Token-2022 GLR settlement verifier tests
         run: npm run test:glr-solana-verifier
 
+      - name: Cloudflare Worker API proxy tests
+        run: npm run test:cloudflare-worker
+
       - name: Production build
         run: npm run build
