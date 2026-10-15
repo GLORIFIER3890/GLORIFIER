@@ -275,7 +275,7 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                   <span>{inspectingGrant.recipientOrg}</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-slate-500">Protection Primitive:</span>
+                  <span className="text-slate-500">Configured protection target (not enforced):</span>
                   <span>{inspectingGrant.protectionTech}</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-800 pb-1">
@@ -284,7 +284,7 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                 </div>
                 <div className="flex justify-between border-b border-slate-800 pb-1">
                   <span className="text-slate-500">Deletion/key-erasure evidence:</span>
-                  <span className="text-emerald-400">NOT VERIFIED</span>
+                  <span className="text-amber-300">NOT VERIFIED</span>
                 </div>
               </div>
 
