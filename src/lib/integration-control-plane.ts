@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import type { PoolClient } from 'pg';
 import { getPostgresPool } from './db/postgres';
 import { listConnections } from './connection-registry';
 import { listRegisteredAgents } from './agent-registry';
@@ -34,25 +35,138 @@ export interface IntegrationControlSnapshot {
 }
 
 let latestSnapshot: IntegrationControlSnapshot | null = null;
+let schemaReady: Promise<void> | null = null;
 
-async function ensureTable() {
-  await getPostgresPool().query(`
-    CREATE TABLE IF NOT EXISTS integration_control_snapshots (
-      id TEXT PRIMARY KEY,
-      synchronized_at TIMESTAMPTZ NOT NULL,
-      snapshot JSONB NOT NULL,
-      digest_sha256 TEXT NOT NULL
-    );
-    CREATE INDEX IF NOT EXISTS idx_integration_control_snapshots_time
-      ON integration_control_snapshots(synchronized_at DESC);
-  `);
-}
+// Run schema setup once per process. The ALTER is idempotent for rolling upgrades,
+// but is not executed on every snapshot read or reconciliation request.
+const ensureTable = (): Promise<void> => {
+  if (!schemaReady) {
+    schemaReady = (async () => {
+      await getPostgresPool().query(`
+        CREATE TABLE IF NOT EXISTS integration_control_snapshots (
+          id TEXT PRIMARY KEY,
+          synchronized_at TIMESTAMPTZ NOT NULL,
+          last_checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          snapshot JSONB NOT NULL,
+          digest_sha256 TEXT NOT NULL
+        );
+        ALTER TABLE integration_control_snapshots
+          ADD COLUMN IF NOT EXISTS last_checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+        CREATE INDEX IF NOT EXISTS idx_integration_control_snapshots_time
+          ON integration_control_snapshots(synchronized_at DESC);
+      `);
+    })().catch(error => {
+      // Permit a later request to retry schema setup after a transient DB failure.
+      schemaReady = null;
+      throw error;
+    });
+  }
+  return schemaReady;
+};
 
-async function digest(value: unknown) {
-  return crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
-}
+const digest = (value: unknown) =>
+  crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
-export async function reconcileIntegrationControlPlane(actor = 'system') {
+const getAuthenticationSnapshot = () => ({
+  firebaseBackendConfigured: Boolean(
+    process.env.FIREBASE_SERVICE_ACCOUNT_JSON ||
+    (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) ||
+    process.env.GOOGLE_APPLICATION_CREDENTIALS
+  ),
+  ownerBindingConfigured: Boolean(process.env.GLORIFIER_OWNER_UID || process.env.GLORIFIER_OWNER_EMAIL)
+});
+
+const getIntegrationInvariants = () => [
+  'Authentication is required before state-changing API operations.',
+  'Authorization is separate from authentication and scoped by identity, capability, tool, data scope, and risk.',
+  'Provider registry is the only AI-provider execution boundary.',
+  'Compute registry is the only independent-compute execution boundary.',
+  'Connection registry is authoritative for integration authorization state.',
+  'Synchronization records observed state; it never upgrades an unavailable or unverified resource to healthy.',
+  'Estimated value never becomes verified revenue without qualifying external evidence.',
+  'Human owner remains the final authority for irreversible external actions.'
+];
+
+type SnapshotDbClient = PoolClient;
+
+const insertSnapshot = async (
+  client: SnapshotDbClient,
+  snapshot: IntegrationControlSnapshot,
+  digestSha256: string
+): Promise<IntegrationControlSnapshot> => {
+  await client.query(
+    'INSERT INTO integration_control_snapshots(id,synchronized_at,last_checked_at,snapshot,digest_sha256) VALUES($1,$2,NOW(),$3,$4)',
+    [snapshot.id, snapshot.synchronizedAt, JSON.stringify(snapshot), digestSha256]
+  );
+  return snapshot;
+};
+
+const refreshSnapshotCheck = async (
+  client: SnapshotDbClient,
+  row: { id: string; snapshot?: IntegrationControlSnapshot },
+  fallback: IntegrationControlSnapshot
+): Promise<IntegrationControlSnapshot> => {
+  const checked = await client.query<{ last_checked_at: Date | string }>(
+    'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1 RETURNING last_checked_at',
+    [row.id]
+  );
+  if (checked.rowCount !== 1 || !checked.rows[0]) {
+    throw new Error(`integration snapshot ${row.id} missing during last_checked_at update`);
+  }
+  // Keep synchronizedAt stable for unchanged content; last_checked_at tracks freshness.
+  return row.snapshot ?? fallback;
+};
+
+const persistSnapshotInTransaction = async (
+  client: SnapshotDbClient,
+  snapshot: IntegrationControlSnapshot,
+  digestSha256: string
+): Promise<IntegrationControlSnapshot> => {
+  const previous = await client.query(
+    'SELECT id, digest_sha256, snapshot FROM integration_control_snapshots ORDER BY synchronized_at DESC LIMIT 1'
+  );
+  const row = previous.rows[0];
+  if (row?.digest_sha256 === digestSha256) {
+    return refreshSnapshotCheck(client, row, snapshot);
+  }
+  return insertSnapshot(client, snapshot, digestSha256);
+};
+
+const rollbackSnapshotTransaction = async (client: SnapshotDbClient): Promise<boolean> => {
+  try {
+    await client.query('ROLLBACK');
+    return false;
+  } catch {
+    // A failed rollback leaves the connection state uncertain; discard it.
+    return true;
+  }
+};
+
+const persistSnapshotIfChanged = async (
+  snapshot: IntegrationControlSnapshot,
+  digestSha256: string
+): Promise<IntegrationControlSnapshot> => {
+  let client: SnapshotDbClient | null = null;
+  let discardClient = false;
+  try {
+    await ensureTable();
+    client = await getPostgresPool().connect();
+    await client.query('BEGIN');
+    // Transaction-scoped advisory lock serializes comparison + insert across instances.
+    await client.query("SELECT pg_advisory_xact_lock(hashtext('glorifier.integration_control_snapshots'))");
+    const effectiveSnapshot = await persistSnapshotInTransaction(client, snapshot, digestSha256);
+    await client.query('COMMIT');
+    return effectiveSnapshot;
+  } catch (error) {
+    if (client) discardClient = await rollbackSnapshotTransaction(client);
+    console.warn('[IntegrationControlPlane] persistence deferred:', error instanceof Error ? error.message : error);
+    return snapshot;
+  } finally {
+    client?.release(discardClient);
+  }
+};
+
+export const reconcileIntegrationControlPlane = async (actor = 'system') => {
   const synchronizedAt = new Date().toISOString();
   const [connections, agents] = await Promise.all([
     listConnections().catch(() => []),
@@ -61,14 +175,7 @@ export async function reconcileIntegrationControlPlane(actor = 'system') {
 
   const snapshotBase = {
     synchronizedAt,
-    authentication: {
-      firebaseBackendConfigured: Boolean(
-        process.env.FIREBASE_SERVICE_ACCOUNT_JSON ||
-        (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) ||
-        process.env.GOOGLE_APPLICATION_CREDENTIALS
-      ),
-      ownerBindingConfigured: Boolean(process.env.GLORIFIER_OWNER_UID || process.env.GLORIFIER_OWNER_EMAIL)
-    },
+    authentication: getAuthenticationSnapshot(),
     connections: connections.map(c => ({
       id: c.id, provider: c.provider, status: c.status, risk: c.risk,
       scopes: c.scopes, lastVerifiedAt: c.lastVerifiedAt
@@ -79,40 +186,32 @@ export async function reconcileIntegrationControlPlane(actor = 'system') {
     })),
     providers: listProviders(),
     compute: listComputeResources(),
-    invariants: [
-      'Authentication is required before state-changing API operations.',
-      'Authorization is separate from authentication and scoped by identity, capability, tool, data scope, and risk.',
-      'Provider registry is the only AI-provider execution boundary.',
-      'Compute registry is the only independent-compute execution boundary.',
-      'Connection registry is authoritative for integration authorization state.',
-      'Synchronization records observed state; it never upgrades an unavailable or unverified resource to healthy.',
-      'Estimated value never becomes verified revenue without qualifying external evidence.',
-      'Human owner remains the final authority for irreversible external actions.'
-    ]
+    invariants: getIntegrationInvariants()
   };
 
-  const digestSha256 = await digest(snapshotBase);
+  // A synchronization timestamp is operational metadata, not snapshot content.
+  // Excluding it lets identical state reconcile without inserting another large JSONB row.
+  const digestPayload = {
+    authentication: snapshotBase.authentication,
+    connections: snapshotBase.connections,
+    agents: snapshotBase.agents,
+    providers: snapshotBase.providers,
+    compute: snapshotBase.compute,
+    invariants: snapshotBase.invariants
+  };
+  const digestSha256 = digest(digestPayload);
   const snapshot: IntegrationControlSnapshot = {
     id: `ics-${crypto.randomUUID()}`,
     ...snapshotBase,
     digestSha256
   };
 
-  latestSnapshot = snapshot;
-  try {
-    await ensureTable();
-    await getPostgresPool().query(
-      'INSERT INTO integration_control_snapshots(id,synchronized_at,snapshot,digest_sha256) VALUES($1,$2,$3,$4)',
-      [snapshot.id, snapshot.synchronizedAt, JSON.stringify(snapshot), digestSha256]
-    );
-  } catch (error) {
-    console.warn('[IntegrationControlPlane] persistence deferred:', error instanceof Error ? error.message : error);
-  }
+  const effectiveSnapshot = await persistSnapshotIfChanged(snapshot, digestSha256);
+  latestSnapshot = effectiveSnapshot;
+  return { actor, snapshot: effectiveSnapshot };
+};
 
-  return { actor, snapshot };
-}
-
-export async function getIntegrationControlSnapshot() {
+export const getIntegrationControlSnapshot = async () => {
   if (latestSnapshot) return latestSnapshot;
   try {
     await ensureTable();
@@ -127,4 +226,4 @@ export async function getIntegrationControlSnapshot() {
     // Database may be unavailable during boot; a live reconciliation can retry.
   }
   return reconcileIntegrationControlPlane('snapshot-read').then(result => result.snapshot);
-}
+};

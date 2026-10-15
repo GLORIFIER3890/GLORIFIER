@@ -1,7 +1,187 @@
 {
   "version": "GEAS-AUTHORITY-2",
-  "policy": "Curated official project/specification sources only. Registry membership is discovery metadata, not proof that GLORIFIER implements a pattern.",
+  "policy": "Curated official project/specification sources only. Registry membership is discovery metadata, not proof that GLORIFIER implements a pattern. Scanner source IDs are reconciled against the registry by geas-authority-registry-validate.ts; source registration does not imply implementation or conformance.",
   "sources": [
+    {
+      "id": "a2a-current-specification",
+      "authority": "Agent2Agent Protocol",
+      "domain": "integration",
+      "url": "https://a2a-protocol.org/latest/",
+      "claimsAllowed": [
+        "agent-interoperability",
+        "capability-discovery",
+        "task-delegation"
+      ],
+      "reviewCadenceDays": 7,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "aws-well-architected",
+      "authority": "AWS",
+      "domain": "cloud",
+      "url": "https://aws.amazon.com/architecture/well-architected/",
+      "claimsAllowed": [
+        "cross-cutting-cloud-controls"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "cncf-dapr-agents",
+      "authority": "CNCF",
+      "domain": "reliability",
+      "url": "https://www.cncf.io/projects/dapr/",
+      "claimsAllowed": [
+        "durable-agent-execution"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "cncf-kyverno",
+      "authority": "CNCF",
+      "domain": "platform-engineering",
+      "url": "https://www.cncf.io/projects/kyverno/",
+      "claimsAllowed": [
+        "policy-as-code"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "ethereum-security",
+      "authority": "Ethereum.org",
+      "domain": "blockchain",
+      "url": "https://ethereum.org/en/developers/docs/smart-contracts/security/",
+      "claimsAllowed": [
+        "smart-contract-security",
+        "independent-testing"
+      ],
+      "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "etsi-edge",
+      "authority": "ETSI",
+      "domain": "edge",
+      "url": "https://www.etsi.org/technologies/multi-access-edge-computing",
+      "claimsAllowed": [
+        "edge-degradation"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "etsi-eni",
+      "authority": "ETSI",
+      "domain": "networking",
+      "url": "https://www.etsi.org/technical-groups/eni/",
+      "claimsAllowed": [
+        "federated-continuum"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "finops-focus",
+      "authority": "FinOps Foundation",
+      "domain": "finops",
+      "url": "https://focus.finops.org/",
+      "claimsAllowed": [
+        "cost-outcome-accounting"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "finops-focus-1-4",
+      "authority": "FinOps Foundation",
+      "domain": "finops",
+      "url": "https://focus.finops.org/docs/specification/v1-4/",
+      "claimsAllowed": [
+        "cost-outcome-accounting"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "finops-framework",
+      "authority": "FinOps Foundation",
+      "domain": "finops",
+      "url": "https://www.finops.org/framework/",
+      "claimsAllowed": [
+        "cost-allocation",
+        "cost-value-outcomes"
+      ],
+      "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "google-architecture",
+      "authority": "Google Cloud",
+      "domain": "cloud",
+      "url": "https://cloud.google.com/architecture",
+      "claimsAllowed": [
+        "federated-data-access"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "google-sre-workbook",
+      "authority": "Google SRE",
+      "domain": "reliability",
+      "url": "https://sre.google/workbook/table-of-contents/",
+      "claimsAllowed": [
+        "slo-error-budget-release-gates"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "ietf-http-problem-details",
+      "authority": "IETF",
+      "domain": "integration",
+      "url": "https://datatracker.ietf.org/doc/html/rfc9457",
+      "claimsAllowed": [
+        "standard-api-error-contracts"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "ietf-oauth-security",
+      "authority": "IETF",
+      "domain": "cybersecurity",
+      "url": "https://datatracker.ietf.org/doc/html/rfc9700",
+      "claimsAllowed": [
+        "oauth-security-best-practice"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "ietf-rfcs",
+      "authority": "IETF",
+      "domain": "integration",
+      "url": "https://www.ietf.org/process/rfcs/",
+      "claimsAllowed": [
+        "protocol-neutral-interoperability"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "iso-42001",
+      "authority": "ISO",
+      "domain": "governance",
+      "url": "https://www.iso.org/standard/42001",
+      "claimsAllowed": [
+        "ai-management-system"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
     {
       "id": "mcp-spec-2026-07-28",
       "authority": "Model Context Protocol",
@@ -28,28 +208,36 @@
       "implementationStatus": "not-assessed"
     },
     {
-      "id": "a2a-current-specification",
-      "authority": "Agent2Agent Protocol",
-      "domain": "integration",
-      "url": "https://a2a-protocol.org/latest/",
+      "id": "microsoft-architecture",
+      "authority": "Microsoft",
+      "domain": "enterprise-architecture",
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/",
       "claimsAllowed": [
-        "agent-interoperability",
-        "capability-discovery",
-        "task-delegation"
+        "cross-cutting-cloud-controls"
       ],
-      "reviewCadenceDays": 7,
+      "reviewCadenceDays": 14,
       "implementationStatus": "not-assessed"
     },
     {
-      "id": "nist-csf-2",
-      "authority": "NIST",
+      "id": "mitre-atlas",
+      "authority": "MITRE",
       "domain": "cybersecurity",
-      "url": "https://www.nist.gov/cyberframework",
+      "url": "https://atlas.mitre.org/",
       "claimsAllowed": [
-        "cybersecurity-governance",
-        "risk-management"
+        "adversarial-ai-controls"
       ],
-      "reviewCadenceDays": 30,
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "nist-ai-agents",
+      "authority": "NIST",
+      "domain": "ai",
+      "url": "https://www.nist.gov/programs-projects/ai-agent-standards-initiative",
+      "claimsAllowed": [
+        "agent-identity-delegation"
+      ],
+      "reviewCadenceDays": 14,
       "implementationStatus": "not-assessed"
     },
     {
@@ -65,6 +253,129 @@
       "implementationStatus": "not-assessed"
     },
     {
+      "id": "nist-blockchain",
+      "authority": "NIST",
+      "domain": "blockchain",
+      "url": "https://csrc.nist.gov/pubs/ir/8202/final",
+      "claimsAllowed": [
+        "selective-trust-anchoring"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "nist-csf",
+      "authority": "NIST",
+      "domain": "cybersecurity",
+      "url": "https://www.nist.gov/cyberframework",
+      "claimsAllowed": [
+        "identity-risk-controls"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "nist-csf-2",
+      "authority": "NIST",
+      "domain": "cybersecurity",
+      "url": "https://www.nist.gov/cyberframework",
+      "claimsAllowed": [
+        "cybersecurity-governance",
+        "risk-management"
+      ],
+      "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "nist-iot",
+      "authority": "NIST",
+      "domain": "iot",
+      "url": "https://www.nist.gov/itl/applied-cybersecurity/nist-cybersecurity-iot-program",
+      "claimsAllowed": [
+        "iot-device-boundaries"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "nist-iot-cybersecurity",
+      "authority": "NIST",
+      "domain": "iot",
+      "url": "https://www.nist.gov/itl/applied-cybersecurity/nist-cybersecurity-iot-program",
+      "claimsAllowed": [
+        "device-identity",
+        "device-lifecycle-security"
+      ],
+      "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "nist-ssdf",
+      "authority": "NIST",
+      "domain": "software",
+      "url": "https://csrc.nist.gov/Projects/ssdf",
+      "claimsAllowed": [
+        "software-supply-chain"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "nist-token-protection",
+      "authority": "NIST",
+      "domain": "cybersecurity",
+      "url": "https://www.nist.gov/publications/protecting-tokens-and-assertions-forgery-theft-and-misuse-implementation",
+      "claimsAllowed": [
+        "token-lifecycle-protection"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "nist-traceability",
+      "authority": "NIST",
+      "domain": "data",
+      "url": "https://csrc.nist.gov/pubs/ir/8536/final",
+      "claimsAllowed": [
+        "provenance-graph"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "nist-zero-trust",
+      "authority": "NIST",
+      "domain": "networking",
+      "url": "https://csrc.nist.gov/pubs/sp/800/207/final",
+      "claimsAllowed": [
+        "zero-trust-resource-access"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "opengroup-togaf",
+      "authority": "The Open Group",
+      "domain": "enterprise-architecture",
+      "url": "https://www.opengroup.org/togaf",
+      "claimsAllowed": [
+        "enterprise-architecture-traceability"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "openssf-scorecard",
+      "authority": "OpenSSF",
+      "domain": "software",
+      "url": "https://securityscorecards.dev/",
+      "claimsAllowed": [
+        "open-source-supply-chain-risk"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
       "id": "opentelemetry-docs",
       "authority": "OpenTelemetry",
       "domain": "observability",
@@ -77,13 +388,46 @@
       "implementationStatus": "not-assessed"
     },
     {
-      "id": "finops-framework",
-      "authority": "FinOps Foundation",
-      "domain": "finops",
-      "url": "https://www.finops.org/framework/",
+      "id": "opentelemetry-semconv",
+      "authority": "OpenTelemetry",
+      "domain": "observability",
+      "url": "https://opentelemetry.io/docs/concepts/semantic-conventions/",
       "claimsAllowed": [
-        "cost-allocation",
-        "cost-value-outcomes"
+        "vendor-neutral-telemetry"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "otel-genai-agents",
+      "authority": "OpenTelemetry",
+      "domain": "observability",
+      "url": "https://github.com/open-telemetry/semantic-conventions-genai",
+      "claimsAllowed": [
+        "genai-agent-telemetry"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "owasp-agent-control",
+      "authority": "OWASP",
+      "domain": "cybersecurity",
+      "url": "https://genai.owasp.org/resource/agent-control-standard-acs/",
+      "claimsAllowed": [
+        "runtime-agent-controls"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "owasp-api-security",
+      "authority": "OWASP",
+      "domain": "cybersecurity",
+      "url": "https://owasp.org/www-project-api-security/",
+      "claimsAllowed": [
+        "api-authorization",
+        "api-resource-limits"
       ],
       "reviewCadenceDays": 30,
       "implementationStatus": "not-assessed"
@@ -101,39 +445,25 @@
       "implementationStatus": "not-assessed"
     },
     {
-      "id": "owasp-api-security",
-      "authority": "OWASP",
-      "domain": "cybersecurity",
-      "url": "https://owasp.org/www-project-api-security/",
+      "id": "slsa-v1-2",
+      "authority": "SLSA",
+      "domain": "software",
+      "url": "https://slsa.dev/spec/v1.2/",
       "claimsAllowed": [
-        "api-authorization",
-        "api-resource-limits"
+        "build-provenance"
       ],
-      "reviewCadenceDays": 30,
+      "reviewCadenceDays": 14,
       "implementationStatus": "not-assessed"
     },
     {
-      "id": "nist-iot-cybersecurity",
-      "authority": "NIST",
-      "domain": "iot",
-      "url": "https://www.nist.gov/itl/applied-cybersecurity/nist-cybersecurity-iot-program",
+      "id": "w3c-vc",
+      "authority": "W3C",
+      "domain": "emerging-technology",
+      "url": "https://www.w3.org/TR/vc-data-model-2.0/",
       "claimsAllowed": [
-        "device-identity",
-        "device-lifecycle-security"
+        "verifiable-credentials"
       ],
-      "reviewCadenceDays": 30,
-      "implementationStatus": "not-assessed"
-    },
-    {
-      "id": "ethereum-security",
-      "authority": "Ethereum.org",
-      "domain": "blockchain",
-      "url": "https://ethereum.org/en/developers/docs/smart-contracts/security/",
-      "claimsAllowed": [
-        "smart-contract-security",
-        "independent-testing"
-      ],
-      "reviewCadenceDays": 30,
+      "reviewCadenceDays": 14,
       "implementationStatus": "not-assessed"
     }
   ]

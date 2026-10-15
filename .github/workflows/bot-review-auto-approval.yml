@@ -1,0 +1,171 @@
+name: Bot Review Auto-Approval Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+  pull_request_review:
+    types: [submitted]
+  check_suite:
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: "PR number to evaluate"
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: read
+
+concurrency:
+  group: bot-review-auto-approval-${{ github.event.pull_request.number || inputs.pull_request_number || github.event.check_suite.head_sha || github.event.review.id }}
+  cancel-in-progress: false
+
+jobs:
+  validate-workflow:
+    name: Lint workflow syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate bot-review workflow syntax
+        uses: reviewdog/action-actionlint@v1
+        with:
+          actionlint_flags: .github/workflows/bot-review-auto-approval.yml
+          fail_level: error
+
+  evaluate:
+    name: Validate bot review and CI before approval
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate trusted bot review, open threads, and checks
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Do not let this workflow react to its own check suite completion.
+            // Other workflows' check suites still trigger re-evaluation after CI finishes.
+            if (context.eventName === 'check_suite') {
+              const suite = await github.rest.checks.listForSuite({
+                owner, repo, check_suite_id: context.payload.check_suite.id, per_page: 100
+              });
+              const ownCheckNames = new Set([
+                'Validate bot review and CI before approval',
+                'Lint workflow syntax'
+              ]);
+              if (suite.data.check_runs.some(run => ownCheckNames.has(run.name))) {
+                core.notice('Ignoring this workflow’s own check suite to prevent a re-trigger loop.');
+                return;
+              }
+            }
+
+            let pr = context.payload.pull_request || context.payload.review?.pull_request || null;
+            const requestedNumber = Number(context.payload.inputs?.pull_request_number || 0);
+
+            if (!pr && requestedNumber > 0) {
+              const response = await github.rest.pulls.get({ owner, repo, pull_number: requestedNumber });
+              pr = response.data;
+            }
+
+            if (!pr && context.eventName === 'check_suite') {
+              const associated = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner, repo, commit_sha: context.payload.check_suite.head_sha
+              });
+              pr = associated.data.find(item => item.state === 'open') || null;
+            }
+
+            if (!pr) {
+              core.notice('No associated open pull request; nothing to approve.');
+              return;
+            }
+
+            const number = pr.number;
+            const headSha = pr.head.sha;
+            const repoOwner = context.payload.repository?.owner?.login || owner;
+            const stop = (reason) => {
+              core.notice(`PR #${number}: approval withheld — ${reason}`);
+              core.setOutput('decision', 'withheld');
+            };
+
+            if (pr.state !== 'open' || pr.draft) return stop('PR is closed or still a draft.');
+            if (pr.mergeable === false || pr.mergeable_state === 'dirty') return stop('merge conflicts are present.');
+            if (pr.user?.login === repoOwner) return stop('self-authored PRs are not auto-approved; GitHub owner review is required.');
+            if (pr.base?.ref !== 'main') return stop('base branch is not main.');
+
+            const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: number });
+            const botReviews = reviews.filter(review => {
+              const login = review.user?.login || '';
+              return review.state === 'COMMENTED' &&
+                (review.user?.type === 'Bot' || login.endsWith('[bot]') ||
+                 ['coderabbitai', 'deepsource-io', 'snyk-bot', 'github-actions'].includes(login));
+            });
+            const inlineComments = await github.paginate(github.rest.pulls.listReviewComments, {
+              owner, repo, pull_number: number
+            });
+            const botInlineComments = inlineComments.filter(comment => {
+              const login = comment.user?.login || '';
+              return comment.user?.type === 'Bot' || login.endsWith('[bot]') ||
+                ['coderabbitai', 'deepsource-io', 'snyk-bot', 'github-actions'].includes(login);
+            });
+            const substantiveBotReviews = botReviews.filter(review => (review.body || '').trim().length > 0);
+            if (botReviews.length === 0 || (botInlineComments.length === 0 && substantiveBotReviews.length === 0)) {
+              return stop('no substantive recognized bot scan/review feedback was found.');
+            }
+
+            if (reviews.some(review => review.state === 'CHANGES_REQUESTED' && review.user?.type !== 'Bot')) {
+              return stop('a human reviewer requested changes.');
+            }
+
+            const threadData = await github.graphql(
+              `query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) {
+                    reviewThreads(first: 100) {
+                      nodes {
+                        isResolved
+                        isOutdated
+                        comments(first: 20) {
+                          nodes { author { login __typename } body }
+                        }
+                      }
+                    }
+                  }
+                }
+              }`,
+              { owner, repo, number }
+            );
+            const threads = threadData.repository.pullRequest.reviewThreads.nodes;
+            const unresolved = threads.filter(thread => !thread.isResolved);
+            if (unresolved.length > 0) {
+              return stop(`${unresolved.length} review thread(s) remain unresolved; findings must be fixed or explicitly dismissed with evidence first.`);
+            }
+
+            const checks = await github.rest.checks.listForRef({ owner, repo, ref: headSha, per_page: 100 });
+            const runs = checks.data.check_runs;
+            if (runs.length === 0) return stop('no check runs were found for the exact PR head commit.');
+            const unfinished = runs.filter(run => run.status !== 'completed');
+            if (unfinished.length > 0) return stop(`${unfinished.length} check run(s) are still running.`);
+            const failures = runs.filter(run => !['success', 'neutral', 'skipped'].includes(run.conclusion));
+            if (failures.length > 0) {
+              return stop(`failed/unknown check conclusions: ${failures.map(run => `${run.name}=${run.conclusion}`).join(', ')}`);
+            }
+
+            // Avoid duplicate approvals for the same head SHA.
+            const existingApprovals = reviews.filter(review =>
+              review.state === 'APPROVED' && review.commit_id === headSha
+            );
+            if (existingApprovals.length > 0) {
+              core.notice(`PR #${number}: an approval already exists for ${headSha}; no duplicate review created.`);
+              return;
+            }
+
+            await github.rest.pulls.createReview({
+              owner, repo, pull_number: number, commit_id: headSha, event: 'APPROVE',
+              body: 'Automated approval gate: recognized bot review present; all review threads resolved; exact-head checks completed successfully; no human change request or merge conflict detected. This does not merge the PR. Security-sensitive or production changes still require independent human review.'
+            });
+            core.notice(`PR #${number}: approved at ${headSha}. No merge was performed.`);
