@@ -83,6 +83,17 @@
       "implementationStatus": "not-assessed"
     },
     {
+      "id": "finops-focus",
+      "authority": "FinOps Foundation",
+      "domain": "finops",
+      "url": "https://focus.finops.org/",
+      "claimsAllowed": [
+        "cost-outcome-accounting"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
       "id": "finops-focus-1-4",
       "authority": "FinOps Foundation",
       "domain": "finops",
@@ -253,6 +264,17 @@
       "implementationStatus": "not-assessed"
     },
     {
+      "id": "nist-csf",
+      "authority": "NIST",
+      "domain": "cybersecurity",
+      "url": "https://www.nist.gov/cyberframework",
+      "claimsAllowed": [
+        "identity-risk-controls"
+      ],
+      "reviewCadenceDays": 14,
+      "implementationStatus": "not-assessed"
+    },
+    {
       "id": "nist-csf-2",
       "authority": "NIST",
       "domain": "cybersecurity",
@@ -262,6 +284,17 @@
         "risk-management"
       ],
       "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "nist-iot",
+      "authority": "NIST",
+      "domain": "iot",
+      "url": "https://www.nist.gov/itl/applied-cybersecurity/nist-cybersecurity-iot-program",
+      "claimsAllowed": [
+        "iot-device-boundaries"
+      ],
+      "reviewCadenceDays": 14,
       "implementationStatus": "not-assessed"
     },
     {
@@ -352,6 +385,17 @@
         "distributed-context"
       ],
       "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "opentelemetry-semconv",
+      "authority": "OpenTelemetry",
+      "domain": "observability",
+      "url": "https://opentelemetry.io/docs/concepts/semantic-conventions/",
+      "claimsAllowed": [
+        "vendor-neutral-telemetry"
+      ],
+      "reviewCadenceDays": 14,
       "implementationStatus": "not-assessed"
     },
     {
