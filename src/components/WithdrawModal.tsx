@@ -73,7 +73,6 @@ const DEFAULT_VERIFIED_WALLETS: VerifiedWallet[] = [];
 
 
 export const WithdrawModal: React.FC<WithdrawModalProps> = ({
-  stats,
   policy,
   onClose,
   onWithdrawSuccess,
