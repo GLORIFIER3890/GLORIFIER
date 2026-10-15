@@ -3,8 +3,7 @@ const APP_SHELL = ['./', './index.html', './manifest.webmanifest'];
 const API_PREFIXES = ['/api/', '/auth/'];
 
 function isBackendRequest(pathname) {
-  return pathname === '/api' || pathname === '/auth' ||
-    API_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  return /^\/(?:api|auth)(?:\/|$)/.test(pathname);
 }
 
 self.addEventListener('install', (event) => {
