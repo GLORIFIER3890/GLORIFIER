@@ -17,6 +17,7 @@ type Registry = {
 };
 
 const registryPath = 'docs/architecture/geas-authoritative-source-registry.json';
+const scannerPath = 'src/lib/governance/geas-architecture-scientist.ts';
 const parsed: unknown = JSON.parse(readFileSync(registryPath, 'utf8'));
 const failures: string[] = [];
 const ids = new Set<string>();
@@ -78,6 +79,23 @@ if (!isRecord(parsed)) {
     if (source.implementationStatus !== 'not-assessed') {
       failures.push(`source ${source.id ?? index}: sources must default to not-assessed`);
     }
+  }
+}
+
+// Keep the machine-readable registry and executable scanner catalog in sync.
+// The scanner catalog is deliberately bounded to the SOURCES declaration so pattern IDs
+// elsewhere in the file cannot be mistaken for source IDs.
+const scannerText = readFileSync(scannerPath, 'utf8');
+const sourceSection = scannerText.split('const SOURCES: ArchitectureSource[] = [')[1]?.split('const P = (')[0];
+if (!sourceSection) {
+  failures.push('unable to locate scanner SOURCES catalog');
+} else {
+  const scannerIds = [...sourceSection.matchAll(/\\bid:\\s*'([^']+)'/g)].map((match) => match[1]);
+  const scannerIdSet = new Set(scannerIds);
+  if (scannerIds.length === 0) failures.push('scanner source catalog is empty');
+  if (scannerIdSet.size !== scannerIds.length) failures.push('scanner source catalog contains duplicate IDs');
+  for (const id of scannerIdSet) {
+    if (!ids.has(id)) failures.push(`scanner source missing from authoritative registry: ${id}`);
   }
 }
 
