@@ -70,7 +70,7 @@ export const ValuationEnginePanel: React.FC = () => {
             <div className="rounded-lg bg-slate-900 border border-slate-800 p-3">
               <div className="text-[10px] uppercase font-bold text-slate-500">Verified Revenue</div>
               <div className="text-lg font-bold text-white mt-1">{money(data.observedInputs?.verifiedRevenue)}</div>
-              <div className="text-[9px] font-mono text-emerald-400 mt-1">VERIFIED INPUT</div>
+              <div className="text-[9px] font-mono text-amber-300 mt-1">{data.observedInputs?.verifiedRevenue == null ? 'NOT OBSERVABLE' : 'SOURCE-REPORTED INPUT · NOT A VERIFIED VALUATION'}</div>
             </div>
           </div>
 
