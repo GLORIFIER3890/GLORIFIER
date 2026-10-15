@@ -25,7 +25,7 @@ if (typeof window !== 'undefined') {
     if (nativeApiBase && requestUrl.origin === window.location.origin &&
         (requestUrl.pathname === '/api' || requestUrl.pathname.startsWith('/api/'))) {
       requestUrl = new URL(nativeApiBase + requestUrl.pathname + requestUrl.search);
-      input = requestUrl;
+      input = input instanceof Request ? new Request(requestUrl.href, input) : requestUrl;
     }
 
     const response = await originalFetch(input, init);
@@ -75,8 +75,8 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error
             </div>
             <h1 className="text-2xl font-bold">The Command Center could not render.</h1>
             <p className="mt-3 text-slate-300">
-              The backend is reachable, but the browser encountered a frontend runtime error.
-              The details below are included so the problem is visible instead of showing a blank screen.
+              The frontend encountered a runtime error and could not render.
+              This screen has not checked backend connectivity; the details below help identify the frontend failure.
             </p>
             <pre className="mt-5 overflow-auto rounded-xl bg-black/50 p-4 text-sm text-red-200 whitespace-pre-wrap">
               {this.state.error.message}
