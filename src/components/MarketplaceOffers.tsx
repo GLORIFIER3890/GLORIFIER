@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { 
   Scale, 
   CheckCircle2, 
@@ -56,7 +56,8 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
   const [filter, setFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
   const [counteringOfferId, setCounteringOfferId] = useState<string | null>(null);
   const [counterPrice, setCounterPrice] = useState<number>(0);
-  const [evaluatingId, setEvaluatingId] = useState<string | null>(null);
+  const [evaluatingIds, setEvaluatingIds] = useState<Record<string, boolean>>({});
+  const evaluationRequestIds = useRef<Record<string, number>>({});
   const [evaluationResults, setEvaluationResults] = useState<Record<string, { score: number; verdict: string; reasoning: string }>>({});
   const [evaluationErrors, setEvaluationErrors] = useState<Record<string, string>>({});
 
@@ -75,7 +76,9 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
   };
 
   const handleRunAiEvaluation = async (offer: BuyerOffer) => {
-    setEvaluatingId(offer.id);
+    const requestId = (evaluationRequestIds.current[offer.id] || 0) + 1;
+    evaluationRequestIds.current[offer.id] = requestId;
+    setEvaluatingIds(previous => ({ ...previous, [offer.id]: true }));
     try {
       const res = await fetch('/api/ai/evaluate-offer', {
         method: 'POST',
@@ -89,9 +92,11 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
       if (!isValidAssessment(data)) {
         throw new Error('AI evaluation response was incomplete or invalid.');
       }
+      if (evaluationRequestIds.current[offer.id] !== requestId) return;
       setEvaluationResults(previous => ({ ...previous, [offer.id]: data }));
       setEvaluationErrors(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => id !== offer.id)));
     } catch (e) {
+      if (evaluationRequestIds.current[offer.id] !== requestId) return;
       console.error('Offer AI evaluation failed:', e);
       setEvaluationResults(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => id !== offer.id)));
       setEvaluationErrors(previous => ({
@@ -99,7 +104,9 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
         [offer.id]: e instanceof Error ? e.message : 'AI evaluation unavailable.'
       }));
     } finally {
-      setEvaluatingId(null);
+      if (evaluationRequestIds.current[offer.id] === requestId) {
+        setEvaluatingIds(previous => ({ ...previous, [offer.id]: false }));
+      }
     }
   };
 
@@ -144,7 +151,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
           const isAccepted = offer.status === 'ACCEPTED';
           const isRejected = offer.status === 'REJECTED';
           const isCountered = offer.status === 'COUNTERED';
-          const isEvaluating = evaluatingId === offer.id;
+          const isEvaluating = evaluatingIds[offer.id] === true;
           // A failed re-evaluation invalidates both the previous local result and any
           // persisted offer assessment until a later successful evaluation clears the error.
           const evaluationError = evaluationErrors[offer.id];
