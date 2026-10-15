@@ -133,7 +133,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
       return;
     }
     setBalanceLoading(true);
-    fetch('/api/payouts?userReference=' + encodeURIComponent(userReference), { cache: 'no-store' })
+    authenticatedFetch('/api/payouts?userReference=' + encodeURIComponent(userReference), { cache: 'no-store' })
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok || data?.ok !== true || !data?.balance || !Number.isFinite(Number(data.balance.availableUsd))) {
