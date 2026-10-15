@@ -161,10 +161,13 @@ export const AiScientistFleetConsole: React.FC<AiScientistFleetConsoleProps> = (
             </button>
           </div>
         </div>
+        {actionError && (
+          <p role="alert" className="text-xs text-amber-400">{actionError}</p>
+        )}
 
         <div className="grid grid-cols-2 gap-2 border-t border-slate-800 pt-4 sm:grid-cols-4">
           {[
-            ['Agents', fleet.length || 5],
+            ['Agents', fleet.length],
             ['Active issues', activeIssues.length],
             ['Resolved', resolvedCount],
             ['Cycle', state?.cycleCount || 0],
