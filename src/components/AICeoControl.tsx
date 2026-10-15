@@ -142,8 +142,8 @@ export const AICeoControl: React.FC = () => {
           <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4">
             <Bot className="mb-2 h-5 w-5 text-violet-400" />
             <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500">A2A Protocol & Fleet State</div>
-            <div className="mt-1 font-bold text-violet-300">GLORIFIER-A2A-v1 • 100% Consensus</div>
-            <p className="mt-1 text-xs text-slate-400">Continuous 24/7 pairing across OpenAI GPT-4o, Gemini & Codex fleet.</p>
+            <div className="mt-1 font-bold text-violet-300">A2A integration • Status unverified</div>
+            <p className="mt-1 text-xs text-slate-400">Provider availability and cross-agent consensus require fresh, attributable evidence. Continuous 24/7 operation is not asserted.</p>
           </div>
         </div>
       </div>
