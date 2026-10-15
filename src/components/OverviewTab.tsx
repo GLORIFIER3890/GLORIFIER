@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Layers, Activity } from 'lucide-react';
 import { SovereignStats, DataFootprintSource, MonetizationPolicy, CompensationTransaction } from '../types';
-import { LiveEconomicData } from './LiveEconomicData';
-import { BusinessModelPanel } from './BusinessModelPanel';
-import { ValuationEnginePanel } from './ValuationEnginePanel';
-import { EconomicOperatingSystemPanel } from './EconomicOperatingSystemPanel';
-import { BusinessIntelligenceArchitecturePanel } from './BusinessIntelligenceArchitecturePanel';
+const LiveEconomicData = React.lazy(() => import('./LiveEconomicData').then((module) => ({ default: module.LiveEconomicData })));
+const BusinessModelPanel = React.lazy(() => import('./BusinessModelPanel').then((module) => ({ default: module.BusinessModelPanel })));
+const ValuationEnginePanel = React.lazy(() => import('./ValuationEnginePanel').then((module) => ({ default: module.ValuationEnginePanel })));
+const EconomicOperatingSystemPanel = React.lazy(() => import('./EconomicOperatingSystemPanel').then((module) => ({ default: module.EconomicOperatingSystemPanel })));
+const BusinessIntelligenceArchitecturePanel = React.lazy(() => import('./BusinessIntelligenceArchitecturePanel').then((module) => ({ default: module.BusinessIntelligenceArchitecturePanel })));
 
 interface OverviewTabProps {
   stats: SovereignStats;
@@ -144,11 +144,21 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateToTab }) => 
         <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-[10px] text-slate-400">Economic truth remains separate: market value and estimates are not revenue. Revenue becomes VERIFIED only from qualifying economic and settlement evidence.</div>
       </section>
 
-      <LiveEconomicData />
-      <BusinessModelPanel />
-      <ValuationEnginePanel />
-      <EconomicOperatingSystemPanel />
-      <BusinessIntelligenceArchitecturePanel />
+      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading  live economic data…</div>}>
+        <LiveEconomicData />
+      </Suspense>
+      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading  business model panel…</div>}>
+        <BusinessModelPanel />
+      </Suspense>
+      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading  valuation engine panel…</div>}>
+        <ValuationEnginePanel />
+      </Suspense>
+      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading  economic operating system panel…</div>}>
+        <EconomicOperatingSystemPanel />
+      </Suspense>
+      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading  business intelligence architecture panel…</div>}>
+        <BusinessIntelligenceArchitecturePanel />
+      </Suspense>
 
       <section className="rounded-xl bg-slate-950 border border-slate-800 p-5">
         <div className="flex items-center justify-between gap-4 mb-4"><div><h2 className="text-base font-bold text-white flex items-center gap-2"><Layers className="w-4 h-4 text-emerald-400" />GLORIFIER Revenue Control Plane</h2><p className="text-xs text-slate-400 mt-1">One governance boundary for every value-creation machine.</p></div><span className="text-[10px] font-mono px-2 py-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">GRCP-1.0</span></div>
