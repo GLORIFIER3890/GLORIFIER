@@ -69,11 +69,10 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
         offer.aiBrokerReasoning = data.reasoning;
       }
     } catch (e) {
-      console.error(e);
-      // Resilient sovereign valuation fallback
-      offer.aiBrokerScore = offer.offeredCompUsd >= policy.minimumMonthlyFloorUsd ? 88 : 62;
-      offer.aiVerdict = offer.offeredCompUsd >= policy.minimumMonthlyFloorUsd ? 'RECOMMEND' : 'CAUTION';
-      offer.aiBrokerReasoning = `Autonomous valuation: Offer at $${offer.offeredCompUsd} meets baseline requirements with differential privacy bounds (${offer.maxEpsilonAllowed} \u03b5).`;
+      console.error('Offer evaluation unavailable; no recommendation was inferred:', e);
+      delete (offer as any).aiBrokerScore;
+      offer.aiVerdict = 'NOT VERIFIED' as any;
+      offer.aiBrokerReasoning = 'The evaluation service did not return a result. No score, buyer legitimacy, privacy guarantee, or recommendation was inferred.';
     } finally {
       setEvaluatingId(null);
     }
@@ -87,10 +86,10 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
           <div>
             <h2 className="text-base font-bold text-white flex items-center gap-2">
               <Scale className="w-5 h-5 text-emerald-400" />
-              Live Data Buyer Marketplace & Bid Clearing
+              Buyer Offer Review (live marketplace status not verified)
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Commercial AI labs, biomedical research institutes, and economic analysts bid for access to your differentially private data vault. Your AI broker scrutinizes every bid before you license.
+              This panel displays offers only when returned by the configured backend. Buyer identity, bid authenticity, privacy enforcement, and settlement must be verified independently before any license or data transfer.
             </p>
           </div>
 
