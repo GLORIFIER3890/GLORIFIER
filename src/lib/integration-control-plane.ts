@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import type { PoolClient } from 'pg';
 import { getPostgresPool } from './db/postgres';
 import { listConnections } from './connection-registry';
 import { listRegisteredAgents } from './agent-registry';
@@ -86,7 +87,7 @@ const getIntegrationInvariants = () => [
   'Human owner remains the final authority for irreversible external actions.'
 ];
 
-type SnapshotDbClient = Awaited<ReturnType<ReturnType<typeof getPostgresPool>['connect']>>;
+type SnapshotDbClient = PoolClient;
 
 const persistSnapshotInTransaction = async (
   client: SnapshotDbClient,
