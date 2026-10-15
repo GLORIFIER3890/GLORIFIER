@@ -199,55 +199,49 @@ export default function App() {
 
   // This control changes a local preference only; it does not connect a source or create revenue.
   const handleToggleFootprint = (id: string) => {
-    setFootprints(prev => {
-      const next = prev.map(f => f.id === id
-        ? { ...f, isMonetized: !f.isMonetized, status: 'configured-not-verified' as const }
-        : f);
-      const requestedEnabled = next.find(f => f.id === id)?.isMonetized === true;
-      void persistAppState({ footprints: next });
-      void recordGovernedAction('footprint-local-configuration-change', {
-        footprintId: id,
-        requestedEnabled,
-        externalDataConnectionVerified: false,
-        monetizationVerified: false,
-      });
-      return next;
+    const next = footprints.map(f => f.id === id
+      ? { ...f, isMonetized: !f.isMonetized, status: 'configured-not-verified' as const }
+      : f);
+    const requestedEnabled = next.find(f => f.id === id)?.isMonetized === true;
+    setFootprints(next);
+    void persistAppState({ footprints: next });
+    void recordGovernedAction('footprint-local-configuration-change', {
+      footprintId: id,
+      requestedEnabled,
+      externalDataConnectionVerified: false,
+      monetizationVerified: false,
     });
   };
 
   // Privacy selections are stored as configuration only; this UI does not transform source data.
   const handleUpdatePrivacyTier = (id: string, tier: PrivacyTier, epsilon: number) => {
-    setFootprints(prev => {
-      const next = prev.map(f => f.id === id
-        ? { ...f, privacyTier: tier, privacyEpsilon: epsilon, status: 'configured-not-verified' as const }
-        : f);
-      void persistAppState({ footprints: next });
-      void recordGovernedAction('footprint-privacy-configuration-change', {
-        footprintId: id,
-        privacyTier: tier,
-        epsilon,
-        runtimeEnforcementVerified: false,
-      });
-      return next;
+    const next = footprints.map(f => f.id === id
+      ? { ...f, privacyTier: tier, privacyEpsilon: epsilon, status: 'configured-not-verified' as const }
+      : f);
+    setFootprints(next);
+    void persistAppState({ footprints: next });
+    void recordGovernedAction('footprint-privacy-configuration-change', {
+      footprintId: id,
+      privacyTier: tier,
+      epsilon,
+      runtimeEnforcementVerified: false,
     });
   };
 
   // Save policy preferences without inventing a privacy score or revenue forecast.
   const handleUpdatePolicy = (newPolicy: Partial<MonetizationPolicy>) => {
-    setPolicy(prev => {
-      const updated = { ...prev, ...newPolicy };
-      if (currentUser) {
-        void import('./services/firestoreService')
-          .then(({ saveUserPolicy }) => saveUserPolicy(currentUser.uid, updated))
-          .catch(console.error);
-        void recordGovernedAction('monetization-policy-change', {
-          policy: updated,
-          privacyRuntimeEnforcementVerified: false,
-          revenueForecastVerified: false,
-        });
-      }
-      return updated;
-    });
+    const updated = { ...policy, ...newPolicy };
+    setPolicy(updated);
+    if (currentUser) {
+      void import('./services/firestoreService')
+        .then(({ saveUserPolicy }) => saveUserPolicy(currentUser.uid, updated))
+        .catch(console.error);
+      void recordGovernedAction('monetization-policy-change', {
+        policy: updated,
+        privacyRuntimeEnforcementVerified: false,
+        revenueForecastVerified: false,
+      });
+    }
   };
 
   // Accept offer. Use the state transition itself as the source of truth so a rapid click
