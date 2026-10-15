@@ -284,8 +284,8 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
   };
 
   const handleWithdraw = async () => {
-    if (!Number.isFinite(amount) || amount <= 0 || amount > Number(stats.totalEarnedUsd)) {
-      setPayoutError('Enter a valid amount within the verified available balance.');
+    if (verifiedAvailableUsd == null || !Number.isFinite(amount) || amount <= 0 || amount > verifiedAvailableUsd) {
+      setPayoutError('A server-confirmed available payout balance is required. Enter an amount within that balance.');
       return;
     }
     if (!isCurrentAddressValid()) {
@@ -323,13 +323,14 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount, method, destination, userReference, actor: 'human-owner' })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || `Payout request HTTP ${res.status}`);
-
-      if (data.status === 'blocked') throw new Error(data.note || 'Payout request blocked by governance.');
+      const data = await res.json().catch(() => ({}));
+      const payout = data?.payout;
+      if (!res.ok || data?.ok !== true || !payout?.payoutRequestId || payout.status !== 'pending') {
+        throw new Error(data?.error || payout?.note || `Payout request was not accepted (HTTP ${res.status}).`);
+      }
 
       setSettledReceipt({
-        txHash: data.payoutRequestId,
+        txHash: payout.payoutRequestId,
         amountUsd: amount,
         tokenSymbol: payoutCategory === 'crypto' ? selectedToken : 'USD',
         network: payoutCategory === 'crypto'
@@ -343,7 +344,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
         timestamp: new Date().toLocaleString(),
         isCrypto: payoutCategory === 'crypto'
       });
-      onWithdrawSuccess(amount, method, data.payoutRequestId);
+      onWithdrawSuccess(amount, method, payout.payoutRequestId);
     } catch (error) {
       setPayoutError(error instanceof Error ? error.message : 'Payout request failed.');
       console.error('Payout request failed:', error);
@@ -416,9 +417,9 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
         {!settledReceipt ? (
           <div className="p-5 space-y-4 overflow-y-auto grow">
             <div className="p-4 rounded-xl bg-slate-950 border border-slate-800">
-              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Available Balance</div>
+              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Server-confirmed available balance</div>
               <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">
-                ${Number(stats.totalEarnedUsd || 0).toFixed(2)} USD
+                {verifiedAvailableUsd == null ? 'NOT VERIFIED' : '$' + verifiedAvailableUsd.toFixed(2) + ' USD'}
               </div>
             </div>
 
@@ -429,7 +430,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                 <input
                   type="number"
                   min="0.01"
-                  max={Number(stats.totalEarnedUsd || 0)}
+                  max={verifiedAvailableUsd ?? 0}
                   step="0.01"
                   value={amount}
                   onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
@@ -438,7 +439,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                 />
                 <button
                   type="button"
-                  onClick={() => setAmount(Number(stats.totalEarnedUsd || 0))}
+                  onClick={() => setAmount(verifiedAvailableUsd ?? 0)}
                   className="absolute right-2 top-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold"
                 >
                   MAX
@@ -572,7 +573,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
 
             <button
               onClick={handleWithdraw}
-              disabled={isProcessing || amount <= 0 || amount > Number(stats.totalEarnedUsd || 0) || !isCurrentAddressValid()}
+              disabled={isProcessing || balanceLoading || verifiedAvailableUsd == null || amount <= 0 || amount > verifiedAvailableUsd || !isCurrentAddressValid()}
               className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold text-xs transition-all"
             >
               {isProcessing ? 'Submitting…' : `Request Payout • $${amount.toFixed(2)} USD`}
