@@ -88,10 +88,18 @@ Useful scripts declared in `package.json` include:
 
 Some scripts may require environment variables, credentials, external services, or additional setup. Check `package.json` and the relevant documentation before running specialized tests.
 
+## Docker image
+
+- [Docker Hub image repository](https://hub.docker.com/r/glorifier/glorifier)
+- [Container build, health check, security scan, and release policy](docs/dockerhub-release.md)
+
+The Docker publishing workflow is gated by successful `GLORIFIER CI` on a push to `main`, followed by a Trivy scan before Docker Hub login and publishing. Configure the `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` repository secrets before a release can publish. A successful build is not proof that a production deployment is running or healthy.
+
 ## Documentation
 
 - [Documentation directory](docs/)
 - [Linux- and Web-inspired architecture](docs/linux-web-inspired-architecture.md)
+- [SAP-inspired enterprise operations architecture](docs/sap-inspired-enterprise-operations-architecture.md)
 - [Canonical GLR asset registry](docs/canonical-asset-registry.md)
 - [Tokenomics](docs/tokenomics.md)
 - [Hybrid multichain money architecture](docs/glr-hybrid-multichain-money.md)
