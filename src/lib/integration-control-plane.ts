@@ -107,11 +107,15 @@ const persistSnapshotInTransaction = async (
     return snapshot;
   }
 
-  await client.query(
-    'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1',
+  const checked = await client.query<{ last_checked_at: Date | string }>(
+    'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1 RETURNING last_checked_at',
     [row.id]
   );
-  return (row.snapshot as IntegrationControlSnapshot | undefined) ?? snapshot;
+  const storedSnapshot = (row.snapshot as IntegrationControlSnapshot | undefined) ?? snapshot;
+  const lastCheckedAt = checked.rows[0]?.last_checked_at;
+  return lastCheckedAt
+    ? { ...storedSnapshot, synchronizedAt: new Date(lastCheckedAt).toISOString() }
+    : storedSnapshot;
 };
 
 const persistSnapshotIfChanged = async (
@@ -129,13 +133,19 @@ const persistSnapshotIfChanged = async (
     await client.query('COMMIT');
     return effectiveSnapshot;
   } catch (error) {
+    let discardClient = false;
     if (client) {
-      try { await client.query('ROLLBACK'); } catch { /* preserve original error */ }
+      try {
+        await client.query('ROLLBACK');
+      } catch {
+        // A failed rollback leaves the connection state uncertain; discard it.
+        discardClient = true;
+      }
     }
     console.warn('[IntegrationControlPlane] persistence deferred:', error instanceof Error ? error.message : error);
     return snapshot;
   } finally {
-    client?.release();
+    client?.release(Boolean(client && discardClient));
   }
 };
 
