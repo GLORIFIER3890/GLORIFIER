@@ -26,6 +26,7 @@ export interface PayingCustomerEvidence {
   customerRef: string;
   onboardingCompletedRef: string;
   independentlyVerifiedSettlementRef: string;
+  settlementIndependentlyVerified: boolean;
   deliveryAcceptanceRef: string;
   evidenceBundleSha256: string;
 }
@@ -102,6 +103,7 @@ export const validatePayingCustomerEvidence = (e: PayingCustomerEvidence): GateS
   return allChecksPass([
     validCommonEvidence(refs, [e.evidenceBundleSha256]),
     e.environment === 'production',
+    e.settlementIndependentlyVerified === true,
   ]) ? 'VERIFIED' : 'NOT VERIFIED';
 };
 
