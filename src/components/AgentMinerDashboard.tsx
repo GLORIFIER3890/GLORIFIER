@@ -31,7 +31,6 @@ export const AgentMinerDashboard: React.FC = () => {
       await load();
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Agent Miner request unavailable.');
-      throw error;
     } finally { setBusy(false); }
   };
   const s = snapshot;
