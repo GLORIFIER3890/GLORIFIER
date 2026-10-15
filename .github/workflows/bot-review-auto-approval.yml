@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate GitHub Actions workflow files
-        uses: rhysd/actionlint@v1
+        uses: reviewdog/action-actionlint@v1
 
   evaluate:
     name: Validate bot review and CI before approval
