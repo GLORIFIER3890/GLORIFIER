@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { ShieldCheck, Layers, Activity } from 'lucide-react';
 import { SovereignStats, DataFootprintSource, MonetizationPolicy, CompensationTransaction } from '../types';
 const LiveEconomicData = React.lazy(() => import('./LiveEconomicData').then((module) => ({ default: module.LiveEconomicData })));
@@ -144,19 +144,19 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateToTab }) => 
         <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-[10px] text-slate-400">Economic truth remains separate: market value and estimates are not revenue. Revenue becomes VERIFIED only from qualifying economic and settlement evidence.</div>
       </section>
 
-      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading  live economic data…</div>}>
+      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading live economic data…</div>}>
         <LiveEconomicData />
       </Suspense>
-      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading  business model panel…</div>}>
+      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading business model panel…</div>}>
         <BusinessModelPanel />
       </Suspense>
-      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading  valuation engine panel…</div>}>
+      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading valuation engine panel…</div>}>
         <ValuationEnginePanel />
       </Suspense>
-      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading  economic operating system panel…</div>}>
+      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading economic operating system panel…</div>}>
         <EconomicOperatingSystemPanel />
       </Suspense>
-      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading  business intelligence architecture panel…</div>}>
+      <Suspense fallback={<div role="status" className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-xs text-slate-400">Loading business intelligence architecture panel…</div>}>
         <BusinessIntelligenceArchitecturePanel />
       </Suspense>
 
