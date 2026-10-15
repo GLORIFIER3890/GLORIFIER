@@ -1,6 +1,8 @@
 name: Bot Review Auto-Approval Gate
 
 on:
+  push:
+    branches: [main]
   pull_request_target:
     types: [opened, reopened, synchronize, ready_for_review]
   pull_request_review:
@@ -24,6 +26,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate-workflow:
+    name: Lint workflow syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate GitHub Actions workflow files
+        uses: rhysd/actionlint@v1
+
   evaluate:
     name: Validate bot review and CI before approval
     runs-on: ubuntu-latest
@@ -74,7 +84,18 @@ jobs:
                 (review.user?.type === 'Bot' || login.endsWith('[bot]') ||
                  ['coderabbitai', 'deepsource-io', 'snyk-bot', 'github-actions'].includes(login));
             });
-            if (botReviews.length === 0) return stop('no recognized bot scan/review comment was found.');
+            const inlineComments = await github.paginate(github.rest.pulls.listReviewComments, {
+              owner, repo, pull_number: number
+            });
+            const botInlineComments = inlineComments.filter(comment => {
+              const login = comment.user?.login || '';
+              return comment.user?.type === 'Bot' || login.endsWith('[bot]') ||
+                ['coderabbitai', 'deepsource-io', 'snyk-bot', 'github-actions'].includes(login);
+            });
+            const substantiveBotReviews = botReviews.filter(review => (review.body || '').trim().length > 0);
+            if (botReviews.length === 0 || (botInlineComments.length === 0 && substantiveBotReviews.length === 0)) {
+              return stop('no substantive recognized bot scan/review feedback was found.');
+            }
 
             if (reviews.some(review => review.state === 'CHANGES_REQUESTED' && review.user?.type !== 'Bot')) {
               return stop('a human reviewer requested changes.');
