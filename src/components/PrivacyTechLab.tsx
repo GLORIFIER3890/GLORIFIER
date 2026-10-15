@@ -67,7 +67,7 @@ export const PrivacyTechLab: React.FC = () => {
     'Local weights initialized on client smartphone/desktop',
     'Local backward pass completed: ΔW computed without sending telemetry',
     'Local Differential Privacy noise (ε=0.5) added to gradient vector',
-    'Zero-Knowledge Proof of valid gradient bounds verified by aggregator'
+    'SIMULATED: gradient threshold check passed; no cryptographic proof was generated'
   ]);
 
   const handleTrainFlRound = () => {
@@ -498,18 +498,18 @@ export const PrivacyTechLab: React.FC = () => {
                   className="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center gap-1.5"
                 >
                   {zkpIsGenerating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
-                  Synthesize Proof
+                  Run simulation
                 </button>
               </div>
 
               <div className="font-mono text-xs text-slate-300 bg-slate-900 p-2 rounded border border-slate-800 truncate">
-                Proof = {zkpProofHex}
+                Pseudo-proof output = {zkpProofHex}
               </div>
 
               <div className="flex items-center justify-between pt-1">
-                <span className="text-xs text-slate-400">On-Chain Verifier Output:</span>
+                <span className="text-xs text-slate-400">Local threshold result (simulated):</span>
                 <span className={`text-xs font-bold font-mono px-2 py-0.5 rounded ${
-                  zkpVerifierResult ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
+                  !zkpHasRun ? 'bg-amber-500/20 text-amber-300' : zkpVerifierResult ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
                 }`}>
                   {!zkpHasRun ? 'NOT RUN' : zkpVerifierResult ? 'SIMULATED PASS — NOT A CRYPTOGRAPHIC PROOF' : 'SIMULATED FAIL — NOT A CRYPTOGRAPHIC PROOF'}
                 </span>
