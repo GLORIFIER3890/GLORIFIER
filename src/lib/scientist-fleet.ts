@@ -1,5 +1,3 @@
-import crypto from 'node:crypto';
-
 export type ScientistDomain = 
   | 'security_vulnerabilities'
   | 'performance_systems'
@@ -148,32 +146,8 @@ export async function resolveInternetIssue(issueId: string): Promise<InternetIss
 }
 
 // Approve a high-value or consequential resolution
-export function approveAndClaimIssueBounty(issueId: string, approver = 'human-owner'): InternetIssue {
-  const issue = issues.find(i => i.id === issueId);
-  if (!issue) throw new Error(`Issue ${issueId} not found`);
-
-  issue.monetization.approvedByHuman = true;
-  issue.monetization.claimed = true;
-  issue.monetization.claimedAt = new Date().toISOString();
-  issue.monetization.txProof = '0x' + crypto.randomBytes(20).toString('hex');
-  issue.status = 'bounty_claimed';
-
-  monetizationState.claimableYieldUsd += issue.monetization.bountyRewardUsd;
-  monetizationState.totalEarnedUsd += issue.monetization.bountyRewardUsd;
-  monetizationState.bountiesResolvedCount += 1;
-
-  monetizationState.monetizationLedger.unshift({
-    id: `led-${Date.now()}`,
-    timestamp: new Date().toISOString(),
-    scientistCodename: 'HUMAN-APPROVED-CLAIM',
-    issueTitle: issue.title,
-    targetPlatform: issue.monetization.sourcePlatform,
-    rewardUsd: issue.monetization.bountyRewardUsd,
-    txHash: issue.monetization.txProof,
-    status: 'settled'
-  });
-
-  return issue;
+export function approveAndClaimIssueBounty(_issueId: string, _approver = 'human-owner'): InternetIssue {
+  throw new Error('Bounty claiming is unavailable until a payment provider confirms settlement. No payout or ledger entry was created.');
 }
 
 // Target submissions are disabled until a real worker and verification pipeline are configured.
