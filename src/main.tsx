@@ -4,53 +4,69 @@ import App from './App.tsx';
 import './index.css';
 
 const nativeApiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+
+function resolveRequestUrl(input: RequestInfo | URL): URL | null {
+  try {
+    const rawUrl = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    return new URL(rawUrl, window.location.href);
+  } catch {
+    return null;
+  }
+}
+
+function isApiPath(pathname: string): boolean {
+  return /^\/api(?:\/|$)/.test(pathname);
+}
+
+function rewriteApiRequest(
+  input: RequestInfo | URL,
+  requestUrl: URL,
+  apiBase: string,
+  currentOrigin: string,
+): { input: RequestInfo | URL; requestUrl: URL } {
+  if (!apiBase || requestUrl.origin !== currentOrigin || !isApiPath(requestUrl.pathname)) {
+    return { input, requestUrl };
+  }
+  const rewrittenUrl = new URL(apiBase + requestUrl.pathname + requestUrl.search);
+  const rewrittenInput = input instanceof Request ? new Request(rewrittenUrl.href, input) : rewrittenUrl;
+  return { input: rewrittenInput, requestUrl: rewrittenUrl };
+}
+
+function reportHtmlApiResponse(response: Response, requestUrl: URL, isApiRequest: boolean): Response {
+  const isHtml = response.headers.get('content-type')?.toLowerCase().includes('text/html') || false;
+  if (!isApiRequest || !isHtml) return response;
+
+  console.error('[GLORIFIER API] Expected an API response but received HTML.', {
+    path: requestUrl.pathname,
+    status: response.status,
+  });
+  return new Response(JSON.stringify({
+    ok: false,
+    error: 'The API route returned HTML instead of an API response. Backend routing is unavailable or misconfigured.',
+    code: 'API_HTML_RESPONSE',
+    path: requestUrl.pathname,
+    upstreamStatus: response.status,
+  }), {
+    status: 502,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  });
+}
+
 if (typeof window !== 'undefined') {
   const originalFetch = window.fetch.bind(window);
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    let requestUrl: URL;
-    try {
-      requestUrl = new URL(
-        typeof input === 'string' ? input : input instanceof URL ? input.href : input.url,
-        window.location.href,
-      );
-    } catch {
-      return originalFetch(input, init);
-    }
+    const resolvedUrl = resolveRequestUrl(input);
+    if (!resolvedUrl) return originalFetch(input, init);
 
-    const isApiRequest = requestUrl.pathname === '/api' ||
-      requestUrl.pathname.startsWith('/api/');
-
-    if (nativeApiBase && requestUrl.origin === window.location.origin &&
-        (requestUrl.pathname === '/api' || requestUrl.pathname.startsWith('/api/'))) {
-      requestUrl = new URL(nativeApiBase + requestUrl.pathname + requestUrl.search);
-      input = input instanceof Request ? new Request(requestUrl.href, input) : requestUrl;
-    }
-
-    const response = await originalFetch(input, init);
-    if (!isApiRequest || !response.headers.get('content-type')?.toLowerCase().includes('text/html')) {
-      return response;
-    }
-
-    console.error('[GLORIFIER API] Expected an API response but received HTML.', {
-      path: requestUrl.pathname,
-      status: response.status,
-    });
-    return new Response(JSON.stringify({
-      ok: false,
-      error: 'The API route returned HTML instead of an API response. Backend routing is unavailable or misconfigured.',
-      code: 'API_HTML_RESPONSE',
-      path: requestUrl.pathname,
-      upstreamStatus: response.status,
-    }), {
-      status: 502,
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Cache-Control': 'no-store',
-      },
-    });
+    const isApiRequest = isApiPath(resolvedUrl.pathname);
+    const rewritten = rewriteApiRequest(input, resolvedUrl, nativeApiBase, window.location.origin);
+    const response = await originalFetch(rewritten.input, init);
+    return reportHtmlApiResponse(response, rewritten.requestUrl, isApiRequest);
   };
 }
-
 
 class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   state = { error: null as Error | null };
