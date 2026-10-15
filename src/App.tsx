@@ -289,11 +289,11 @@ export default function App() {
     // A payout success callback is only allowed to update state after an authoritative
   // payout provider has returned qualifying settlement evidence.
   const handleWithdrawSuccess = (amount: number, method: string, txHash: string) => {
-    void recordGovernedAction('payout-settlement-callback', {
+    void recordGovernedAction('payout-request-created', {
       amount,
       method,
       txHash,
-      note: 'UI callback recorded for audit; authoritative payout ledger remains source of truth.'
+      note: 'A payout request was recorded; no external transfer or settlement was confirmed by this UI callback.'
     }, [{ type: 'external-reference', ref: txHash }]);
   };
 
