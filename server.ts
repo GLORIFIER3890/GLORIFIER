@@ -346,9 +346,13 @@ app.get('/api/monetization/subscription', async (req: Request, res: Response) =>
   }
 });
 
-app.get('/api/payouts', async (req: Request, res: Response) => {
+app.get('/api/payouts', requireOwner, async (req: Request, res: Response) => {
   try {
+    const authenticatedUid = String((req as any).auth?.uid || '').trim();
     const userReference = String(req.query.userReference || '').trim();
+    if (!authenticatedUid || userReference !== authenticatedUid) {
+      return res.status(403).json({ ok: false, error: 'Payout balance access is limited to the authenticated owner account.' });
+    }
     const [balance, requests] = await Promise.all([
       getAvailablePayoutBalance(userReference),
       listPayoutRequests(userReference),
