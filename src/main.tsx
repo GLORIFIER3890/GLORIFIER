@@ -12,16 +12,20 @@ const isLoopbackHttp = (url: URL): boolean =>
 const isAllowedApiUrl = (url: URL): boolean =>
   url.protocol === 'https:' || isLoopbackHttp(url);
 
-const getNativeApiBase = (value: string): string => {
-  if (!value) return '';
+const parseApiBaseUrl = (value: string): URL | null => {
+  if (!value) return null;
   try {
-    const configuredUrl = new URL(value);
-    return isAllowedApiUrl(configuredUrl) && !configuredUrl.search && !configuredUrl.hash
-      ? value
-      : '';
+    return new URL(value);
   } catch {
-    return '';
+    return null;
   }
+};
+
+const getNativeApiBase = (value: string): string => {
+  const configuredUrl = parseApiBaseUrl(value);
+  if (!configuredUrl || !isAllowedApiUrl(configuredUrl)) return '';
+  if (configuredUrl.search || configuredUrl.hash) return '';
+  return value;
 }
 
 const nativeApiBase = getNativeApiBase(configuredApiBase);
