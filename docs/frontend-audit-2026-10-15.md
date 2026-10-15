@@ -9,7 +9,7 @@ Scope: public Cloudflare Workers URL, repository frontend entry point, Vite conf
 - The Vite entry document references /src/main.tsx, the normal development entry path. A production Vite build ordinarily rewrites this to generated assets; the live response must be inspected to verify which build is actually deployed.
 - src/main.tsx installs a production service worker and wraps the app in a React error boundary. The boundary can show React render errors, but it cannot catch failures that occur before the entry module loads or all errors in asynchronous callbacks.
 - public/sw.js previously returned cached index.html for any failed same-origin GET outside /api/. That can return HTML to a JavaScript, CSS, image, or font request. This is a confirmed fallback-design defect, though not yet proof it caused every blank-screen report.
-- vercel.json explicitly routes /api/* and /auth/* to Railway and defines VITE_API_BASE_URL as the Railway origin. Cloudflare must have its own equivalent routing contract; Vercel rules do not configure a Workers deployment.
+- vercel.json explicitly routes /api/* and /auth/* to Railway and defines VITE_API_BASE_URL as the Railway origin. Vercel rules do not configure Cloudflare. This branch now adds src/worker.ts and configures wrangler.jsonc to send /api/* and /auth/* through an explicit Railway proxy before static-asset fallback; this is proposed code pending preview validation, not a claim about the current production Worker.
 
 ## Truthfulness requirements
 
@@ -18,6 +18,15 @@ Scope: public Cloudflare Workers URL, repository frontend entry point, Vite conf
 - Show API errors as explicit unavailable/unknown states; do not parse HTML as JSON or silently substitute success-shaped sample data.
 - Do not label an action completed until the server confirms it. Show pending, confirmed, failed, and unverified states separately.
 - Never put secrets or tokens in browser bundles, screenshots, or public logs.
+
+## Changes proposed in the preview branch
+
+- Add a static startup fallback in index.html so a failed JavaScript module does not leave an empty white root; it reports that backend/account status was not checked.
+- Correct the React error boundary so it does not claim backend reachability without evidence.
+- Add a frontend guard that turns HTML returned for /api/* into an explicit 502 JSON error rather than a confusing JSON parse exception.
+- Add an explicit Cloudflare Worker proxy for /api/* and /auth/* to the existing Railway backend; unknown backend routes stay backend responses instead of being treated as successful SPA pages.
+- Display a persistent evidence notice because several modules initialize from local sample values.
+- Restrict service-worker cleanup to the one known legacy cache, avoiding deletion of other caches that happen to share a prefix.
 
 ## Safe rebuild acceptance gates
 
