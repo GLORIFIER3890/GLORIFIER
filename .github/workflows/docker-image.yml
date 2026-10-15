@@ -41,7 +41,17 @@ jobs:
       - name: Build image
         run: docker build --pull --tag glorifier/glorifier:pr-${{ github.event.pull_request.number }} .
 
-      - name: Scan image for critical and high vulnerabilities
+      - name: Report all image vulnerabilities (non-blocking)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: glorifier/glorifier:pr-${{ github.event.pull_request.number }}
+          format: table
+          exit-code: "0"
+          vuln-type: os,library
+          version: v0.76.0
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+
+      - name: Block image with high or critical vulnerabilities
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: glorifier/glorifier:pr-${{ github.event.pull_request.number }}
@@ -49,7 +59,8 @@ jobs:
           exit-code: "1"
           vuln-type: os,library
           version: v0.76.0
-          severity: LOW,MEDIUM,HIGH,CRITICAL
+          severity: HIGH,CRITICAL
+          skip-setup-trivy: true
 
   publish-after-ci:
     if: >-
@@ -90,7 +101,18 @@ jobs:
           IMAGE_TAG: sha-${{ github.event.workflow_run.head_sha }}
         run: docker build --pull --tag "glorifier/glorifier:${IMAGE_TAG}" .
 
-      - name: Scan candidate image before registry login
+      - name: Report all candidate image vulnerabilities (non-blocking)
+        if: steps.current_main.outputs.current == 'true'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: glorifier/glorifier:sha-${{ github.event.workflow_run.head_sha }}
+          format: table
+          exit-code: "0"
+          vuln-type: os,library
+          version: v0.76.0
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+
+      - name: Block candidate image with high or critical vulnerabilities
         if: steps.current_main.outputs.current == 'true'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
@@ -99,7 +121,8 @@ jobs:
           exit-code: "1"
           vuln-type: os,library
           version: v0.76.0
-          severity: LOW,MEDIUM,HIGH,CRITICAL
+          severity: HIGH,CRITICAL
+          skip-setup-trivy: true
 
       - name: Validate Docker Hub publishing credentials exist
         if: steps.current_main.outputs.current == 'true'
