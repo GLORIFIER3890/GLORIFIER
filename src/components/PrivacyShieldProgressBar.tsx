@@ -101,45 +101,14 @@ export const PrivacyShieldProgressBar: React.FC<PrivacyShieldProgressBarProps> =
     prevScoreRef.current = score;
   }, [score]);
 
-  // Determine current Tier based on score
-  const getTierInfo = (value: number) => {
-    if (value >= 96) {
-      return {
-        label: 'Tier IV: Sovereign Citadel',
-        badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-        description: 'Zero-Knowledge Cryptographic Enclaves • Full PII Erasure',
-        color: 'from-emerald-400 to-teal-300',
-        barGradient: 'from-emerald-500 via-teal-400 to-cyan-300'
-      };
-    }
-    if (value >= 90) {
-      return {
-        label: 'Tier III: Cryptographic Enclave',
-        badge: 'bg-teal-500/20 text-teal-300 border-teal-500/40',
-        description: 'Differential Privacy ε ≤ 0.35 • Ad-Brokers Quarantined',
-        color: 'from-teal-400 to-cyan-300',
-        barGradient: 'from-emerald-500 via-teal-400 to-cyan-400'
-      };
-    }
-    if (value >= 82) {
-      return {
-        label: 'Tier II: Differential Bastion',
-        badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
-        description: 'Synthetic Twins & Coarse K-Anonymity Active',
-        color: 'from-cyan-400 to-blue-300',
-        barGradient: 'from-teal-500 via-cyan-400 to-blue-400'
-      };
-    }
-    return {
-      label: 'Tier I: Monitored Enclave',
-      badge: 'bg-slate-800 text-slate-300 border-slate-700',
-      description: 'Standard Licensing Protection',
-      color: 'from-indigo-400 to-slate-300',
-      barGradient: 'from-indigo-500 via-purple-400 to-pink-400'
-    };
+  // The interface has no independent runtime attestation for privacy enforcement.
+  const tier = {
+    label: 'NOT VERIFIED: configuration only',
+    badge: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
+    description: 'Selected privacy targets are configuration only. Data transformation, differential privacy, cryptographic attestation, and tracker quarantine are not verified.',
+    color: 'from-amber-400 to-slate-300',
+    barGradient: 'from-amber-500 to-slate-500'
   };
-
-  const tier = getTierInfo(score);
 
   return (
     <div className={`rounded-xl bg-slate-900/90 border transition-all duration-500 p-4 shadow-sm relative overflow-hidden ${
@@ -189,10 +158,10 @@ export const PrivacyShieldProgressBar: React.FC<PrivacyShieldProgressBarProps> =
             transition={{ duration: 0.5 }}
             className="text-2xl font-bold font-mono text-emerald-400 tracking-tight"
           >
-            {score}/100
+            NOT VERIFIED
           </motion.span>
           <span className="text-xs text-slate-400 font-medium">
-            {tier.label.split(':')[1]?.trim() || 'Military-grade'}
+            {tier.label.split(':')[1]?.trim() || 'NOT VERIFIED'}
           </span>
         </div>
 
@@ -237,7 +206,7 @@ export const PrivacyShieldProgressBar: React.FC<PrivacyShieldProgressBarProps> =
       <div className="mt-3 relative z-10">
         <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1 font-mono">
           <span>Protection Level</span>
-          <span className="text-emerald-400 font-semibold">{score}% Fortified</span>
+          <span className="text-emerald-400 font-semibold">Runtime enforcement: NOT VERIFIED</span>
         </div>
 
         {/* Outer Bar Track */}
@@ -252,7 +221,7 @@ export const PrivacyShieldProgressBar: React.FC<PrivacyShieldProgressBarProps> =
           {/* Animated Fill Bar */}
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${Math.min(100, Math.max(5, score))}%` }}
+            animate={{ width: '0%' }}
             transition={{ type: 'spring', stiffness: 55, damping: 14 }}
             className={`h-full rounded-full bg-gradient-to-r ${tier.barGradient} relative shadow-[0_0_12px_rgba(52,211,153,0.5)]`}
           >
@@ -285,18 +254,17 @@ export const PrivacyShieldProgressBar: React.FC<PrivacyShieldProgressBarProps> =
                 globalEpsilon: 0.15,
                 allowAdTargeting: false,
                 allowInsuranceRiskProfiling: false,
-                minimumMonthlyFloorUsd: 50
               });
             }}
             className="text-emerald-400 hover:text-emerald-300 font-semibold text-[11px] flex items-center gap-1 shrink-0 ml-2 transition-colors group"
-            title="Update to Strict Sovereign to maximize privacy and trigger Level-Up"
+            title="Changes a local policy target only; runtime privacy enforcement is not verified"
           >
-            <span>Fortify Shield</span>
+            <span>Update local target</span>
             <ArrowUp className="w-3 h-3 group-hover:-translate-y-0.5 transition-transform" />
           </button>
         ) : (
           <span className="text-emerald-400 font-medium font-mono text-[11px] shrink-0">
-            100% Sovereign
+            NOT VERIFIED
           </span>
         )}
       </div>
