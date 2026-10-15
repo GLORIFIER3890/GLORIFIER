@@ -1,0 +1,26 @@
+name: Workflow Syntax Validation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    name: Lint workflow syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout proposed workflow changes
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Validate workflow syntax
+        uses: reviewdog/action-actionlint@v1
+        with:
+          actionlint_flags: ".github/workflows/"
+          fail_level: error
