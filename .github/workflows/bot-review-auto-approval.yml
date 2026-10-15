@@ -31,15 +31,21 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            // Ignore this workflow's own completed check suite to avoid loops.
+            // Identify this workflow's own checks by run/check-run identity, not by a reusable display name.
+            const currentJobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              owner, repo, run_id: context.runId, per_page: 100
+            });
+            const ownCheckRunIds = new Set(currentJobs.map(job => job.id));
+
             if (context.eventName === 'check_suite') {
-              const suite = await github.rest.checks.listForSuite({
-                owner, repo, check_suite_id: context.payload.check_suite.id, per_page: 100
+              const ownWorkflowRuns = await github.paginate(github.rest.actions.listWorkflowRunsForWorkflow, {
+                owner,
+                repo,
+                workflow_id: 'bot-review-auto-approval.yml',
+                check_suite_id: context.payload.check_suite.id,
+                per_page: 100
               });
-              const ownCheckNames = new Set([
-                'Validate bot review and CI before approval'
-              ]);
-              if (suite.data.check_runs.some(run => ownCheckNames.has(run.name))) {
+              if (ownWorkflowRuns.length > 0) {
                 core.notice('Ignoring this workflow’s own check suite.');
                 return;
               }
@@ -153,8 +159,8 @@ jobs:
             const allRuns = await github.paginate(github.rest.checks.listForRef, {
               owner, repo, ref: headSha, per_page: 100
             });
-            // The current gate's own in-progress check must not block the decision it is making.
-            const runs = allRuns.filter(run => run.name !== 'Validate bot review and CI before approval');
+            // Exclude only this workflow run's own checks; other checks with the same display name still count.
+            const runs = allRuns.filter(run => !ownCheckRunIds.has(run.id));
             const combinedStatus = await github.rest.repos.getCombinedStatusForRef({ owner, repo, ref: headSha });
             if (combinedStatus.data.state !== 'success') {
               return stop(`combined commit status is ${combinedStatus.data.state}; required status contexts must pass.`);
