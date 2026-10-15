@@ -90,18 +90,62 @@ export const getIdToken = async (): Promise<string | null> => {
 // receives the current Firebase ID token. Existing UI modules can continue using
 // fetch(), while privileged backend routes still enforce verification server-side.
 const nativeFetch = typeof window !== 'undefined' ? window.fetch.bind(window) : null;
-if (typeof window !== 'undefined' && nativeFetch) {
-  window.fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
-    const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-    const sameOriginApi = url.startsWith('/api/') || (url.startsWith(window.location.origin + '/api/'));
-    if (!sameOriginApi) return nativeFetch(input, init);
-    const headers = new Headers(init.headers || (typeof input !== 'string' && !(input instanceof URL) ? input.headers : undefined));
-    if (!headers.has('Authorization')) {
-      const token = await getIdToken();
-      if (token) headers.set('Authorization', 'Bearer ' + token);
+const configuredApiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+let configuredApiOrigin: string | null = null;
+try {
+  if (configuredApiBase) {
+    const configuredUrl = new URL(configuredApiBase);
+    const isHttps = configuredUrl.protocol === 'https:';
+    const isLoopbackHttp = configuredUrl.protocol === 'http:' &&
+      ['localhost', '127.0.0.1', '[::1]', '::1'].includes(configuredUrl.hostname);
+    if (isHttps || isLoopbackHttp) {
+      configuredApiOrigin = configuredUrl.origin;
+    } else {
+      console.error('VITE_API_BASE_URL must use HTTPS (HTTP is allowed only for loopback development); external API requests will not receive automatic Firebase auth.');
     }
-    return nativeFetch(input, { ...init, headers });
-  };
+  }
+} catch {
+  console.error('VITE_API_BASE_URL is invalid; external API requests will not receive automatic Firebase auth.');
+}
+const getRequestUrl = (input: RequestInfo | URL): string => {
+  if (typeof input === 'string') return input;
+  if (input instanceof URL) return input.toString();
+  return input.url;
+};
+const parseRequestUrl = (input: RequestInfo | URL): URL | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return new URL(getRequestUrl(input), window.location.origin);
+  } catch {
+    return null;
+  }
+};
+const shouldAttachFirebaseToken = (input: RequestInfo | URL): boolean => {
+  const parsedUrl = parseRequestUrl(input);
+  return Boolean(
+    parsedUrl &&
+    parsedUrl.pathname.startsWith('/api/') &&
+    (parsedUrl.origin === window.location.origin ||
+      (configuredApiOrigin !== null && parsedUrl.origin === configuredApiOrigin))
+  );
+};
+const getInputHeaders = (input: RequestInfo | URL): HeadersInit | undefined =>
+  typeof input === 'string' || input instanceof URL ? undefined : input.headers;
+const fetchWithOptionalFirebaseAuthorization = async (
+  input: RequestInfo | URL,
+  init: RequestInit = {}
+): Promise<Response> => {
+  if (!nativeFetch) throw new Error('Fetch is unavailable in this environment.');
+  if (!shouldAttachFirebaseToken(input)) return nativeFetch(input, init);
+  const headers = new Headers(init.headers || getInputHeaders(input));
+  if (!headers.has('Authorization')) {
+    const token = await getIdToken();
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+  }
+  return nativeFetch(input, { ...init, headers });
+};
+if (typeof window !== 'undefined' && nativeFetch) {
+  window.fetch = fetchWithOptionalFirebaseAuthorization;
 }
 
 export const authenticatedFetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
