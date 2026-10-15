@@ -30,13 +30,10 @@ const isValidReasoning = (reasoning: unknown): reasoning is string =>
 
 const isValidAssessment = (value: unknown): value is OfferAssessment => {
   if (typeof value !== 'object' || value === null) return false;
-
   const assessment = value as Record<string, unknown>;
-  return [
-    isValidScore(assessment.score),
-    isValidVerdict(assessment.verdict),
-    isValidReasoning(assessment.reasoning),
-  ].every(Boolean);
+  if (!isValidScore(assessment.score)) return false;
+  if (!isValidVerdict(assessment.verdict)) return false;
+  return isValidReasoning(assessment.reasoning);
 };
 
 const requestOfferAssessment = async (
@@ -94,25 +91,40 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
     setCounterPrice(suggested);
   };
 
+  const isCurrentEvaluation = (offerId: string, requestId: number) =>
+    evaluationRequestIds.current[offerId] === requestId;
+
+  const clearEvaluationResult = (offerId: string) => {
+    setEvaluationResults(previous => Object.fromEntries(
+      Object.entries(previous).filter(([id]) => id !== offerId)
+    ));
+  };
+
+  const storeEvaluationFailure = (offerId: string, error: unknown) => {
+    clearEvaluationResult(offerId);
+    setEvaluationErrors(previous => ({
+      ...previous,
+      [offerId]: error instanceof Error ? error.message : 'AI evaluation unavailable.'
+    }));
+  };
+
   const handleRunAiEvaluation = async (offer: BuyerOffer) => {
     const requestId = (evaluationRequestIds.current[offer.id] || 0) + 1;
     evaluationRequestIds.current[offer.id] = requestId;
     setEvaluatingIds(previous => ({ ...previous, [offer.id]: true }));
     try {
       const assessment = await requestOfferAssessment(offer, policy);
-      if (evaluationRequestIds.current[offer.id] !== requestId) return;
+      if (!isCurrentEvaluation(offer.id, requestId)) return;
       setEvaluationResults(previous => ({ ...previous, [offer.id]: assessment }));
-      setEvaluationErrors(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => id !== offer.id)));
-    } catch (e) {
-      if (evaluationRequestIds.current[offer.id] !== requestId) return;
-      console.error('Offer AI evaluation failed:', e);
-      setEvaluationResults(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => id !== offer.id)));
-      setEvaluationErrors(previous => ({
-        ...previous,
-        [offer.id]: e instanceof Error ? e.message : 'AI evaluation unavailable.'
-      }));
+      setEvaluationErrors(previous => Object.fromEntries(
+        Object.entries(previous).filter(([id]) => id !== offer.id)
+      ));
+    } catch (error) {
+      if (!isCurrentEvaluation(offer.id, requestId)) return;
+      console.error('Offer AI evaluation failed:', error);
+      storeEvaluationFailure(offer.id, error);
     } finally {
-      if (evaluationRequestIds.current[offer.id] === requestId) {
+      if (isCurrentEvaluation(offer.id, requestId)) {
         setEvaluatingIds(previous => ({ ...previous, [offer.id]: false }));
       }
     }
