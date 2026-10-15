@@ -36,6 +36,8 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
   const [counteringOfferId, setCounteringOfferId] = useState<string | null>(null);
   const [counterPrice, setCounterPrice] = useState<number>(0);
   const [evaluatingId, setEvaluatingId] = useState<string | null>(null);
+  const [evaluationResults, setEvaluationResults] = useState<Record<string, { score: number; verdict: string; reasoning: string }>>({});
+  const [evaluationErrors, setEvaluationErrors] = useState<Record<string, string>>({});
 
   const filteredOffers = offers.filter(o => {
     if (filter === 'all') return true;
@@ -63,17 +65,21 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
         throw new Error(`HTTP ${res.status}`);
       }
       const data = await res.json();
-      if (data.score) {
-        offer.aiBrokerScore = data.score;
-        offer.aiVerdict = data.verdict;
-        offer.aiBrokerReasoning = data.reasoning;
+      if (!Number.isFinite(data.score) || data.score < 0 || data.score > 100 ||
+          !['RECOMMEND', 'CAUTION', 'REJECT'].includes(data.verdict) ||
+          typeof data.reasoning !== 'string' || !data.reasoning.trim()) {
+        throw new Error('AI evaluation response was incomplete or invalid.');
       }
+      setEvaluationResults(previous => ({ ...previous, [offer.id]: {
+        score: data.score, verdict: data.verdict, reasoning: data.reasoning
+      }}));
+      setEvaluationErrors(previous => { const next = { ...previous }; delete next[offer.id]; return next; });
     } catch (e) {
-      console.error(e);
-      // Resilient sovereign valuation fallback
-      offer.aiBrokerScore = offer.offeredCompUsd >= policy.minimumMonthlyFloorUsd ? 88 : 62;
-      offer.aiVerdict = offer.offeredCompUsd >= policy.minimumMonthlyFloorUsd ? 'RECOMMEND' : 'CAUTION';
-      offer.aiBrokerReasoning = `Autonomous valuation: Offer at $${offer.offeredCompUsd} meets baseline requirements with differential privacy bounds (${offer.maxEpsilonAllowed} \u03b5).`;
+      console.error('Offer AI evaluation failed:', e);
+      setEvaluationErrors(previous => ({
+        ...previous,
+        [offer.id]: e instanceof Error ? e.message : 'AI evaluation unavailable.'
+      }));
     } finally {
       setEvaluatingId(null);
     }
@@ -121,28 +127,36 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
           const isRejected = offer.status === 'REJECTED';
           const isCountered = offer.status === 'COUNTERED';
           const isEvaluating = evaluatingId === offer.id;
+          const assessment = evaluationResults[offer.id] || (
+            typeof offer.aiBrokerScore === 'number' && offer.aiVerdict && offer.aiBrokerReasoning
+              ? { score: offer.aiBrokerScore, verdict: offer.aiVerdict, reasoning: offer.aiBrokerReasoning }
+              : null
+          );
 
           const getVerdictBadge = () => {
-            if (offer.aiVerdict === 'RECOMMEND') {
+            if (!assessment) {
+              return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Not evaluated</span>;
+            }
+            if (assessment.verdict === 'RECOMMEND') {
               return (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  {offer.aiBrokerScore}/100 Match • RECOMMEND
+                  {assessment.score}/100 Match • RECOMMEND
                 </span>
               );
             }
-            if (offer.aiVerdict === 'CAUTION') {
+            if (assessment.verdict === 'CAUTION') {
               return (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  {offer.aiBrokerScore}/100 Match • CAUTION
+                  {assessment.score}/100 Match • CAUTION
                 </span>
               );
             }
             return (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30">
                 <XCircle className="w-3.5 h-3.5" />
-                {offer.aiBrokerScore}/100 Match • REJECT
+                {assessment.score}/100 Match • REJECT
               </span>
             );
           };
@@ -241,7 +255,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                       {policy.aiModel || 'GPT-4o'}
                     </span>
                   </div>
-                  <span className="text-slate-300">{offer.aiBrokerReasoning}</span>
+                  <span className="text-slate-300">{assessment?.reasoning || evaluationErrors[offer.id] || 'No verified AI assessment is available yet. Run an evaluation; a failed request will not produce a score or recommendation.'}</span>
                 </div>
                 <button
                   onClick={() => handleRunAiEvaluation(offer)}
