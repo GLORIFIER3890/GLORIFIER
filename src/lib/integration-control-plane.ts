@@ -111,16 +111,13 @@ const persistSnapshotInTransaction = async (
     'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1 RETURNING last_checked_at',
     [row.id]
   );
-  const storedSnapshot = (row.snapshot as IntegrationControlSnapshot | undefined) ?? snapshot;
-  const lastCheckedAt = checked.rows[0]?.last_checked_at;
-  const checkedAtIso = lastCheckedAt instanceof Date
-    ? lastCheckedAt.toISOString()
-    : typeof lastCheckedAt === 'string'
-      ? new Date(lastCheckedAt).toISOString()
-      : null;
-  return checkedAtIso
-    ? { ...storedSnapshot, synchronizedAt: checkedAtIso }
-    : storedSnapshot;
+  if (checked.rowCount !== 1 || !checked.rows[0]) {
+    throw new Error(`integration snapshot ${row.id} missing during last_checked_at update`);
+  }
+
+  // synchronizedAt is the snapshot's state-change time, not the latest read/check time.
+  // Keep it stable for unchanged content; last_checked_at records the freshness check.
+  return (row.snapshot as IntegrationControlSnapshot | undefined) ?? snapshot;
 };
 
 const persistSnapshotIfChanged = async (
