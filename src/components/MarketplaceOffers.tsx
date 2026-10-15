@@ -63,20 +63,20 @@ const getOfferCardClass = (status: string): string => {
   }
 };
 
+const VERDICT_BADGE_CONFIG = {
+  RECOMMEND: { classes: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30', Icon: CheckCircle2 },
+  CAUTION: { classes: 'bg-amber-500/15 text-amber-300 border-amber-500/30', Icon: AlertTriangle },
+  REJECT: { classes: 'bg-rose-500/15 text-rose-300 border-rose-500/30', Icon: XCircle },
+} as const;
+
 const getVerdictBadge = (assessment: OfferAssessment | null) => {
   if (!assessment) {
     return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Not evaluated</span>;
   }
-  const badgeClasses = assessment.verdict === 'RECOMMEND'
-    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-    : assessment.verdict === 'CAUTION'
-      ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-      : 'bg-rose-500/15 text-rose-300 border-rose-500/30';
-  const BadgeIcon = assessment.verdict === 'RECOMMEND'
-    ? CheckCircle2
-    : assessment.verdict === 'CAUTION' ? AlertTriangle : XCircle;
+  const config = VERDICT_BADGE_CONFIG[assessment.verdict];
+  const BadgeIcon = config.Icon;
   return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${badgeClasses}`}>
+    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${config.classes}`}>
       <BadgeIcon className="w-3.5 h-3.5" />
       {assessment.score}/100 Match • {assessment.verdict}
     </span>
