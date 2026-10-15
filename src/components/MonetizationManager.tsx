@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Bot, BrainCircuit, DollarSign, Gauge, Play, ShieldCheck, TrendingUp, Wallet } from 'lucide-react';
 import { MonetizationPolicy, SovereignStats } from '../types';
 import type { User } from 'firebase/auth';
+import { authenticatedFetch } from '../lib/firebase';
 
 interface MonetizationManagerProps {
   policy: MonetizationPolicy;
@@ -18,7 +19,7 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
   useEffect(() => {
     if (!currentUser) { setSubscription(null); return; }
     let cancelled = false;
-    void fetch('/api/monetization/subscription?customerReference=' + encodeURIComponent(currentUser.uid), { cache: 'no-store' })
+    void authenticatedFetch('/api/monetization/subscription?customerReference=' + encodeURIComponent(currentUser.uid), { cache: 'no-store' })
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok || data?.ok !== true) throw new Error(data?.error || 'Subscription status unavailable');
@@ -32,7 +33,7 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
     const orderId = params.get('token');
     if (params.get('payment') === 'success' && orderId) {
       setPaymentMessage('Verifying payment with the server…');
-      void fetch('/api/monetization/capture', {
+      void authenticatedFetch('/api/monetization/capture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customerReference: currentUser.uid, orderId }),
@@ -60,7 +61,7 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
     if (!currentUser) { setPaymentMessage('Sign in with Google before purchasing a plan.'); return; }
     setCheckoutLoading(planId); setPaymentMessage('');
     try {
-      const response = await fetch('/api/monetization/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerReference: currentUser.uid, planId }) });
+      const response = await authenticatedFetch('/api/monetization/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerReference: currentUser.uid, planId }) });
       const data = await response.json();
       const approvalUrl = data?.checkout?.approvalUrl || data?.approvalUrl;
       let parsedApprovalUrl: URL | null = null;
