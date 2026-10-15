@@ -37,6 +37,52 @@ const isValidAssessment = (value: unknown): value is OfferAssessment =>
   isValidVerdict(value.verdict) &&
   isValidReasoning(value.reasoning);
 
+const getOfferAssessment = (
+  offer: BuyerOffer,
+  current: OfferAssessment | undefined,
+  error: string | undefined
+): OfferAssessment | null => {
+  if (error) return null;
+  if (current) return current;
+  const persisted = {
+    score: offer.aiBrokerScore,
+    verdict: offer.aiVerdict,
+    reasoning: offer.aiBrokerReasoning,
+  };
+  return isValidAssessment(persisted) ? persisted : null;
+};
+
+const getOfferCardClass = (status: string): string => {
+  switch (status) {
+    case 'ACCEPTED':
+      return 'bg-slate-900/90 border-emerald-500/40 shadow-sm';
+    case 'REJECTED':
+      return 'bg-slate-950/50 border-slate-850 opacity-70';
+    default:
+      return 'bg-slate-900/95 border-slate-800 hover:border-slate-700 shadow-md';
+  }
+};
+
+const getVerdictBadge = (assessment: OfferAssessment | null) => {
+  if (!assessment) {
+    return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Not evaluated</span>;
+  }
+  const badgeClasses = assessment.verdict === 'RECOMMEND'
+    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+    : assessment.verdict === 'CAUTION'
+      ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+      : 'bg-rose-500/15 text-rose-300 border-rose-500/30';
+  const BadgeIcon = assessment.verdict === 'RECOMMEND'
+    ? CheckCircle2
+    : assessment.verdict === 'CAUTION' ? AlertTriangle : XCircle;
+  return (
+    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${badgeClasses}`}>
+      <BadgeIcon className="w-3.5 h-3.5" />
+      {assessment.score}/100 Match • {assessment.verdict}
+    </span>
+  );
+};
+
 const requestOfferAssessment = async (
   offer: BuyerOffer,
   policy: MonetizationPolicy
@@ -91,7 +137,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
   const [counterPrice, setCounterPrice] = useState<number>(0);
   const [evaluatingIds, setEvaluatingIds] = useState<Record<string, boolean>>({});
   const evaluationRequestIds = useRef<Record<string, number>>({});
-  const [evaluationResults, setEvaluationResults] = useState<Record<string, { score: number; verdict: string; reasoning: string }>>({});
+  const [evaluationResults, setEvaluationResults] = useState<Record<string, OfferAssessment>>({});
   const [evaluationErrors, setEvaluationErrors] = useState<Record<string, string>>({});
 
   const filteredOffers = offers.filter(o => {
@@ -210,54 +256,17 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
           // A failed re-evaluation invalidates both the previous local result and any
           // persisted offer assessment until a later successful evaluation clears the error.
           const evaluationError = evaluationErrors[offer.id];
-          const persistedAssessment = {
-            score: offer.aiBrokerScore,
-            verdict: offer.aiVerdict,
-            reasoning: offer.aiBrokerReasoning,
-          };
-          const assessment = evaluationError ? null : (
-            evaluationResults[offer.id] || (isValidAssessment(persistedAssessment) ? persistedAssessment : null)
+          const assessment = getOfferAssessment(
+            offer,
+            evaluationResults[offer.id],
+            evaluationError
           );
-
-          const getVerdictBadge = () => {
-            if (!assessment) {
-              return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Not evaluated</span>;
-            }
-            if (assessment.verdict === 'RECOMMEND') {
-              return (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  {assessment.score}/100 Match • RECOMMEND
-                </span>
-              );
-            }
-            if (assessment.verdict === 'CAUTION') {
-              return (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                  {assessment.score}/100 Match • CAUTION
-                </span>
-              );
-            }
-            return (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30">
-                <XCircle className="w-3.5 h-3.5" />
-                {assessment.score}/100 Match • REJECT
-              </span>
-            );
-          };
 
           return (
             <div
               key={offer.id}
               id={`offer-card-${offer.id}`}
-              className={`rounded-xl border p-5 transition-all ${
-                isAccepted
-                  ? 'bg-slate-900/90 border-emerald-500/40 shadow-sm'
-                  : isRejected
-                  ? 'bg-slate-950/50 border-slate-850 opacity-70'
-                  : 'bg-slate-900/95 border-slate-800 hover:border-slate-700 shadow-md'
-              }`}
+              className={`rounded-xl border p-5 transition-all ${getOfferCardClass(offer.status)}`}
             >
               <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                 {/* Left: Buyer info & specs */}
@@ -327,7 +336,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                     )}
                   </div>
 
-                  <div>{getVerdictBadge()}</div>
+                  <div>{getVerdictBadge(assessment)}</div>
                 </div>
               </div>
 
