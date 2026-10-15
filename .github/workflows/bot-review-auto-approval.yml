@@ -110,11 +110,10 @@ jobs:
             const reviews = await github.paginate(github.rest.pulls.listReviews, {
               owner, repo, pull_number: number, per_page: 100
             });
-            const botLogin = user => {
-              const login = user?.login || '';
-              return user?.type === 'Bot' || login.endsWith('[bot]') ||
-                ['coderabbitai', 'deepsource-io', 'snyk-bot', 'github-actions'].includes(login);
-            };
+            // Only explicitly trusted review integrations may satisfy the bot-evidence gate.
+            // Generic bot accounts and GitHub Actions must never count as independent review.
+            const trustedReviewBots = new Set(['coderabbitai[bot]', 'deepsource-io[bot]', 'snyk-bot']);
+            const botLogin = user => trustedReviewBots.has(user?.login || '');
             const currentHeadBotReviews = reviews.filter(review =>
               botLogin(review.user) && review.commit_id === headSha
             );
