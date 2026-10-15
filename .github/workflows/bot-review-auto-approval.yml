@@ -47,6 +47,23 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
+
+            // Do not let this workflow react to its own check suite completion.
+            // Other workflows' check suites still trigger re-evaluation after CI finishes.
+            if (context.eventName === 'check_suite') {
+              const suite = await github.rest.checks.listForSuite({
+                owner, repo, check_suite_id: context.payload.check_suite.id, per_page: 100
+              });
+              const ownCheckNames = new Set([
+                'Validate bot review and CI before approval',
+                'Lint workflow syntax'
+              ]);
+              if (suite.data.check_runs.some(run => ownCheckNames.has(run.name))) {
+                core.notice('Ignoring this workflow’s own check suite to prevent a re-trigger loop.');
+                return;
+              }
+            }
+
             let pr = context.payload.pull_request || context.payload.review?.pull_request || null;
             const requestedNumber = Number(context.payload.inputs?.pull_request_number || 0);
 
