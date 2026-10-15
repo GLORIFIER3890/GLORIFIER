@@ -130,7 +130,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
               return (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  Stored score {offer.aiBrokerScore}/100 · NOT VERIFIED
+                  Stored verdict: RECOMMEND · score {offer.aiBrokerScore}/100 · NOT VERIFIED
                 </span>
               );
             }
@@ -138,14 +138,14 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
               return (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  {offer.aiBrokerScore}/100 Match • CAUTION
+                  Stored verdict: CAUTION · score {offer.aiBrokerScore}/100 · NOT VERIFIED
                 </span>
               );
             }
             return (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30">
                 <XCircle className="w-3.5 h-3.5" />
-                {offer.aiBrokerScore}/100 Match • REJECT
+                Stored verdict: REJECT · score {offer.aiBrokerScore}/100 · NOT VERIFIED
               </span>
             );
           };
@@ -176,7 +176,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                       </span>
                     )}
                     <span className="text-[10px] font-mono text-slate-400">
-                      Reputation: {offer.reputationScore}/100
+                      Stored reputation claim: {offer.reputationScore}/100 · NOT VERIFIED
                     </span>
                   </div>
 
