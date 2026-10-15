@@ -129,7 +129,7 @@ export const AiScientistFleetConsole: React.FC<AiScientistFleetConsoleProps> = (
               Scientist Fleet (execution not verified)
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-400">
-              Five domain specialists continuously discover, diagnose, test, and report issues under GLORIFIER governance.
+              No live agents or issue records are configured. This panel will show activity only when the backend provides verifiable evidence.
             </p>
           </div>
 
@@ -142,12 +142,12 @@ export const AiScientistFleetConsole: React.FC<AiScientistFleetConsoleProps> = (
               <span className={`h-1.5 w-1.5 rounded-full ${
                 running ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'
               }`} />
-              {running ? 'Running 24/7' : 'Paused'}
+              {running ? 'Running (not independently verified)' : 'Disabled / NOT VERIFIED'}
             </span>
             <button
               type="button"
               onClick={toggleFleet}
-              disabled={busy || !state}
+              disabled={busy || !state || fleet.length === 0}
               className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-200 transition hover:border-slate-600 hover:bg-slate-800 disabled:opacity-50"
             >
               {busy ? (
@@ -157,7 +157,7 @@ export const AiScientistFleetConsole: React.FC<AiScientistFleetConsoleProps> = (
               ) : (
                 <Play className="h-3.5 w-3.5" />
               )}
-              {running ? 'Pause' : 'Resume'}
+              {running ? 'Pause' : fleet.length === 0 ? 'Unavailable' : 'Resume'}
             </button>
           </div>
         </div>
