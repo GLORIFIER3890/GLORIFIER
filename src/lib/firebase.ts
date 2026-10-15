@@ -130,18 +130,26 @@ const shouldAttachFirebaseToken = (input: RequestInfo | URL): boolean => {
   );
 };
 const getInputHeaders = (input: RequestInfo | URL): HeadersInit | undefined =>
-  typeof input === 'string' || input instanceof URL ? undefined : input.headers;
+  input instanceof Request ? input.headers : undefined;
+
+const getFirebaseAuthorizationHeaders = async (
+  input: RequestInfo | URL,
+  init: RequestInit,
+): Promise<Headers> => {
+  const headers = new Headers(init.headers ?? getInputHeaders(input));
+  if (headers.has('Authorization')) return headers;
+  const token = await getIdToken();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  return headers;
+};
+
 const fetchWithOptionalFirebaseAuthorization = async (
   input: RequestInfo | URL,
-  init: RequestInit = {}
+  init: RequestInit = {},
 ): Promise<Response> => {
   if (!nativeFetch) throw new Error('Fetch is unavailable in this environment.');
   if (!shouldAttachFirebaseToken(input)) return nativeFetch(input, init);
-  const headers = new Headers(init.headers || getInputHeaders(input));
-  if (!headers.has('Authorization')) {
-    const token = await getIdToken();
-    if (token) headers.set('Authorization', `Bearer ${token}`);
-  }
+  const headers = await getFirebaseAuthorizationHeaders(input, init);
   return nativeFetch(input, { ...init, headers });
 };
 if (typeof window !== 'undefined' && nativeFetch) {
