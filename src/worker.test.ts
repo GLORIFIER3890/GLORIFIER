@@ -13,6 +13,7 @@ let upstreamResponse = new Response('{"ok":true}', {
 });
 let shouldThrow = false;
 let assetCalls = 0;
+let returnHtmlForAssets = false;
 
 function getCapturedRequest(): Request {
   if (!capturedRequest) throw new Error('Expected the Worker to call the backend.');
@@ -23,6 +24,7 @@ const env: TestEnv = {
   ASSETS: {
     async fetch() {
       assetCalls += 1;
+      if (returnHtmlForAssets) return new Response('<!doctype html><title>SPA</title>', { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
       return new Response('static asset', { status: 200 });
     },
   },
@@ -43,6 +45,15 @@ async function run(): Promise<void> {
     assert.equal(await staticResponse.text(), 'static asset');
     assert.equal(assetCalls, 1);
     assert.equal(capturedRequest, null, 'static assets must not call the backend');
+
+    returnHtmlForAssets = true;
+    const missingAsset = await worker.fetch(
+      new Request('https://glorifier.glorifier.workers.dev/assets/missing-chunk.js'),
+      env,
+    );
+    assert.equal(missingAsset.status, 404, 'SPA HTML must not be served as a missing JavaScript asset');
+    assert.match(missingAsset.headers.get('content-type') || '', /^text\/plain/i);
+    returnHtmlForAssets = false;
 
     const apiResponse = await worker.fetch(
       new Request('https://glorifier.glorifier.workers.dev/api/runtime-verification?probeAi=false'),
