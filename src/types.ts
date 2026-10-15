@@ -300,7 +300,7 @@ export interface CodeSentinelError {
   patchDiff?: string;
   canAutoFix: boolean;
   autoFixedAt?: string;
-  assignedBot: 'GPT-Sentinel' | 'Gemini-Inspector' | 'Dual-Consensus-Healer';
+  assignedBot: 'GPT-Sentinel' | 'Gemini-Inspector' | 'Dual-Consensus-Healer' | 'unassigned';
 }
 
 export interface SentinelLogEntry {
