@@ -98,56 +98,60 @@ const isFresh = (observedAt: string, retrievedAt: string, maxAgeSeconds: number,
     && timestampWithinAge(retrieved, current, maxAgeMs);
 };
 
-/** Resolve an indicative fiat amount without treating it as a GLR market price. */
-const getFiatQuote = (
-  currency: string,
-  fiatRate: FiatRateEvidence | null | undefined,
-  now: Date,
-): {
+type FiatQuoteFields = {
   fiatReferenceAmount: string | null;
   fiatRateSource: string | null;
   fiatRateObservedAt: string | null;
   fiatStatus: GLRAIServiceQuote['quoteStatus'];
-} => {
-  if (currency === 'USD') {
-    return {
-      fiatReferenceAmount: '0.05',
-      fiatRateSource: 'GLORIFIER service tariff (USD reference)',
-      fiatRateObservedAt: now.toISOString(),
-      fiatStatus: 'INDICATIVE',
-    };
-  }
-  if (!fiatRate || fiatRate.currency.toUpperCase() !== currency) {
-    return {
-      fiatReferenceAmount: null,
-      fiatRateSource: null,
-      fiatRateObservedAt: null,
-      fiatStatus: 'NO_RELIABLE_FIAT_RATE',
-    };
-  }
+};
 
-  const rate = parseDecimal(fiatRate.ratePerUsd, 'Fiat rate');
-  const freshRate = rate.units > 0n
-    && isFresh(fiatRate.observedAt, fiatRate.retrievedAt, fiatRate.maxAgeSeconds, now);
-  if (!freshRate) {
-    return {
-      fiatReferenceAmount: null,
-      fiatRateSource: fiatRate.source || null,
-      fiatRateObservedAt: fiatRate.observedAt || null,
-      fiatStatus: 'STALE_FIAT_RATE',
-    };
-  }
+/** Return the fixed USD reference tariff without external FX evidence. */
+const getUsdFiatQuote = (now: Date): FiatQuoteFields => ({
+  fiatReferenceAmount: '0.05',
+  fiatRateSource: 'GLORIFIER service tariff (USD reference)',
+  fiatRateObservedAt: now.toISOString(),
+  fiatStatus: 'INDICATIVE',
+});
 
-  const scale = Math.min(6, Math.max(0, rate.scale));
-  const amountUnits = 5n * rate.units * pow10(scale);
-  const divisor = pow10(rate.scale + 2);
+/** Mark a missing or mismatched FX source as unavailable. */
+const getMissingFiatQuote = (): FiatQuoteFields => ({
+  fiatReferenceAmount: null,
+  fiatRateSource: null,
+  fiatRateObservedAt: null,
+  fiatStatus: 'NO_RELIABLE_FIAT_RATE',
+});
+
+/** Build a stale FX result without publishing a converted amount. */
+const getStaleFiatQuote = (rate: FiatRateEvidence): FiatQuoteFields => ({
+  fiatReferenceAmount: null,
+  fiatRateSource: rate.source || null,
+  fiatRateObservedAt: rate.observedAt || null,
+  fiatStatus: 'STALE_FIAT_RATE',
+});
+
+/** Convert the USD tariff with a fresh foreign-currency rate. */
+const getFreshFiatQuote = (rate: FiatRateEvidence, now: Date): FiatQuoteFields => {
+  const decimal = parseDecimal(rate.ratePerUsd, 'Fiat rate');
+  const scale = Math.min(6, Math.max(0, decimal.scale));
+  const amountUnits = 5n * decimal.units * pow10(scale);
+  const divisor = pow10(decimal.scale + 2);
   const rounded = (amountUnits + divisor / 2n) / divisor;
   return {
     fiatReferenceAmount: formatDecimal(rounded, scale),
-    fiatRateSource: fiatRate.source,
-    fiatRateObservedAt: fiatRate.observedAt,
+    fiatRateSource: rate.source,
+    fiatRateObservedAt: rate.observedAt,
     fiatStatus: 'INDICATIVE',
   };
+};
+
+/** Validate and resolve an indicative fiat amount for a requested currency. */
+const getFiatQuote = (currency: string, rate: FiatRateEvidence | null | undefined, now: Date): FiatQuoteFields => {
+  if (currency === 'USD') return getUsdFiatQuote(now);
+  if (!rate || rate.currency.toUpperCase() !== currency) return getMissingFiatQuote();
+  const decimal = parseDecimal(rate.ratePerUsd, 'Fiat rate');
+  const fresh = decimal.units > 0n
+    && isFresh(rate.observedAt, rate.retrievedAt, rate.maxAgeSeconds, now);
+  return fresh ? getFreshFiatQuote(rate, now) : getStaleFiatQuote(rate);
 };
 
 /** Determine quote status from fiat evidence and optional GLR reference pricing. */
@@ -164,6 +168,18 @@ const getQuoteStatus = (
     : 'STALE_GLR_RATE';
 };
 
+/** Keep quote caveats consistent and explicit for both configured and absent GLR pricing. */
+const getQuoteWarnings = (glrPrice: GLRPriceEvidence | null | undefined): string[] => {
+  const warnings = [
+    'Indicative service-price reference only; not an exchange offer, peg, redemption promise, or payment instruction.',
+    'The 1 GLR service tariff is not a market valuation of GLR.',
+  ];
+  warnings.push(glrPrice
+    ? 'The GLR/USD reference is operator-configured evidence and is not independently validated by this quote endpoint.'
+    : 'No GLR/USD price source is configured; a fiat value for GLR is not presented.');
+  return warnings;
+};
+
 /** Build a non-executable informational service quote from supplied evidence. */
 export const buildGLRAIServiceQuote = (input: {
   currency: string;
@@ -174,11 +190,9 @@ export const buildGLRAIServiceQuote = (input: {
   const now = input.now ?? new Date();
   const currency = input.currency.trim().toUpperCase();
   if (!/^[A-Z]{3}$/.test(currency)) throw new Error('Currency must be a three-letter ISO currency code');
-
   const fiat = getFiatQuote(currency, input.fiatRate, now);
   const quoteStatus = getQuoteStatus(fiat.fiatStatus, input.glrPrice, now);
   const glrPrice = input.glrPrice;
-
   return {
     service: GLR_AI_SUMMARY_SERVICE.id,
     serviceVersion: GLR_AI_SUMMARY_SERVICE.version,
@@ -192,10 +206,6 @@ export const buildGLRAIServiceQuote = (input: {
     glrPriceObservedAt: glrPrice?.observedAt ?? null,
     quoteStatus,
     executable: false,
-    warnings: [
-      'Indicative service-price reference only; not an exchange offer, peg, redemption promise, or payment instruction.',
-      'The 1 GLR service tariff is not a market valuation of GLR.',
-      ...(glrPrice ? ['The GLR/USD reference is operator-configured evidence and is not independently validated by this quote endpoint.'] : ['No GLR/USD price source is configured; a fiat value for GLR is not presented.']),
-    ],
+    warnings: getQuoteWarnings(glrPrice),
   };
 };
