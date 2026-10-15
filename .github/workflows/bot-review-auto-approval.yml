@@ -100,7 +100,9 @@ jobs:
               owner, repo, pull_number: number, per_page: 100
             });
             const highRisk = /(^|\/)(\.github\/workflows|\.github\/CODEOWNERS|CODEOWNERS|.*secret.*|.*credential.*|.*migration.*|.*deploy.*|.*release.*|.*payment.*|.*payout.*|.*wallet.*|.*contract.*|.*auth.*|.*security.*)(\/|$|\.)/i;
-            const riskyFiles = files.filter(file => highRisk.test(file.filename));
+            const riskyFiles = files.filter(file =>
+              highRisk.test(file.filename) || (file.previous_filename && highRisk.test(file.previous_filename))
+            );
             if (riskyFiles.length > 0) {
               return stop(`sensitive paths require human review: ${riskyFiles.map(file => file.filename).join(', ')}`);
             }
@@ -145,6 +147,7 @@ jobs:
                 repository(owner: $owner, name: $repo) {
                   pullRequest(number: $number) {
                     reviewThreads(first: 100) {
+                      pageInfo { hasNextPage }
                       nodes {
                         isResolved
                         comments(first: 20) {
@@ -157,16 +160,23 @@ jobs:
               }`,
               { owner, repo, number }
             );
-            const threads = threadData.repository.pullRequest.reviewThreads.nodes;
+            const reviewThreads = threadData.repository.pullRequest.reviewThreads;
+            if (reviewThreads.pageInfo.hasNextPage) {
+              return stop('more than 100 review threads exist; full pagination must be reviewed before approval.');
+            }
+            const threads = reviewThreads.nodes;
             const unresolved = threads.filter(thread => !thread.isResolved);
             if (unresolved.length > 0) {
               return stop(`${unresolved.length} review thread(s) remain unresolved; fix or explicitly resolve them with evidence first.`);
             }
 
-            const checks = await github.rest.checks.listForRef({
+            const runs = await github.paginate(github.rest.checks.listForRef, {
               owner, repo, ref: headSha, per_page: 100
             });
-            const runs = checks.data.check_runs;
+            const combinedStatus = await github.rest.repos.getCombinedStatusForRef({ owner, repo, ref: headSha });
+            if (combinedStatus.data.state !== 'success') {
+              return stop(`combined commit status is ${combinedStatus.data.state}; required status contexts must pass.`);
+            }
             if (runs.length === 0) return stop('no check runs were found for the exact PR head commit.');
             const unfinished = runs.filter(run => run.status !== 'completed');
             if (unfinished.length > 0) return stop(`${unfinished.length} check run(s) are still running.`);
