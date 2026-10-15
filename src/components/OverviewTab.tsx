@@ -169,7 +169,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateToTab }) => 
               label: 'Verified Revenue',
               value: controlPlane?.economicTruth?.verifiedRevenue == null
                 ? 'NOT OBSERVABLE'
-                : `${Number(controlPlane.economicTruth.verifiedRevenue).toFixed(2)}`,
+                : Number(controlPlane.economicTruth.verifiedRevenue).toFixed(2),
               badge: controlPlane?.economicTruth?.verifiedRevenueLabel || 'NOT VERIFIED',
             },
             { label: 'Pending Approvals', value: controlPlane?.governance?.pendingApprovals ?? '—', badge: 'HUMAN' },
