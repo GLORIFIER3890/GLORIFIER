@@ -312,9 +312,13 @@ function classifyIntegration(item: { status: string; detail: string; id: string 
 
 
 // Monetization and payout API contracts.
-app.post('/api/monetization/checkout', async (req: Request, res: Response) => {
+app.post('/api/monetization/checkout', requireOwner, async (req: Request, res: Response) => {
   try {
+    const authenticatedUid = String((req as any).auth?.uid || '').trim();
     const customerReference = String(req.body?.customerReference || '').trim();
+    if (!authenticatedUid || customerReference !== authenticatedUid) {
+      return res.status(403).json({ ok: false, error: 'Checkout is limited to the authenticated owner account.' });
+    }
     const planId = String(req.body?.planId || '').trim();
     const result = await createCheckout(customerReference, planId);
     res.status(201).json({ ok: true, checkout: result });
@@ -324,9 +328,13 @@ app.post('/api/monetization/checkout', async (req: Request, res: Response) => {
   }
 });
 
-app.post('/api/monetization/capture', async (req: Request, res: Response) => {
+app.post('/api/monetization/capture', requireOwner, async (req: Request, res: Response) => {
   try {
+    const authenticatedUid = String((req as any).auth?.uid || '').trim();
     const customerReference = String(req.body?.customerReference || '').trim();
+    if (!authenticatedUid || customerReference !== authenticatedUid) {
+      return res.status(403).json({ ok: false, error: 'Payment capture is limited to the authenticated owner account.' });
+    }
     const orderId = String(req.body?.orderId || '').trim();
     const result = await captureCheckout(customerReference, orderId);
     res.json({ ok: true, subscription: result });
@@ -336,10 +344,13 @@ app.post('/api/monetization/capture', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/api/monetization/subscription', async (req: Request, res: Response) => {
+app.get('/api/monetization/subscription', requireOwner, async (req: Request, res: Response) => {
   try {
+    const authenticatedUid = String((req as any).auth?.uid || '').trim();
     const customerReference = String(req.query.customerReference || '').trim();
-    if (!customerReference) return res.status(400).json({ ok: false, error: 'customerReference is required' });
+    if (!authenticatedUid || customerReference !== authenticatedUid) {
+      return res.status(403).json({ ok: false, error: 'Subscription status is limited to the authenticated owner account.' });
+    }
     res.json({ ok: true, subscription: await getSubscription(customerReference) });
   } catch (error: any) {
     res.status(503).json({ ok: false, error: 'Subscription lookup unavailable' });
