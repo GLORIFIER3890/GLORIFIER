@@ -30,6 +30,7 @@ const customer = {
   customerRef: 'customer:1',
   onboardingCompletedRef: 'onboarding:1',
   independentlyVerifiedSettlementRef: 'settlement:1',
+  settlementIndependentlyVerified: true,
   deliveryAcceptanceRef: 'acceptance:1',
   evidenceBundleSha256: digest,
 };
