@@ -165,108 +165,229 @@ export interface ProviderExecutionResult {
   providerStatuses: Record<string, 'connected' | 'unavailable' | 'error'>;
 }
 
-export async function executeThroughProviderRegistry(
-  request: ProviderExecutionRequest
-): Promise<ProviderExecutionResult> {
-  const policy = { ...DEFAULT_PROVIDER_EXECUTION_POLICY, ...(request.policy || {}) };
-  if (policy.allowImplicitSystemFallback || policy.allowImplicitProviderFallback || policy.allowImplicitModelFallback) {
+interface ProviderExecutionState {
+  attemptedProviders: string[];
+  errors: string[];
+  providerStatuses: Record<string, 'connected' | 'unavailable' | 'error'>;
+  attempts: number;
+  transientRetries: number;
+}
+
+const isDiscoveryUnavailable = (entry: DiscoveredProvider | undefined): boolean =>
+  Boolean(entry && ['quota_exhausted', 'auth_failure', 'unreachable', 'unconfigured'].includes(entry.availability));
+
+const recordProviderSkip = (
+  provider: AIProvider,
+  discovery: Map<string, DiscoveredProvider>,
+  state: ProviderExecutionState,
+): boolean => {
+  const entry = discovery.get(provider.id);
+  if (isDiscoveryUnavailable(entry)) {
+    state.attemptedProviders.push(provider.id);
+    state.providerStatuses[provider.id] = 'unavailable';
+    state.errors.push(`${provider.id}: discovery=${entry?.availability}`);
+    return true;
+  }
+  if (!isCoolingDown(provider.id)) return false;
+  state.attemptedProviders.push(provider.id);
+  state.providerStatuses[provider.id] = 'unavailable';
+  state.errors.push(`${provider.id}: circuit cooldown active until ${providerCooldownUntil.get(provider.id)}`);
+  return true;
+};
+
+const isRateLimitedError = (message: string, error: unknown): boolean =>
+  /429|RESOURCE_EXHAUSTED|quota|rate.?limit/i.test(message) || parseRetryAfterMs(error) !== null;
+
+const isTransientProviderError = (message: string): boolean =>
+  /408|425|500|502|503|504|timeout|temporar|overloaded|unavailable/i.test(message);
+
+const shouldRetryProvider = (
+  allowRetry: boolean,
+  policy: ProviderExecutionPolicy,
+  state: ProviderExecutionState,
+  message: string,
+  error: unknown,
+): boolean => allowRetry
+  && policy.retryTransientFailures
+  && !isRateLimitedError(message, error)
+  && isTransientProviderError(message)
+  && state.transientRetries < 1
+  && state.attempts < policy.maxAttempts;
+
+const handleProviderFailure = (
+  provider: AIProvider,
+  error: unknown,
+  policy: ProviderExecutionPolicy,
+  state: ProviderExecutionState,
+  allowRetry: boolean,
+  markUnavailable: boolean,
+): boolean => {
+  const message = error instanceof Error ? error.message : String(error);
+  const availability = getProviderAvailability(error);
+  state.providerStatuses[provider.id] = markUnavailable && availability === 'unavailable' ? 'unavailable' : 'error';
+  state.errors.push(`${provider.id}: ${message}`);
+  providerCooldownUntil.set(provider.id, Date.now() + cooldownFor(error));
+  const retry = shouldRetryProvider(allowRetry, policy, state, message, error);
+  if (retry) {
+    state.transientRetries += 1;
+    providerCooldownUntil.delete(provider.id);
+    state.errors.push(`${provider.id}: retrying once after transient failure`);
+  }
+  providerLastFailure.set(provider.id, message.slice(0, 1000));
+  return retry;
+};
+
+const attemptProviderOnce = async (
+  provider: AIProvider,
+  request: ProviderExecutionRequest,
+  policy: ProviderExecutionPolicy,
+  state: ProviderExecutionState,
+  allowRetry: boolean,
+  markUnavailable: boolean,
+  emptyResponseSuffix = '',
+): Promise<{ response?: import('./types').AIResponse; retry: boolean }> => {
+  state.attemptedProviders.push(provider.id);
+  state.providerStatuses[provider.id] = 'connected';
+  state.attempts += 1;
+  try {
+    const providerRequest = {
+      ...request,
+      model: request.model && provider.models().includes(request.model) ? request.model : undefined,
+    };
+    const response = await provider.generate(providerRequest);
+    if (!response.text?.trim()) {
+      state.errors.push(`${provider.id}: empty response${emptyResponseSuffix}`);
+      return { retry: false };
+    }
+    providerCooldownUntil.delete(provider.id);
+    providerLastFailure.delete(provider.id);
+    return { response, retry: false };
+  } catch (error) {
+    return { retry: handleProviderFailure(provider, error, policy, state, allowRetry, markUnavailable) };
+  }
+};
+
+const executeProviderWithRetry = async (
+  provider: AIProvider,
+  request: ProviderExecutionRequest,
+  policy: ProviderExecutionPolicy,
+  state: ProviderExecutionState,
+): Promise<import('./types').AIResponse | undefined> => {
+  let retry = true;
+  while (retry && state.attempts < policy.maxAttempts) {
+    const result = await attemptProviderOnce(provider, request, policy, state, true, true);
+    if (result.response) return result.response;
+    retry = result.retry;
+  }
+  return undefined;
+};
+
+const tryOrderedProviders = async (
+  ordered: AIProvider[],
+  request: ProviderExecutionRequest,
+  policy: ProviderExecutionPolicy,
+  discovery: Map<string, DiscoveredProvider>,
+  state: ProviderExecutionState,
+): Promise<{ response: import('./types').AIResponse; provider: string } | undefined> => {
+  for (const provider of ordered) {
+    if (state.attempts >= policy.maxAttempts) break;
+    if (recordProviderSkip(provider, discovery, state)) continue;
+    const response = await executeProviderWithRetry(provider, request, policy, state);
+    if (response) return { response, provider: provider.id };
+  }
+  return undefined;
+};
+
+const tryRefreshedProviders = async (
+  request: ProviderExecutionRequest,
+  policy: ProviderExecutionPolicy,
+  discovery: Map<string, DiscoveredProvider>,
+  state: ProviderExecutionState,
+): Promise<{ response: import('./types').AIResponse; provider: string } | undefined> => {
+  const refreshed = getConnectedProviders().filter((provider) =>
+    isProviderEligibleAfterRefresh(provider, discovery, request.capability, state.attemptedProviders)
+  );
+  for (const provider of refreshed) {
+    if (state.attempts >= policy.maxAttempts) break;
+    const result = await attemptProviderOnce(provider, request, policy, state, false, false, ' after discovery refresh');
+    if (result.response) return { response: result.response, provider: provider.id };
+  }
+  return undefined;
+};
+
+const assertGovernedFallbackPolicy = (policy: ProviderExecutionPolicy): void => {
+  const implicitFallback = policy.allowImplicitSystemFallback
+    || policy.allowImplicitProviderFallback
+    || policy.allowImplicitModelFallback;
+  if (implicitFallback) {
     throw new Error('Implicit system/provider/model fallback is forbidden by GLORIFIER orchestration policy.');
   }
-  const connected = getConnectedProviders();
-  const preferredProvider = request.preferredProvider
-    || (request.model?.startsWith('gpt') ? 'openai' : undefined);
+};
 
-  let discovery = new Map(getGlobalProviderDiscoverySnapshot().map((entry) => [entry.id, entry]));
-  const refreshDiscovery = async () => {
-    const refreshed = await discoverGlobalProviders('provider-registry-pre-exhaustion');
-    discovery = new Map(refreshed.map((entry) => [entry.id, entry]));
-  };
+const buildExecutionResult = (
+  provider: string,
+  response: import('./types').AIResponse | undefined,
+  state: ProviderExecutionState,
+): ProviderExecutionResult => ({
+  ...(response ? { response } : {}),
+  provider,
+  attemptedProviders: state.attemptedProviders,
+  errors: state.errors,
+  providerStatuses: state.providerStatuses,
+});
+
+const tryDiscoveryRefresh = async (
+  request: ProviderExecutionRequest,
+  policy: ProviderExecutionPolicy,
+  discovery: Map<string, DiscoveredProvider>,
+  state: ProviderExecutionState,
+): Promise<{ response: import('./types').AIResponse; provider: string } | undefined> => {
+  if (!policy.refreshDiscoveryBeforeExhaustion || policy.maxDiscoveryRefreshes <= 0) return undefined;
+  try {
+    await (async () => {
+      const refreshed = await discoverGlobalProviders('provider-registry-pre-exhaustion');
+      discovery.clear();
+      for (const entry of refreshed) discovery.set(entry.id, entry);
+    })();
+    return await tryRefreshedProviders(request, policy, discovery, state);
+  } catch (error) {
+    state.errors.push(`provider-discovery refresh failed: ${error instanceof Error ? error.message : String(error)}`);
+    return undefined;
+  }
+};
+
+const resolveExecutionPolicy = (request: ProviderExecutionRequest): ProviderExecutionPolicy => ({
+  ...DEFAULT_PROVIDER_EXECUTION_POLICY,
+  ...(request.policy || {}),
+});
+
+const resolvePreferredProvider = (request: ProviderExecutionRequest): AIProviderId | undefined =>
+  request.preferredProvider || (request.model?.startsWith('gpt') ? 'openai' : undefined);
+
+const createProviderExecutionState = (): ProviderExecutionState => ({
+  attemptedProviders: [],
+  errors: [],
+  providerStatuses: {},
+  attempts: 0,
+  transientRetries: 0,
+});
+
+/** Execute providers in governed order with bounded retries and one discovery refresh. */
+export const executeThroughProviderRegistry = async (
+  request: ProviderExecutionRequest,
+): Promise<ProviderExecutionResult> => {
+  const policy = resolveExecutionPolicy(request);
+  assertGovernedFallbackPolicy(policy);
+  const connected = getConnectedProviders();
+  const preferredProvider = resolvePreferredProvider(request);
+  const discovery = new Map(getGlobalProviderDiscoverySnapshot().map((entry) => [entry.id, entry]));
   const ordered = [...connected]
     .filter((provider) => isProviderEligible(provider, discovery, request.capability))
     .sort((a, b) => compareProviderOrder(a, b, discovery, preferredProvider));
-
-  const attemptedProviders: string[] = [];
-  const errors: string[] = [];
-  const providerStatuses: Record<string, 'connected' | 'unavailable' | 'error'> = {};
-  let discoveryRefreshes = 0;
-  let attempts = 0;
-  let transientRetries = 0;
-
-  for (const provider of ordered) {
-    if (attempts >= policy.maxAttempts) break;
-    const discovered = discovery.get(provider.id);
-    if (discovered && ['quota_exhausted','auth_failure','unreachable','unconfigured'].includes(discovered.availability)) {
-      attemptedProviders.push(provider.id);
-      providerStatuses[provider.id] = 'unavailable';
-      errors.push(`${provider.id}: discovery=${discovered.availability}`);
-      continue;
-    }
-    if (isCoolingDown(provider.id)) {
-      attemptedProviders.push(provider.id);
-      providerStatuses[provider.id] = 'unavailable';
-      errors.push(`${provider.id}: circuit cooldown active until ${providerCooldownUntil.get(provider.id)}`);
-      continue;
-    }
-    attemptedProviders.push(provider.id);
-    providerStatuses[provider.id] = 'connected';
-    attempts += 1;
-    try {
-      const providerRequest = { ...request, model: request.model && provider.models().includes(request.model) ? request.model : undefined };
-      const response = await provider.generate(providerRequest);
-      if (response.text?.trim()) {
-        providerCooldownUntil.delete(provider.id);
-        providerLastFailure.delete(provider.id);
-        return { response, provider: provider.id, attemptedProviders, errors, providerStatuses };
-      }
-      errors.push(`${provider.id}: empty response`);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      const availability = getProviderAvailability(error);
-      providerStatuses[provider.id] = availability === 'unavailable' ? 'unavailable' : 'error';
-      errors.push(`${provider.id}: ${message}`);
-      providerCooldownUntil.set(provider.id, Date.now() + cooldownFor(error));
-      const transient = /429|408|425|500|502|503|504|timeout|temporar|overloaded|unavailable/i.test(message);
-      if (policy.retryTransientFailures && transient && transientRetries < 1) {
-        transientRetries += 1;
-        providerCooldownUntil.delete(provider.id);
-      }
-      providerLastFailure.set(provider.id, message.slice(0, 1000));
-    }
-  }
-
-  if (policy.refreshDiscoveryBeforeExhaustion && discoveryRefreshes < policy.maxDiscoveryRefreshes) {
-    discoveryRefreshes += 1;
-    try {
-      await refreshDiscovery();
-      const refreshedEligible = getConnectedProviders().filter((provider) =>
-        isProviderEligibleAfterRefresh(provider, discovery, request.capability, attemptedProviders)
-      );
-      for (const provider of refreshedEligible) {
-        if (attempts >= policy.maxAttempts) break;
-        attemptedProviders.push(provider.id);
-        providerStatuses[provider.id] = 'connected';
-        attempts += 1;
-        try {
-          const providerRequest = { ...request, model: request.model && provider.models().includes(request.model) ? request.model : undefined };
-          const response = await provider.generate(providerRequest);
-          if (response.text?.trim()) {
-            providerCooldownUntil.delete(provider.id);
-            providerLastFailure.delete(provider.id);
-            return { response, provider: provider.id, attemptedProviders, errors, providerStatuses };
-          }
-          errors.push(`${provider.id}: empty response after discovery refresh`);
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          providerStatuses[provider.id] = 'error';
-          errors.push(`${provider.id}: ${message}`);
-          providerCooldownUntil.set(provider.id, Date.now() + cooldownFor(error));
-          providerLastFailure.set(provider.id, message.slice(0, 1000));
-        }
-      }
-    } catch (error) {
-      errors.push(`provider-discovery refresh failed: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-
-  return { provider: 'provider-registry-exhausted', attemptedProviders, errors, providerStatuses };
-}
+  const state = createProviderExecutionState();
+  const initial = await tryOrderedProviders(ordered, request, policy, discovery, state);
+  if (initial) return buildExecutionResult(initial.provider, initial.response, state);
+  const refreshed = await tryDiscoveryRefresh(request, policy, discovery, state);
+  if (refreshed) return buildExecutionResult(refreshed.provider, refreshed.response, state);
+  return buildExecutionResult('provider-registry-exhausted', undefined, state);
+};
