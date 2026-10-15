@@ -76,18 +76,21 @@ const VERDICT_BADGE_CONFIG = {
 const NOT_EVALUATED_BADGE_CLASS =
   'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700';
 
-const VerdictBadge: React.FC<{ assessment: OfferAssessment }> = ({ assessment }) => {
+function VerdictBadge({ assessment }: { assessment: OfferAssessment }) {
   const config = VERDICT_BADGE_CONFIG[assessment.verdict];
   const BadgeIcon = config.Icon;
   return (
     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${config.classes}`}>
       <BadgeIcon className="w-3.5 h-3.5" />
-      {assessment.score}/100 Match • {assessment.verdict}
+      Stored verdict: {assessment.verdict} · score {assessment.score}/100 · NOT VERIFIED
     </span>
   );
 };
 
-const getVerdictBadge = (assessment: OfferAssessment | null) => {
+const getVerdictBadge = (assessment: OfferAssessment | null, evaluationError?: string) => {
+  if (evaluationError) {
+    return <span role="status" className={NOT_EVALUATED_BADGE_CLASS}>NOT VERIFIED · evaluation unavailable</span>;
+  }
   if (!assessment) {
     return <span className={NOT_EVALUATED_BADGE_CLASS}>Not evaluated</span>;
   }
@@ -365,7 +368,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                     )}
                   </div>
 
-                  <div>{getVerdictBadge(assessment)}</div>
+                  <div>{getVerdictBadge(assessment, evaluationError)}</div>
                 </div>
               </div>
 
@@ -376,7 +379,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="font-bold text-slate-200">AI Broker Assessment</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono font-semibold uppercase">
-                      {policy.aiModel || 'Server default: gpt-4o'}
+                      {policy.aiModel || 'Server default model (not independently verified)'}
                     </span>
                   </div>
                   <span className="text-slate-300">{assessment?.reasoning || evaluationError || 'No verified AI assessment is available yet. Run an evaluation; a failed request will not produce a score or recommendation.'}</span>
