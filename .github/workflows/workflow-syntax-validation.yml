@@ -20,7 +20,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - name: Validate workflow syntax
-        uses: reviewdog/action-actionlint@v1
+        uses: reviewdog/action-actionlint@3cbf14efd750961dba35fccbf00f9e14028cb1f5
         with:
           actionlint_flags: "-color"
           fail_level: error
