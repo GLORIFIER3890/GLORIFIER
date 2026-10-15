@@ -5,11 +5,12 @@ Scope: public Cloudflare Workers URL, repository frontend entry point, Vite conf
 
 ## Confirmed observations
 
-- The Cloudflare public URL returned an HTML response in an external fetch test, but an API-related client error was visible: Unexpected token '<' ... is not valid JSON. This indicates that at least one request expected JSON but received HTML. The exact request and Worker routing source still need browser/network evidence before assigning a definitive root cause.
+- A live read-only mobile browser test on 2026-10-15 confirmed the Cloudflare production URL renders the shell but 13 dynamic API sections fail: `/api/reports/summary`, public asset quotes, business model, work-unit summary, monetization dashboard, valuation, economic OS, BI architecture, revenue control plane, and asset verification all receive the SPA HTML document instead of JSON. The browser records `Unexpected token '<'` JSON parse errors. This is a confirmed production API-routing/deployment defect, not a blank-screen failure.
 - The Vite entry document references /src/main.tsx, the normal development entry path. A production Vite build ordinarily rewrites this to generated assets; the live response must be inspected to verify which build is actually deployed.
 - src/main.tsx installs a production service worker and wraps the app in a React error boundary. The boundary can show React render errors, but it cannot catch failures that occur before the entry module loads or all errors in asynchronous callbacks.
 - public/sw.js previously returned cached index.html for any failed same-origin GET outside /api/. That can return HTML to a JavaScript, CSS, image, or font request. This is a confirmed fallback-design defect, though not yet proof it caused every blank-screen report.
 - vercel.json explicitly routes /api/* and /auth/* to Railway and defines VITE_API_BASE_URL as the Railway origin. Vercel rules do not configure Cloudflare. This branch now adds src/worker.ts and configures wrangler.jsonc to send /api/* and /auth/* through an explicit Railway proxy before static-asset fallback; this is proposed code pending preview validation, not a claim about the current production Worker.
+- A live GET to `https://glorifier-artificial-intelligence-production.up.railway.app/api/reports/summary` returned HTTP 200 with `application/json` and an `ok: true` envelope. The same path on the Cloudflare Worker returned HTTP 200 `text/html` with the GLORIFIER SPA. This confirms the deployed Cloudflare route is not currently applying the intended API proxy for this request; it does not prove every Railway endpoint is healthy.
 
 ## Truthfulness requirements
 
