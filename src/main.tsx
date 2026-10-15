@@ -4,15 +4,52 @@ import App from './App.tsx';
 import './index.css';
 
 const nativeApiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-if (nativeApiBase && typeof window !== 'undefined') {
+if (typeof window !== 'undefined') {
   const originalFetch = window.fetch.bind(window);
-  window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
-    if (typeof input === 'string' && input.startsWith('/api/')) {
-      input = nativeApiBase + input;
-    } else if (input instanceof URL && input.pathname.startsWith('/api/')) {
-      input = new URL(nativeApiBase + input.pathname + input.search);
+  window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    let requestUrl: URL;
+    try {
+      requestUrl = new URL(
+        typeof input === 'string' ? input : input instanceof URL ? input.href : input.url,
+        window.location.href,
+      );
+    } catch {
+      return originalFetch(input, init);
     }
-    return originalFetch(input, init);
+
+    const isApiRequest = requestUrl.pathname === '/api' ||
+      requestUrl.pathname.startsWith('/api/') ||
+      requestUrl.pathname === '/auth' ||
+      requestUrl.pathname.startsWith('/auth/');
+
+    if (nativeApiBase && requestUrl.origin === window.location.origin &&
+        (requestUrl.pathname === '/api' || requestUrl.pathname.startsWith('/api/'))) {
+      requestUrl = new URL(nativeApiBase + requestUrl.pathname + requestUrl.search);
+      input = requestUrl;
+    }
+
+    const response = await originalFetch(input, init);
+    if (!isApiRequest || !response.headers.get('content-type')?.toLowerCase().includes('text/html')) {
+      return response;
+    }
+
+    console.error('[GLORIFIER API] Expected an API response but received HTML.', {
+      path: requestUrl.pathname,
+      status: response.status,
+    });
+    return new Response(JSON.stringify({
+      ok: false,
+      error: 'The API route returned HTML instead of an API response. Backend routing is unavailable or misconfigured.',
+      code: 'API_HTML_RESPONSE',
+      path: requestUrl.pathname,
+      upstreamStatus: response.status,
+    }), {
+      status: 502,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-store',
+      },
+    });
   };
 }
 
