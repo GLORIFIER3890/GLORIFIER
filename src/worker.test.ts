@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import process from 'node:process';
 import worker from './worker.ts';
 
 type TestEnv = {
@@ -93,5 +92,5 @@ async function run(): Promise<void> {
 
 void run().catch((error) => {
   console.error(error);
-  process.exitCode = 1;
+  throw error;
 });
