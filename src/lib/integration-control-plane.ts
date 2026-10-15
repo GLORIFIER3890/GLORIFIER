@@ -113,8 +113,13 @@ const persistSnapshotInTransaction = async (
   );
   const storedSnapshot = (row.snapshot as IntegrationControlSnapshot | undefined) ?? snapshot;
   const lastCheckedAt = checked.rows[0]?.last_checked_at;
-  return lastCheckedAt
-    ? { ...storedSnapshot, synchronizedAt: new Date(lastCheckedAt).toISOString() }
+  const checkedAtIso = lastCheckedAt instanceof Date
+    ? lastCheckedAt.toISOString()
+    : typeof lastCheckedAt === 'string'
+      ? new Date(lastCheckedAt).toISOString()
+      : null;
+  return checkedAtIso
+    ? { ...storedSnapshot, synchronizedAt: checkedAtIso }
     : storedSnapshot;
 };
 
