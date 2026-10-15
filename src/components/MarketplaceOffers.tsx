@@ -73,10 +73,17 @@ const VERDICT_BADGE_CONFIG = {
   REJECT: { classes: 'bg-rose-500/15 text-rose-300 border-rose-500/30', Icon: XCircle },
 } as const;
 
+const NOT_EVALUATED_BADGE_CLASS =
+  'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700';
+
 const getVerdictBadge = (assessment: OfferAssessment | null) => {
   if (!assessment) {
-    return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Not evaluated</span>;
+    return <span className={NOT_EVALUATED_BADGE_CLASS}>Not evaluated</span>;
   }
+  return <VerdictBadge assessment={assessment} />;
+};
+
+const VerdictBadge: React.FC<{ assessment: OfferAssessment }> = ({ assessment }) => {
   const config = VERDICT_BADGE_CONFIG[assessment.verdict];
   const BadgeIcon = config.Icon;
   return (
