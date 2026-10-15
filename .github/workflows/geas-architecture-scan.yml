@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/lib/governance/geas-architecture-scientist.ts'
       - 'scripts/geas-architecture-*.ts'
+      - 'scripts/geas-authority-*.ts'
+      - 'docs/architecture/geas-*'
       - '.github/workflows/geas-architecture-scan.yml'
       - 'package.json'
   schedule:
@@ -38,6 +40,9 @@ jobs:
 
       - name: Validate GEAS architecture contracts
         run: npm run validate:geas-architecture
+
+      - name: Validate authoritative source registry
+        run: npx tsx scripts/geas-authority-registry-validate.ts
 
       - name: Execute authoritative architecture scan
         run: npm run scan:geas-architecture
