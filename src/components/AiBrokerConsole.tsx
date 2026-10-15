@@ -143,15 +143,18 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
         })
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.ok === false) {
+        throw new Error(data?.error || `Broker API unavailable (HTTP ${res.status})`);
+      }
       const brokerMsg: AiBrokerChatMessage = {
         id: `broker-${Date.now()}`,
         sender: 'ai_broker',
-        content: data.reply || 'I have audited your data streams and verified cryptographic containment.',
+        content: data.reply || 'The broker API returned no reply text. No audit, privacy enforcement, or revenue outcome is verified.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         suggestedAction: data.suggestedAction,
         modelUsed: data.modelUsed || selectedModel,
-        provider: data.provider || 'OpenAI GPT Valuation Engine'
+        provider: data.provider || 'Provider not reported'
       };
 
       setMessages(prev => [...prev, brokerMsg]);
@@ -162,10 +165,10 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
         {
           id: `broker-err-${Date.now()}`,
           sender: 'ai_broker',
-          content: 'My autonomous GPT reasoning engine has verified your parameters. All unconsented tracker queries from ad networks remain blocked, and active licensing yields are accruing normally.',
+          content: 'Broker unavailable. No audit, privacy enforcement, or licensing revenue was verified. Please retry when the API is reachable.',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          modelUsed: selectedModel,
-          provider: 'OpenAI GPT'
+          modelUsed: 'Not executed',
+          provider: 'Not verified'
         }
       ]);
     } finally {
