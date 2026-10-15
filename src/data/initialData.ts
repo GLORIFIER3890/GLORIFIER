@@ -36,10 +36,10 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 68,
     samples: [
-      { field: 'Search Query', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[Tech / Machine Learning Infrastructure query]', noiseLevel: 'Laplacian ε=0.45' },
-      { field: 'Domain Visited', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Top 500 Open-Source Repository', noiseLevel: 'Category Masking' },
-      { field: 'Session IP / Geo', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'US West Coastal Metro (Radius > 45km)', noiseLevel: 'Coarse Truncation' },
-      { field: 'Dwell Time', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Medium Engagement [3m - 6m bucket]', noiseLevel: 'k=50 Binning' }
+      { field: 'Search Query', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Domain Visited', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Session IP / Geo', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Dwell Time', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' }
     ]
   },
   {
@@ -59,10 +59,10 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 74,
     samples: [
-      { field: 'Item Purchased', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'ZK-Proof: Consumer Tech item > $250 purchased in Q1', noiseLevel: 'Zero-Knowledge Attestation' },
-      { field: 'Grocery Intent', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'High-Affinity Organic Food Consumer cluster', noiseLevel: 'Differential ε=0.2' },
-      { field: 'Delivery Address', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'ZIP3 Code Prefix: 941XX (San Francisco metro)', noiseLevel: 'k-Anonymity (k=100)' },
-      { field: 'Payment Medium', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Tier-1 Credit Card Network', noiseLevel: 'Tokenized Redaction' }
+      { field: 'Item Purchased', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Grocery Intent', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Delivery Address', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Payment Medium', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' }
     ]
   },
   {
@@ -82,10 +82,10 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 35,
     samples: [
-      { field: 'Primary Stack', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Senior AI/Systems Engineering profile', noiseLevel: 'Synthetic Profiling' },
-      { field: 'Commit Message', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[Security / Authentication Refactoring]', noiseLevel: 'Vector Sanitization' },
-      { field: 'IDE Usage', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Modern AI-Assisted Developer', noiseLevel: 'Feature Extraction' },
-      { field: 'Build Output', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Linux CI/CD Performance Metric', noiseLevel: 'Gaussian Perturbation' }
+      { field: 'Primary Stack', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Commit Message', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'IDE Usage', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Build Output', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' }
     ]
   },
   {
@@ -105,10 +105,10 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 89,
     samples: [
-      { field: 'Resting Heart Rate', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Synthetic Twin: 57.8 ± 1.2 bpm distribution', noiseLevel: 'Generative Synthetic Twin' },
-      { field: 'Sleep Metrics', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Normal circadian restorative score (88/100)', noiseLevel: 'Differential ε=0.15' },
-      { field: 'Activity Calorie', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Cardio fitness group: Top 15th percentile', noiseLevel: 'Decile Cohort' },
-      { field: 'Medical Conditions', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'ZK-Proof: Verified Clean Health Status for Research', noiseLevel: 'Cryptographic ZK Proof' }
+      { field: 'Resting Heart Rate', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Sleep Metrics', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Activity Calorie', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Medical Conditions', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' }
     ]
   },
   {
@@ -128,9 +128,9 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 55,
     samples: [
-      { field: 'Video Watch Trail', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'STEM Educational Video (Tier 1 Engagement)', noiseLevel: 'k=200 Cluster' },
-      { field: 'Subreddits', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Open Source AI & Tech Communities', noiseLevel: 'Broad Cohort' },
-      { field: 'Sentiment Reaction', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Tech Optimist Sentiment Index: 0.82', noiseLevel: 'Scalar Normalization' }
+      { field: 'Video Watch Trail', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Subreddits', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Sentiment Reaction', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' }
     ]
   },
   {
@@ -150,8 +150,8 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 96,
     samples: [
-      { field: 'Daily Commute', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' },
-      { field: 'Frequent Stops', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' }
+      { field: 'Daily Commute', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Frequent Stops', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' }
     ]
   },
   {
@@ -171,8 +171,8 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 92,
     samples: [
-      { field: 'Monthly Net Savings', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' },
-      { field: 'Recurring SaaS', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[SHIELDED - NO ACCESS GRANTED]', noiseLevel: 'Complete Lockdown' }
+      { field: 'Monthly Net Savings', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Recurring SaaS', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' }
     ]
   },
   {
@@ -192,10 +192,10 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 82,
     samples: [
-      { field: 'Commerce Order Confirmation', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'ZK-Proof: Consumer Tech transaction bucketed in $100-$200 range', noiseLevel: 'Zero-Knowledge Proof' },
-      { field: 'Travel Itinerary', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Synthetic Twin: West Coast domestic corridor traveler', noiseLevel: 'Laplacian ε=0.25' },
-      { field: 'Newsletter Digest', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Professional Technical Researcher cohort', noiseLevel: 'k-Anonymity (k=100)' },
-      { field: 'Vendor Tracking Pixels', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'AdTech Pixel Disarm: 100% neutralized', noiseLevel: 'Privacy Shield Lockdown' }
+      { field: 'Commerce Order Confirmation', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Travel Itinerary', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Newsletter Digest', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Vendor Tracking Pixels', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' }
     ]
   },
   {
@@ -215,10 +215,10 @@ export const initialFootprints: DataFootprintSource[] = [
     description: 'Illustrative sample record only. No live account connection, privacy transformation, external license, or revenue is verified.',
     leakRiskScore: 68,
     samples: [
-      { field: 'Financial Modeling Sheet', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'DP-Laplace Vector: Enterprise SaaS operating cost distribution (±$2.5k noise)', noiseLevel: 'Laplacian ε=0.35' },
-      { field: 'Architecture Technical Spec', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Synthetic Twin: High-scale cloud infrastructure pattern', noiseLevel: 'ZK-Proof Synthesized' },
-      { field: 'Public Shared Link', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'Shadow Link Neutralizer: Access restricted to authorized domain', noiseLevel: 'Enclave Access Control' },
-      { field: 'Contract / Legal Template', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: '[ENCLAVE SHIELDED - ZERO RAW EXPOSURE]', noiseLevel: 'Strict Lockdown' }
+      { field: 'Financial Modeling Sheet', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Architecture Technical Spec', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Public Shared Link', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' },
+      { field: 'Contract / Legal Template', rawValue: '[ILLUSTRATIVE PLACEHOLDER — NO REAL SOURCE DATA]', anonymizedValue: 'NOT VERIFIED — no privacy transformation has been demonstrated', noiseLevel: 'NOT VERIFIED' }
     ]
   }
 ];
