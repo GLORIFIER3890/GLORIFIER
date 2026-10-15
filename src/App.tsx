@@ -81,11 +81,15 @@ export default function App() {
   const persistAppState = async (state: Record<string, unknown>) => {
     if (!currentUser) return;
     try {
-      await fetch('/api/app-state', {
+      const response = await fetch('/api/app-state', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ state })
       });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload?.error || `State persistence HTTP ${response.status}`);
+      }
     } catch (error) {
       console.error('Command Center state persistence failed:', error);
     }
