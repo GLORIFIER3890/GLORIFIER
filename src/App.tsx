@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Header } from './components/Header';
+import { ModuleErrorBoundary } from './components/ModuleErrorBoundary';
 import { OverviewTab } from './components/OverviewTab';
 const FootprintManager = React.lazy(() => import('./components/FootprintManager').then((module) => ({ default: module.FootprintManager })));
 const AiBrokerConsole = React.lazy(() => import('./components/AiBrokerConsole').then((module) => ({ default: module.AiBrokerConsole })));
@@ -442,6 +443,7 @@ export default function App() {
 
       {/* Main View Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <ModuleErrorBoundary key={activeTab}>
         <Suspense fallback={<div role="status" className="rounded-xl border border-slate-800 bg-slate-900 p-6 text-sm text-slate-300">Loading module… live service status has not been checked by this loading state.</div>}>
         {activeTab === 'overview' && (
           <OverviewTab
@@ -507,6 +509,7 @@ export default function App() {
           />
         )}
         </Suspense>
+        </ModuleErrorBoundary>
       </main>
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950/60 py-4 text-center text-xs text-slate-500">
