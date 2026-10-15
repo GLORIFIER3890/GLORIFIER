@@ -86,38 +86,45 @@ const getIntegrationInvariants = () => [
   'Human owner remains the final authority for irreversible external actions.'
 ];
 
+type SnapshotDbClient = Awaited<ReturnType<ReturnType<typeof getPostgresPool>['connect']>>;
+
+const persistSnapshotInTransaction = async (
+  client: SnapshotDbClient,
+  snapshot: IntegrationControlSnapshot,
+  digestSha256: string
+): Promise<IntegrationControlSnapshot> => {
+  const previous = await client.query(
+    'SELECT id, digest_sha256, snapshot FROM integration_control_snapshots ORDER BY synchronized_at DESC LIMIT 1'
+  );
+  const row = previous.rows[0];
+
+  if (row?.digest_sha256 !== digestSha256) {
+    await client.query(
+      'INSERT INTO integration_control_snapshots(id,synchronized_at,last_checked_at,snapshot,digest_sha256) VALUES($1,$2,NOW(),$3,$4)',
+      [snapshot.id, snapshot.synchronizedAt, JSON.stringify(snapshot), digestSha256]
+    );
+    return snapshot;
+  }
+
+  await client.query(
+    'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1',
+    [row.id]
+  );
+  return (row.snapshot as IntegrationControlSnapshot | undefined) ?? snapshot;
+};
+
 const persistSnapshotIfChanged = async (
   snapshot: IntegrationControlSnapshot,
   digestSha256: string
 ): Promise<IntegrationControlSnapshot> => {
-  let client: Awaited<ReturnType<ReturnType<typeof getPostgresPool>['connect']>> | null = null;
+  let client: SnapshotDbClient | null = null;
   try {
     await ensureTable();
-    const pool = getPostgresPool();
-    client = await pool.connect();
+    client = await getPostgresPool().connect();
     await client.query('BEGIN');
     // Transaction-scoped advisory lock serializes comparison + insert across instances.
     await client.query("SELECT pg_advisory_xact_lock(hashtext('glorifier.integration_control_snapshots'))");
-    const previous = await client.query(
-      'SELECT id, digest_sha256, snapshot FROM integration_control_snapshots ORDER BY synchronized_at DESC LIMIT 1'
-    );
-
-    let effectiveSnapshot = snapshot;
-    if (previous.rows[0]?.digest_sha256 !== digestSha256) {
-      await client.query(
-        'INSERT INTO integration_control_snapshots(id,synchronized_at,last_checked_at,snapshot,digest_sha256) VALUES($1,$2,NOW(),$3,$4)',
-        [snapshot.id, snapshot.synchronizedAt, JSON.stringify(snapshot), digestSha256]
-      );
-    } else {
-      await client.query(
-        'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1',
-        [previous.rows[0].id]
-      );
-      if (previous.rows[0].snapshot) {
-        effectiveSnapshot = previous.rows[0].snapshot as IntegrationControlSnapshot;
-      }
-    }
-
+    const effectiveSnapshot = await persistSnapshotInTransaction(client, snapshot, digestSha256);
     await client.query('COMMIT');
     return effectiveSnapshot;
   } catch (error) {
