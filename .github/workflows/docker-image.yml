@@ -148,6 +148,14 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="$(node -p "require('./package.json').version")"
+          # Recheck immediately before publishing; a newer main commit must not
+          # receive tags from an older CI run.
+          MAIN_SHA="$(git ls-remote https://github.com/GLORIFIER7/GLORIFIER.git refs/heads/main | cut -f1)"
+          test -n "$MAIN_SHA" || { echo "::error::Could not resolve current main tip; refusing to publish."; exit 1; }
+          if [ "$IMAGE_SHA" != "$MAIN_SHA" ]; then
+            echo "::notice::Skipping publish because main advanced from $IMAGE_SHA to $MAIN_SHA."
+            exit 0
+          fi
           SOURCE_TAG="glorifier/glorifier:sha-${IMAGE_SHA}"
           for tag in "latest" "${VERSION}" "sha-${IMAGE_SHA}"; do
             docker tag "$SOURCE_TAG" "glorifier/glorifier:${tag}"
