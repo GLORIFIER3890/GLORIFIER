@@ -126,18 +126,15 @@ const parseRequestUrl = (input: RequestInfo | URL): URL | null => {
     return null;
   }
 };
+const isFirebaseApiPath = (pathname: string): boolean =>
+  pathname.startsWith('/api/') ||
+  (configuredApiPathPrefix !== '' && pathname.startsWith(`${configuredApiPathPrefix}/api/`));
+
 const shouldAttachFirebaseToken = (input: RequestInfo | URL): boolean => {
   const parsedUrl = parseRequestUrl(input);
-  if (!parsedUrl) return false;
-
-  const isRootApiPath = parsedUrl.pathname.startsWith('/api/');
-  const isConfiguredApiPath = configuredApiPathPrefix !== '' &&
-    parsedUrl.pathname.startsWith(`${configuredApiPathPrefix}/api/`);
-
-  if (parsedUrl.origin === window.location.origin) return isRootApiPath;
-  return configuredApiOrigin !== null &&
-    parsedUrl.origin === configuredApiOrigin &&
-    (isRootApiPath || isConfiguredApiPath);
+  if (!parsedUrl || !isFirebaseApiPath(parsedUrl.pathname)) return false;
+  return parsedUrl.origin === window.location.origin ||
+    (configuredApiOrigin !== null && parsedUrl.origin === configuredApiOrigin);
 };
 const getInputHeaders = (input: RequestInfo | URL): HeadersInit | undefined =>
   input instanceof Request ? input.headers : undefined;
