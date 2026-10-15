@@ -154,13 +154,13 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
       status: 'active',
       timestamp: 'Just now',
       occurrences: 1,
-      rootCause: 'Runtime diagnostic or error-watch observation recorded by the Sentinel.',
-      gptAnalysis: 'OpenAI GPT-4o: Diagnostic registered. Monitoring upstream token limits and connection states.',
-      geminiAnalysis: 'Google Gemini 3.8 Flash: Mathematical bounds and retry thresholds configured.',
-      collaborativeFixProposal: 'Continuous health check and proactive circuit breaker enabled.',
-      patchDiff: `// Proactive safeguard for ${newErrorCode}\nif (isUnavailable) { failoverToFastModel(); }`,
-      canAutoFix: true,
-      assignedBot: 'Dual-Consensus-Healer'
+      rootCause: 'Manual watch record created in the interface; runtime detection has not been verified.',
+      gptAnalysis: 'NOT RUN — no provider-backed analysis has been recorded.',
+      geminiAnalysis: 'NOT RUN — no provider-backed analysis has been recorded.',
+      collaborativeFixProposal: 'No fix proposal has been generated or tested.',
+      patchDiff: '',
+      canAutoFix: false,
+      assignedBot: 'unassigned'
     };
     onCreateError(newErr);
     setIsCreateModalOpen(false);
@@ -514,7 +514,7 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-sm font-bold text-white">24/7 Sentinel Activity Audit Stream</h3>
+            <h3 className="text-sm font-bold text-white">Recorded Sentinel Activity (execution not verified)</h3>
           </div>
           <span className="text-[11px] text-slate-400 font-mono">Real-time internal logger</span>
         </div>
@@ -686,7 +686,7 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Plus className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-sm font-bold text-white">Create 24/7 Error Watch Probe</h3>
+                <h3 className="text-sm font-bold text-white">Create Manual Issue Record</h3>
               </div>
               <button onClick={() => setIsCreateModalOpen(false)} className="text-slate-400 hover:text-white">
                 <X className="w-4 h-4" />
