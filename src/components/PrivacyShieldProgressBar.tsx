@@ -246,7 +246,7 @@ export const PrivacyShieldProgressBar: React.FC<PrivacyShieldProgressBarProps> =
           <span className="truncate">{tier.description}</span>
         </div>
 
-        {score < 99 && onUpdatePolicy ? (
+        {onUpdatePolicy ? (
           <button
             onClick={() => {
               onUpdatePolicy({
