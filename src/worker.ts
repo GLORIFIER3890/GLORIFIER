@@ -7,10 +7,7 @@ type CloudflareEnv = {
 const BACKEND_ORIGIN = 'https://glorifier-artificial-intelligence-production.up.railway.app';
 
 function isBackendPath(pathname: string): boolean {
-  return pathname === '/api' ||
-    pathname.startsWith('/api/') ||
-    pathname === '/auth' ||
-    pathname.startsWith('/auth/');
+  return /^\/(?:api|auth)(?:\/|$)/.test(pathname);
 }
 
 function apiError(message: string, code: string): Response {
