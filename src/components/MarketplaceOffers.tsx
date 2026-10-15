@@ -149,7 +149,14 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
           const storedResult = evaluationResults[offer.id];
           const storedError = evaluationErrors[offer.id];
           const evaluationError = storedError?.key === evaluationKey ? storedError.message : undefined;
-          const assessment = evaluationError ? null : (storedResult?.key === evaluationKey ? storedResult.assessment : (isValidAssessment(persistedAssessment) ? persistedAssessment : null));
+          let assessment: OfferAssessment | null = null;
+          if (!evaluationError) {
+            if (storedResult?.key === evaluationKey) {
+              assessment = storedResult.assessment;
+            } else if (isValidAssessment(persistedAssessment)) {
+              assessment = persistedAssessment;
+            }
+          }
 
           const getVerdictBadge = () => {
             if (!assessment) {
