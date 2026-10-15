@@ -14,6 +14,11 @@ let upstreamResponse = new Response('{"ok":true}', {
 let shouldThrow = false;
 let assetCalls = 0;
 
+function getCapturedRequest(): Request {
+  if (!capturedRequest) throw new Error('Expected the Worker to call the backend.');
+  return capturedRequest;
+}
+
 const env: TestEnv = {
   ASSETS: {
     async fetch() {
@@ -45,8 +50,8 @@ async function run(): Promise<void> {
     );
     assert.equal(apiResponse.status, 200);
     assert.equal(apiResponse.headers.get('cache-control'), 'no-store');
-    assert.equal(capturedRequest?.url, 'https://glorifier-artificial-intelligence-production.up.railway.app/api/runtime-verification?probeAi=false');
-    assert.equal(capturedRequest?.headers.get('x-forwarded-host'), 'glorifier.glorifier.workers.dev');
+    assert.equal(getCapturedRequest().url, 'https://glorifier-artificial-intelligence-production.up.railway.app/api/runtime-verification?probeAi=false');
+    assert.equal(getCapturedRequest().headers.get('x-forwarded-host'), 'glorifier.glorifier.workers.dev');
     assert.equal(await apiResponse.json().then((body: any) => body.ok), true);
 
     upstreamResponse = new Response('{"ok":false,"error":"not found"}', {
@@ -73,8 +78,8 @@ async function run(): Promise<void> {
       env,
     );
     assert.equal(postResponse.status, 200);
-    assert.equal(capturedRequest?.method, 'POST');
-    assert.deepEqual(JSON.parse(await capturedRequest!.text()), { action: 'observe' });
+    assert.equal(getCapturedRequest().method, 'POST');
+    assert.deepEqual(JSON.parse(await getCapturedRequest().text()), { action: 'observe' });
 
     shouldThrow = true;
     const unavailable = await worker.fetch(
