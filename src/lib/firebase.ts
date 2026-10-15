@@ -107,17 +107,26 @@ try {
 } catch {
   console.error('VITE_API_BASE_URL is invalid; external API requests will not receive automatic Firebase auth.');
 }
+const shouldAttachFirebaseToken = (input: RequestInfo | URL): boolean => {
+  if (typeof window === 'undefined') return false;
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url, window.location.origin);
+  } catch {
+    return false;
+  }
+  const isApiPath = parsedUrl.pathname.startsWith('/api/');
+  const isTrustedOrigin = parsedUrl.origin === window.location.origin ||
+    (configuredApiOrigin !== null && parsedUrl.origin === configuredApiOrigin);
+  return isApiPath && isTrustedOrigin;
+};
+
 if (typeof window !== 'undefined' && nativeFetch) {
   window.fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
-    const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-    let parsedUrl: URL | null = null;
-    try { parsedUrl = new URL(url, window.location.origin); } catch { /* let fetch report invalid URLs */ }
-    const isApiPath = parsedUrl?.pathname.startsWith('/api/') === true;
-    const trustedApiOrigin = parsedUrl?.origin === window.location.origin ||
-      (configuredApiOrigin !== null && parsedUrl?.origin === configuredApiOrigin);
-    const sameOriginApi = isApiPath && trustedApiOrigin;
-    if (!sameOriginApi) return nativeFetch(input, init);
-    const headers = new Headers(init.headers || (typeof input !== 'string' && !(input instanceof URL) ? input.headers : undefined));
+    if (!shouldAttachFirebaseToken(input)) return nativeFetch(input, init);
+    const inputHeaders = typeof input !== 'string' && !(input instanceof URL) ? input.headers : undefined;
+    const headers = new Headers(init.headers || inputHeaders);
     if (!headers.has('Authorization')) {
       const token = await getIdToken();
       if (token) headers.set('Authorization', 'Bearer ' + token);
