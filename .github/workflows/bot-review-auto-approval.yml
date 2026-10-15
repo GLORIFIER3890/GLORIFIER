@@ -1,8 +1,6 @@
 name: Bot Review Auto-Approval Gate
 
 on:
-  push:
-    branches: [main]
   pull_request_target:
     types: [opened, reopened, synchronize, ready_for_review]
   pull_request_review:
@@ -31,6 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
       - name: Validate bot-review workflow syntax
         uses: reviewdog/action-actionlint@v1
         with:
@@ -41,15 +41,14 @@ jobs:
     name: Validate bot review and CI before approval
     runs-on: ubuntu-latest
     steps:
-      - name: Evaluate trusted bot review, open threads, and checks
+      - name: Evaluate trusted bot review, open threads, risk paths, and checks
         uses: actions/github-script@v8
         with:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            // Do not let this workflow react to its own check suite completion.
-            // Other workflows' check suites still trigger re-evaluation after CI finishes.
+            // Ignore this workflow's own completed check suite to avoid loops.
             if (context.eventName === 'check_suite') {
               const suite = await github.rest.checks.listForSuite({
                 owner, repo, check_suite_id: context.payload.check_suite.id, per_page: 100
@@ -59,7 +58,7 @@ jobs:
                 'Lint workflow syntax'
               ]);
               if (suite.data.check_runs.some(run => ownCheckNames.has(run.name))) {
-                core.notice('Ignoring this workflow’s own check suite to prevent a re-trigger loop.');
+                core.notice('Ignoring this workflow’s own check suite.');
                 return;
               }
             }
@@ -68,8 +67,7 @@ jobs:
             const requestedNumber = Number(context.payload.inputs?.pull_request_number || 0);
 
             if (!pr && requestedNumber > 0) {
-              const response = await github.rest.pulls.get({ owner, repo, pull_number: requestedNumber });
-              pr = response.data;
+              pr = (await github.rest.pulls.get({ owner, repo, pull_number: requestedNumber })).data;
             }
 
             if (!pr && context.eventName === 'check_suite') {
@@ -86,39 +84,59 @@ jobs:
 
             const number = pr.number;
             const headSha = pr.head.sha;
-            const repoOwner = context.payload.repository?.owner?.login || owner;
-            const stop = (reason) => {
+            const stop = reason => {
               core.notice(`PR #${number}: approval withheld — ${reason}`);
               core.setOutput('decision', 'withheld');
             };
 
             if (pr.state !== 'open' || pr.draft) return stop('PR is closed or still a draft.');
-            if (pr.mergeable === false || pr.mergeable_state === 'dirty') return stop('merge conflicts are present.');
-            if (pr.user?.login === repoOwner) return stop('self-authored PRs are not auto-approved; GitHub owner review is required.');
             if (pr.base?.ref !== 'main') return stop('base branch is not main.');
+            if (pr.mergeable === false || pr.mergeable_state === 'dirty') return stop('merge conflicts are present.');
+            if (pr.head.repo?.full_name !== `${owner}/${repo}`) return stop('fork-origin PRs require human review.');
+            if (pr.user?.login === owner) return stop('self-authored PRs cannot be approved by this workflow.');
 
-            const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: number });
-            const botReviews = reviews.filter(review => {
-              const login = review.user?.login || '';
-              return review.state === 'COMMENTED' &&
-                (review.user?.type === 'Bot' || login.endsWith('[bot]') ||
-                 ['coderabbitai', 'deepsource-io', 'snyk-bot', 'github-actions'].includes(login));
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner, repo, pull_number: number, per_page: 100
             });
-            const inlineComments = await github.paginate(github.rest.pulls.listReviewComments, {
-              owner, repo, pull_number: number
-            });
-            const botInlineComments = inlineComments.filter(comment => {
-              const login = comment.user?.login || '';
-              return comment.user?.type === 'Bot' || login.endsWith('[bot]') ||
-                ['coderabbitai', 'deepsource-io', 'snyk-bot', 'github-actions'].includes(login);
-            });
-            const substantiveBotReviews = botReviews.filter(review => (review.body || '').trim().length > 0);
-            if (botReviews.length === 0 || (botInlineComments.length === 0 && substantiveBotReviews.length === 0)) {
-              return stop('no substantive recognized bot scan/review feedback was found.');
+            const highRisk = /(^|\/)(\.github\/workflows|\.github\/CODEOWNERS|CODEOWNERS|.*secret.*|.*credential.*|.*migration.*|.*deploy.*|.*release.*|.*payment.*|.*payout.*|.*wallet.*|.*contract.*|.*auth.*|.*security.*)(\/|$|\.)/i;
+            const riskyFiles = files.filter(file => highRisk.test(file.filename));
+            if (riskyFiles.length > 0) {
+              return stop(`sensitive paths require human review: ${riskyFiles.map(file => file.filename).join(', ')}`);
             }
 
-            if (reviews.some(review => review.state === 'CHANGES_REQUESTED' && review.user?.type !== 'Bot')) {
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {
+              owner, repo, pull_number: number, per_page: 100
+            });
+            const botLogin = user => {
+              const login = user?.login || '';
+              return user?.type === 'Bot' || login.endsWith('[bot]') ||
+                ['coderabbitai', 'deepsource-io', 'snyk-bot', 'github-actions'].includes(login);
+            };
+            const currentHeadBotReviews = reviews.filter(review =>
+              botLogin(review.user) && review.commit_id === headSha
+            );
+            if (currentHeadBotReviews.some(review => review.state === 'CHANGES_REQUESTED')) {
+              return stop('a bot requested changes on the exact current head; fix findings before approval.');
+            }
+            const substantiveReviews = currentHeadBotReviews.filter(review =>
+              ['COMMENTED', 'APPROVED'].includes(review.state) && (review.body || '').trim().length > 0
+            );
+            if (substantiveReviews.length === 0) {
+              return stop('no substantive recognized bot review exists for the exact current head commit.');
+            }
+
+            if (reviews.some(review => review.state === 'CHANGES_REQUESTED' && !botLogin(review.user))) {
               return stop('a human reviewer requested changes.');
+            }
+
+            const inlineComments = await github.paginate(github.rest.pulls.listReviewComments, {
+              owner, repo, pull_number: number, per_page: 100
+            });
+            const currentHeadBotComments = inlineComments.filter(comment =>
+              botLogin(comment.user) && comment.commit_id === headSha
+            );
+            if (currentHeadBotComments.length === 0) {
+              return stop('no inline bot findings exist on the exact current head; no auto-approval.');
             }
 
             const threadData = await github.graphql(
@@ -128,7 +146,6 @@ jobs:
                     reviewThreads(first: 100) {
                       nodes {
                         isResolved
-                        isOutdated
                         comments(first: 20) {
                           nodes { author { login __typename } body }
                         }
@@ -142,30 +159,31 @@ jobs:
             const threads = threadData.repository.pullRequest.reviewThreads.nodes;
             const unresolved = threads.filter(thread => !thread.isResolved);
             if (unresolved.length > 0) {
-              return stop(`${unresolved.length} review thread(s) remain unresolved; findings must be fixed or explicitly dismissed with evidence first.`);
+              return stop(`${unresolved.length} review thread(s) remain unresolved; fix or explicitly resolve them with evidence first.`);
             }
 
-            const checks = await github.rest.checks.listForRef({ owner, repo, ref: headSha, per_page: 100 });
+            const checks = await github.rest.checks.listForRef({
+              owner, repo, ref: headSha, per_page: 100
+            });
             const runs = checks.data.check_runs;
             if (runs.length === 0) return stop('no check runs were found for the exact PR head commit.');
             const unfinished = runs.filter(run => run.status !== 'completed');
             if (unfinished.length > 0) return stop(`${unfinished.length} check run(s) are still running.`);
             const failures = runs.filter(run => !['success', 'neutral', 'skipped'].includes(run.conclusion));
             if (failures.length > 0) {
-              return stop(`failed/unknown check conclusions: ${failures.map(run => `${run.name}=${run.conclusion}`).join(', ')}`);
+              return stop(`failed/unknown checks: ${failures.map(run => `${run.name}=${run.conclusion}`).join(', ')}`);
             }
 
-            // Avoid duplicate approvals for the same head SHA.
-            const existingApprovals = reviews.filter(review =>
-              review.state === 'APPROVED' && review.commit_id === headSha
+            const existingApproval = reviews.some(review =>
+              review.state === 'APPROVED' && review.commit_id === headSha && review.user?.login === 'github-actions[bot]'
             );
-            if (existingApprovals.length > 0) {
-              core.notice(`PR #${number}: an approval already exists for ${headSha}; no duplicate review created.`);
+            if (existingApproval) {
+              core.notice(`PR #${number}: this head already has an automation approval.`);
               return;
             }
 
             await github.rest.pulls.createReview({
               owner, repo, pull_number: number, commit_id: headSha, event: 'APPROVE',
-              body: 'Automated approval gate: recognized bot review present; all review threads resolved; exact-head checks completed successfully; no human change request or merge conflict detected. This does not merge the PR. Security-sensitive or production changes still require independent human review.'
+              body: 'Automated review gate: recognized bot review on the exact current head; all review threads resolved; all available checks completed successfully; no human change request or sensitive-path changes detected. This approval is not a merge authorization. Human review remains required for security, deployment, database, identity, payment, wallet, contract, workflow, or release changes.'
             });
             core.notice(`PR #${number}: approved at ${headSha}. No merge was performed.`);
