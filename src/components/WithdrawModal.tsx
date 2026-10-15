@@ -418,7 +418,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
             <div className="p-4 rounded-xl bg-slate-950 border border-slate-800">
               <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Server-confirmed available balance</div>
               <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">
-                {verifiedAvailableUsd == null ? 'NOT VERIFIED' : '
+                {verifiedAvailableUsd == null ? 'NOT VERIFIED' : '$' + verifiedAvailableUsd.toFixed(2) + ' USD'}
               </div>
             </div>
 
