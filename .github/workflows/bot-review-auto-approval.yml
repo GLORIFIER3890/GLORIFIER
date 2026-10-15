@@ -37,8 +37,7 @@ jobs:
                 owner, repo, check_suite_id: context.payload.check_suite.id, per_page: 100
               });
               const ownCheckNames = new Set([
-                'Validate bot review and CI before approval',
-                'Lint workflow syntax'
+                'Validate bot review and CI before approval'
               ]);
               if (suite.data.check_runs.some(run => ownCheckNames.has(run.name))) {
                 core.notice('Ignoring this workflow’s own check suite.');
@@ -151,9 +150,11 @@ jobs:
               return stop(`${unresolved.length} review thread(s) remain unresolved; fix or explicitly resolve them with evidence first.`);
             }
 
-            const runs = await github.paginate(github.rest.checks.listForRef, {
+            const allRuns = await github.paginate(github.rest.checks.listForRef, {
               owner, repo, ref: headSha, per_page: 100
             });
+            // The current gate's own in-progress check must not block the decision it is making.
+            const runs = allRuns.filter(run => run.name !== 'Validate bot review and CI before approval');
             const combinedStatus = await github.rest.repos.getCombinedStatusForRef({ owner, repo, ref: headSha });
             if (combinedStatus.data.state !== 'success') {
               return stop(`combined commit status is ${combinedStatus.data.state}; required status contexts must pass.`);
