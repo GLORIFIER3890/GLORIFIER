@@ -68,6 +68,14 @@ export default {
       const upstreamRequest = new Request(upstreamUrl, requestInit);
 
       const upstreamResponse = await fetch(upstreamRequest);
+      const upstreamContentType = upstreamResponse.headers.get('content-type')?.toLowerCase() || '';
+      if ((incomingUrl.pathname === '/api' || incomingUrl.pathname.startsWith('/api/')) &&
+          upstreamContentType.includes('text/html')) {
+        return apiError(
+          'The backend returned HTML for an API request. Routing is not valid for this endpoint; no successful API result was assumed.',
+          'API_HTML_RESPONSE',
+        );
+      }
       const responseHeaders = new Headers(upstreamResponse.headers);
       responseHeaders.set('Cache-Control', 'no-store');
       responseHeaders.set('X-Content-Type-Options', 'nosniff');
