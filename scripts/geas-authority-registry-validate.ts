@@ -90,7 +90,7 @@ const sourceSection = scannerText.split('const SOURCES: ArchitectureSource[] = [
 if (!sourceSection) {
   failures.push('unable to locate scanner SOURCES catalog');
 } else {
-  const scannerIds = [...sourceSection.matchAll(/\\bid:\\s*'([^']+)'/g)].map((match) => match[1]);
+  const scannerIds = [...sourceSection.matchAll(/\bid:\s*'([^']+)'/g)].map((match) => match[1]);
   const scannerIdSet = new Set(scannerIds);
   if (scannerIds.length === 0) failures.push('scanner source catalog is empty');
   if (scannerIdSet.size !== scannerIds.length) failures.push('scanner source catalog contains duplicate IDs');
