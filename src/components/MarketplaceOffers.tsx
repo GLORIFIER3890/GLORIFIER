@@ -29,11 +29,13 @@ const isValidReasoning = (reasoning: unknown): reasoning is string =>
   typeof reasoning === 'string' && reasoning.trim().length > 0;
 
 const isValidAssessment = (value: unknown): value is OfferAssessment => {
-  if (!value || typeof value !== 'object') return false;
+  if (typeof value !== 'object' || value === null) return false;
+
   const assessment = value as Record<string, unknown>;
-  return isValidScore(assessment.score) &&
-    isValidVerdict(assessment.verdict) &&
-    isValidReasoning(assessment.reasoning);
+  if (!isValidScore(assessment.score)) return false;
+  if (!isValidVerdict(assessment.verdict)) return false;
+
+  return isValidReasoning(assessment.reasoning);
 };
 
 interface MarketplaceOffersProps {
