@@ -195,6 +195,25 @@ const recordProviderSkip = (
   return true;
 };
 
+const isRateLimitedError = (message: string, error: unknown): boolean =>
+  /429|RESOURCE_EXHAUSTED|quota|rate.?limit/i.test(message) || parseRetryAfterMs(error) !== null;
+
+const isTransientProviderError = (message: string): boolean =>
+  /408|425|500|502|503|504|timeout|temporar|overloaded|unavailable/i.test(message);
+
+const shouldRetryProvider = (
+  allowRetry: boolean,
+  policy: ProviderExecutionPolicy,
+  state: ProviderExecutionState,
+  message: string,
+  error: unknown,
+): boolean => allowRetry
+  && policy.retryTransientFailures
+  && !isRateLimitedError(message, error)
+  && isTransientProviderError(message)
+  && state.transientRetries < 1
+  && state.attempts < policy.maxAttempts;
+
 const handleProviderFailure = (
   provider: AIProvider,
   error: unknown,
@@ -208,10 +227,7 @@ const handleProviderFailure = (
   state.providerStatuses[provider.id] = markUnavailable && availability === 'unavailable' ? 'unavailable' : 'error';
   state.errors.push(`${provider.id}: ${message}`);
   providerCooldownUntil.set(provider.id, Date.now() + cooldownFor(error));
-  const rateLimited = /429|RESOURCE_EXHAUSTED|quota|rate.?limit/i.test(message) || parseRetryAfterMs(error) !== null;
-  const transient = !rateLimited && /408|425|500|502|503|504|timeout|temporar|overloaded|unavailable/i.test(message);
-  const retry = allowRetry && policy.retryTransientFailures && transient
-    && state.transientRetries < 1 && state.attempts < policy.maxAttempts;
+  const retry = shouldRetryProvider(allowRetry, policy, state, message, error);
   if (retry) {
     state.transientRetries += 1;
     providerCooldownUntil.delete(provider.id);
@@ -340,26 +356,35 @@ const tryDiscoveryRefresh = async (
   }
 };
 
+const resolveExecutionPolicy = (request: ProviderExecutionRequest): ProviderExecutionPolicy => ({
+  ...DEFAULT_PROVIDER_EXECUTION_POLICY,
+  ...(request.policy || {}),
+});
+
+const resolvePreferredProvider = (request: ProviderExecutionRequest): AIProviderId | undefined =>
+  request.preferredProvider || (request.model?.startsWith('gpt') ? 'openai' : undefined);
+
+const createProviderExecutionState = (): ProviderExecutionState => ({
+  attemptedProviders: [],
+  errors: [],
+  providerStatuses: {},
+  attempts: 0,
+  transientRetries: 0,
+});
+
 /** Execute providers in governed order with bounded retries and one discovery refresh. */
 export const executeThroughProviderRegistry = async (
   request: ProviderExecutionRequest,
 ): Promise<ProviderExecutionResult> => {
-  const policy = { ...DEFAULT_PROVIDER_EXECUTION_POLICY, ...(request.policy || {}) };
+  const policy = resolveExecutionPolicy(request);
   assertGovernedFallbackPolicy(policy);
   const connected = getConnectedProviders();
-  const preferredProvider = request.preferredProvider
-    || (request.model?.startsWith('gpt') ? 'openai' : undefined);
+  const preferredProvider = resolvePreferredProvider(request);
   const discovery = new Map(getGlobalProviderDiscoverySnapshot().map((entry) => [entry.id, entry]));
   const ordered = [...connected]
     .filter((provider) => isProviderEligible(provider, discovery, request.capability))
     .sort((a, b) => compareProviderOrder(a, b, discovery, preferredProvider));
-  const state: ProviderExecutionState = {
-    attemptedProviders: [],
-    errors: [],
-    providerStatuses: {},
-    attempts: 0,
-    transientRetries: 0,
-  };
+  const state = createProviderExecutionState();
   const initial = await tryOrderedProviders(ordered, request, policy, discovery, state);
   if (initial) return buildExecutionResult(initial.provider, initial.response, state);
   const refreshed = await tryDiscoveryRefresh(request, policy, discovery, state);
