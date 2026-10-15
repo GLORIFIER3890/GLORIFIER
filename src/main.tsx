@@ -3,7 +3,19 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-const nativeApiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const configuredApiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const nativeApiBase = (() => {
+  if (!configuredApiBase) return '';
+  try {
+    const configuredUrl = new URL(configuredApiBase);
+    const isHttps = configuredUrl.protocol === 'https:';
+    const isLoopbackHttp = configuredUrl.protocol === 'http:' &&
+      ['localhost', '127.0.0.1', '[::1]', '::1'].includes(configuredUrl.hostname);
+    return isHttps || isLoopbackHttp ? configuredApiBase : '';
+  } catch {
+    return '';
+  }
+})();
 
 function resolveRequestUrl(input: RequestInfo | URL): URL | null {
   try {
