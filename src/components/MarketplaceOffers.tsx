@@ -19,13 +19,21 @@ import { BuyerOffer, MonetizationPolicy } from '../types';
 
 type OfferAssessment = { score: number; verdict: 'RECOMMEND' | 'CAUTION' | 'REJECT'; reasoning: string };
 
+const isValidScore = (score: unknown): score is number =>
+  typeof score === 'number' && Number.isFinite(score) && score >= 0 && score <= 100;
+
+const isValidVerdict = (verdict: unknown): verdict is OfferAssessment['verdict'] =>
+  verdict === 'RECOMMEND' || verdict === 'CAUTION' || verdict === 'REJECT';
+
+const isValidReasoning = (reasoning: unknown): reasoning is string =>
+  typeof reasoning === 'string' && reasoning.trim().length > 0;
+
 const isValidAssessment = (value: unknown): value is OfferAssessment => {
   if (!value || typeof value !== 'object') return false;
   const assessment = value as Record<string, unknown>;
-  return typeof assessment.score === 'number' && Number.isFinite(assessment.score) &&
-    assessment.score >= 0 && assessment.score <= 100 &&
-    (assessment.verdict === 'RECOMMEND' || assessment.verdict === 'CAUTION' || assessment.verdict === 'REJECT') &&
-    typeof assessment.reasoning === 'string' && assessment.reasoning.trim().length > 0;
+  return isValidScore(assessment.score) &&
+    isValidVerdict(assessment.verdict) &&
+    isValidReasoning(assessment.reasoning);
 };
 
 interface MarketplaceOffersProps {
