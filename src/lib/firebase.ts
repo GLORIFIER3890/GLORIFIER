@@ -107,31 +107,41 @@ try {
 } catch {
   console.error('VITE_API_BASE_URL is invalid; external API requests will not receive automatic Firebase auth.');
 }
+const getRequestUrl = (input: RequestInfo | URL): string =>
+  typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+
+const isTrustedApiOrigin = (origin: string): boolean =>
+  origin === window.location.origin ||
+  (configuredApiOrigin !== null && origin === configuredApiOrigin);
+
 const shouldAttachFirebaseToken = (input: RequestInfo | URL): boolean => {
   if (typeof window === 'undefined') return false;
-  const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-  let parsedUrl: URL;
   try {
-    parsedUrl = new URL(url, window.location.origin);
+    const parsedUrl = new URL(getRequestUrl(input), window.location.origin);
+    return parsedUrl.pathname.startsWith('/api/') && isTrustedApiOrigin(parsedUrl.origin);
   } catch {
     return false;
   }
-  const isApiPath = parsedUrl.pathname.startsWith('/api/');
-  const isTrustedOrigin = parsedUrl.origin === window.location.origin ||
-    (configuredApiOrigin !== null && parsedUrl.origin === configuredApiOrigin);
-  return isApiPath && isTrustedOrigin;
+};
+
+const withFirebaseAuthorization = async (
+  input: RequestInfo | URL,
+  init: RequestInit
+): Promise<RequestInit> => {
+  const inputHeaders = typeof input !== 'string' && !(input instanceof URL) ? input.headers : undefined;
+  const headers = new Headers(init.headers || inputHeaders);
+  if (headers.has('Authorization')) return { ...init, headers };
+  const token = await getIdToken();
+  if (token) headers.set('Authorization', 'Bearer ' + token);
+  return { ...init, headers };
 };
 
 if (typeof window !== 'undefined' && nativeFetch) {
   window.fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
-    if (!shouldAttachFirebaseToken(input)) return nativeFetch(input, init);
-    const inputHeaders = typeof input !== 'string' && !(input instanceof URL) ? input.headers : undefined;
-    const headers = new Headers(init.headers || inputHeaders);
-    if (!headers.has('Authorization')) {
-      const token = await getIdToken();
-      if (token) headers.set('Authorization', 'Bearer ' + token);
-    }
-    return nativeFetch(input, { ...init, headers });
+    const requestInit = shouldAttachFirebaseToken(input)
+      ? await withFirebaseAuthorization(input, init)
+      : init;
+    return nativeFetch(input, requestInit);
   };
 }
 
