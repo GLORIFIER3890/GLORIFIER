@@ -74,7 +74,7 @@ async function run(): Promise<void> {
       env,
     );
     assert.equal(missingRoute.status, 404, 'unknown API routes must stay backend errors, not SPA success');
-    assert.equal(await missingRoute.json().then((body: any) => body.ok), false);
+    assert.equal(await missingRoute.json().then((body: { ok?: boolean; code?: string }) => body.ok), false);
 
     upstreamResponse = new Response('<!doctype html><title>SPA</title>', {
       status: 200,
@@ -109,7 +109,7 @@ async function run(): Promise<void> {
       env,
     );
     assert.equal(unavailable.status, 502);
-    assert.equal(await unavailable.json().then((body: any) => body.code), 'UPSTREAM_UNAVAILABLE');
+    assert.equal(await unavailable.json().then((body: { ok?: boolean; code?: string }) => body.code), 'UPSTREAM_UNAVAILABLE');
 
     console.log('Cloudflare Worker proxy tests passed.');
   } finally {
