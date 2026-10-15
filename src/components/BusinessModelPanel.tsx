@@ -6,21 +6,34 @@ export const BusinessModelPanel: React.FC = () => {
   const [model,setModel]=useState<Model|null>(null);
   const [usage,setUsage]=useState<any>(null);
   const [dashboard,setDashboard]=useState<any>(null);
+  const [error,setError]=useState<string | null>(null);
 
   useEffect(() => {
     let active=true;
+    const getJson = async (url: string) => {
+      const response = await fetch(url, { cache: 'no-store' });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || payload?.ok === false) throw new Error(payload?.error || `Request failed: ${url}`);
+      return payload;
+    };
     Promise.all([
-      fetch('/api/business-model').then(r=>r.json()),
-      fetch('/api/work-units/summary').then(r=>r.json()),
-      fetch('/api/monetization/dashboard').then(r=>r.json())
+      getJson('/api/business-model'),
+      getJson('/api/work-units/summary'),
+      getJson('/api/monetization/dashboard')
     ]).then(([m,u,d]) => {
       if(!active) return;
-      setModel(m.model||null); setUsage(u.summary||null); setDashboard(d||null);
-    }).catch(()=>{});
+      setModel(m.model||null); setUsage(u.summary||null); setDashboard(d||null); setError(null);
+    }).catch((e) => {
+      if(active) setError(e instanceof Error ? e.message : 'Business model data unavailable');
+    });
     return ()=>{active=false};
   },[]);
 
-  if(!model) return null;
+  if(error || !model) return (
+    <section role="status" className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4 text-sm text-amber-200">
+      Business model data is not observable right now. {error || 'The backend did not return a business model.'}
+    </section>
+  );
   const verifiedPaid = Array.isArray(dashboard?.verifiedPaid) ? dashboard.verifiedPaid : null;
   const verified = verifiedPaid?.reduce((sum:number,x:any)=>sum+Number(x.amount||0),0) ?? null;
 
