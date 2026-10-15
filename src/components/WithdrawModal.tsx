@@ -80,7 +80,9 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
   onUpdatePolicy,
   userReference = 'anonymous'
 }) => {
-  const [amount, setAmount] = useState<number>(Math.max(0, Number(stats.totalEarnedUsd) || 0));
+  const [amount, setAmount] = useState<number>(0);
+  const [verifiedAvailableUsd, setVerifiedAvailableUsd] = useState<number | null>(null);
+  const [balanceLoading, setBalanceLoading] = useState(false);
   type PayoutMethod = 'crypto' | 'gcash' | 'binance' | 'fiat';
   const [payoutCategory, setPayoutCategory] = useState<PayoutMethod>('crypto');
   const [gcashAccount, setGcashAccount] = useState('');
@@ -114,6 +116,35 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [payoutError, setPayoutError] = useState<string | null>(null);
   const [copiedTx, setCopiedTx] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    if (!userReference || userReference === 'anonymous') {
+      setVerifiedAvailableUsd(null);
+      setAmount(0);
+      return;
+    }
+    setBalanceLoading(true);
+    void fetch('/api/payouts?userReference=' + encodeURIComponent(userReference), { cache: 'no-store' })
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data?.ok !== true || !data?.balance || !Number.isFinite(Number(data.balance.availableUsd))) {
+          throw new Error(data?.error || 'Verified payout balance is unavailable.');
+        }
+        if (cancelled) return;
+        const available = Math.max(0, Number(data.balance.availableUsd));
+        setVerifiedAvailableUsd(available);
+        setAmount(available);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setVerifiedAvailableUsd(null);
+        setAmount(0);
+        setPayoutError(error instanceof Error ? error.message : 'Verified payout balance is unavailable.');
+      })
+      .finally(() => { if (!cancelled) setBalanceLoading(false); });
+    return () => { cancelled = true; };
+  }, [userReference]);
+
   const [settledReceipt, setSettledReceipt] = useState<{
     txHash: string;
     amountUsd: number;
@@ -253,8 +284,8 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
   };
 
   const handleWithdraw = async () => {
-    if (!Number.isFinite(amount) || amount <= 0 || amount > Number(stats.totalEarnedUsd)) {
-      setPayoutError('Enter a valid amount within the verified available balance.');
+    if (verifiedAvailableUsd == null || !Number.isFinite(amount) || amount <= 0 || amount > verifiedAvailableUsd) {
+      setPayoutError('A server-confirmed available payout balance is required. Enter an amount within that balance.');
       return;
     }
     if (!isCurrentAddressValid()) {
@@ -292,13 +323,14 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount, method, destination, userReference, actor: 'human-owner' })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || `Payout request HTTP ${res.status}`);
-
-      if (data.status === 'blocked') throw new Error(data.note || 'Payout request blocked by governance.');
+      const data = await res.json().catch(() => ({}));
+      const payout = data?.payout;
+      if (!res.ok || data?.ok !== true || !payout?.payoutRequestId || payout.status !== 'pending') {
+        throw new Error(data?.error || payout?.note || `Payout request was not accepted (HTTP ${res.status}).`);
+      }
 
       setSettledReceipt({
-        txHash: data.payoutRequestId,
+        txHash: payout.payoutRequestId,
         amountUsd: amount,
         tokenSymbol: payoutCategory === 'crypto' ? selectedToken : 'USD',
         network: payoutCategory === 'crypto'
@@ -312,7 +344,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
         timestamp: new Date().toLocaleString(),
         isCrypto: payoutCategory === 'crypto'
       });
-      onWithdrawSuccess(amount, method, data.payoutRequestId);
+      onWithdrawSuccess(amount, method, payout.payoutRequestId);
     } catch (error) {
       setPayoutError(error instanceof Error ? error.message : 'Payout request failed.');
       console.error('Payout request failed:', error);
@@ -541,7 +573,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
 
             <button
               onClick={handleWithdraw}
-              disabled={isProcessing || amount <= 0 || amount > Number(stats.totalEarnedUsd || 0) || !isCurrentAddressValid()}
+              disabled={isProcessing || balanceLoading || verifiedAvailableUsd == null || amount <= 0 || amount > verifiedAvailableUsd || !isCurrentAddressValid()}
               className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold text-xs transition-all"
             >
               {isProcessing ? 'Submitting…' : `Request Payout • $${amount.toFixed(2)} USD`}
