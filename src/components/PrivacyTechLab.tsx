@@ -103,6 +103,10 @@ export const PrivacyTechLab: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <div role="note" className="rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-100">
+        Educational local simulations only. These controls do not transform real GLORIFIER data, encrypt production records, produce a cryptographic proof, or attest differential privacy. Runtime enforcement is NOT VERIFIED.
+      </div>
+
       {/* Overview Banner */}
       <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -112,12 +116,12 @@ export const PrivacyTechLab: React.FC = () => {
               Privacy-Preserving Technologies (PETs) Engineering Lab
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-3xl">
-              Monetizing data without sacrificing privacy requires cutting-edge cryptographic primitives. Test and inspect how Differential Privacy, Fully Homomorphic Encryption (FHE), Federated Learning, and ZK-Proofs protect user sovereignty.
+              Explore simplified local demonstrations of privacy technologies. No production data is transformed and no cryptographic guarantee is provided by this lab.
             </p>
           </div>
 
           <div className="flex items-center gap-2 font-mono text-xs bg-slate-950 px-3.5 py-2 rounded-lg border border-slate-800 text-emerald-400">
-            <Lock className="w-4 h-4" /> Zero Plaintext Disclosure
+            <Lock className="w-4 h-4" /> Simulation only · NOT VERIFIED
           </div>
         </div>
       </div>
@@ -241,7 +245,7 @@ export const PrivacyTechLab: React.FC = () => {
 
           <div className="lg:col-span-5 rounded-xl bg-slate-900 border border-slate-800 p-5 space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              How Differential Privacy Enables Monetization
+              Illustration: Differential Privacy and Data Licensing
             </h4>
             <p className="text-xs text-slate-400 leading-relaxed">
               Without differential privacy, licensing browsing or location data creates catastrophic re-identification risks (the "Netflix Prize" attack). 
