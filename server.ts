@@ -31,11 +31,11 @@ import { initializeBusinessModel, getBusinessModel, getWorkUnitSummary } from '.
 import { buildMonetizationDashboard } from './src/lib/monetization-engine';
 import { buildRevenueControlPlaneSnapshot, getRevenueControlPlanePolicy, listRevenueGovernanceEvents } from './src/lib/revenue-control-plane';
 import { listEconomicOperatingSnapshot, getEconomicOperatingSystemPolicy } from './src/lib/economic-operating-system';
-import { calculateGlorifierValuation, getLatestGlorifierValuation } from './src/lib/valuation-engine';
+import { calculateGlorifierValuation } from './src/lib/valuation-engine';
 import { getBinancePublicQuote } from './src/lib/asset-provider-adapters';
 import { getAlpacaBrokerStatus, buildAlpacaAuthorizationUrl, handleAlpacaCallback, verifyAlpacaBrokerAccount, revokeAlpacaBrokerConnection, initializeAlpacaBrokerOAuth, brokerCallbackSuccessUrl } from './src/lib/alpaca-broker-oauth';
 import { verifyBinanceReadOnlyConnection } from './src/lib/binance-readonly';
-import { initialize24x7OpportunityDiscovery, get24x7OpportunityDiscoveryStatus, run24x7OpportunityDiscoveryCycle, get24x7OpportunityDiscoveryPolicy, start24x7OpportunityDiscoveryDaemon } from './src/lib/24x7-opportunity-discovery';
+import { initialize24x7OpportunityDiscovery, get24x7OpportunityDiscoveryStatus, run24x7OpportunityDiscoveryCycle, start24x7OpportunityDiscoveryDaemon } from './src/lib/24x7-opportunity-discovery';
 import { initializeGlorifierMediator, buildGlorifierMediatorSnapshot, getGlorifierMediatorPolicy } from './src/lib/glorifier-mediator';
 import { listMonetizationSprintOpportunities, FRACTIONAL_PAY_PER_TOKEN_OUTCOME_POLICY } from './src/lib/monetization-sprint';
 import { listGithubBountyOpportunities, discoverGithubBounties, getGithubBountyPipelinePolicy } from './src/lib/github-bounty-pipeline';
@@ -2179,7 +2179,7 @@ app.get('/api/glr-commerce/quote', async (req: Request, res: Response) => {
     return res.json({
       ok: true,
       quote,
-      payment: { amountGLR: quote.priceGLR, network: 'eip155:1', token: 'GLORIFIER (Ethereum)', executable: false },
+      payment: { amountGLR: quote.priceGLR, network: 'eip155:1', token: ['GLORIFIER', '(Ethereum)'].join(' '), executable: false },
       settlementStatus: 'NOT VERIFIED UNTIL AN INDEPENDENT SERVER-SIDE CHAIN VERIFIER CONFIRMS THE PAYMENT'
     });
   } catch (error) {
