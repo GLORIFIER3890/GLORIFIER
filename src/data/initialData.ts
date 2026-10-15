@@ -7,14 +7,15 @@ import {
   SovereignStats 
 } from '../types';
 
+// These are empty starting values, not evidence of live accounts, revenue, privacy enforcement, or activity.
 export const initialStats: SovereignStats = {
-  totalEarnedUsd: 1482.40,
-  pendingSettlementUsd: 138.75,
-  activeDataStreamsCount: 5,
-  monthlyPacingUsd: 215.30,
-  totalDataPointsGoverned: 384500,
-  privacyShieldIndex: 94,
-  brokerBidsProcessedToday: 47,
+  totalEarnedUsd: 0,
+  pendingSettlementUsd: 0,
+  activeDataStreamsCount: 0,
+  monthlyPacingUsd: 0,
+  totalDataPointsGoverned: 0,
+  privacyShieldIndex: 0,
+  brokerBidsProcessedToday: 0,
 };
 
 export const initialFootprints: DataFootprintSource[] = [
