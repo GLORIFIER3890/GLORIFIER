@@ -892,7 +892,7 @@ function drift(): DriftFinding[] {
   ];
 }
 
-export async function initializeGeasArchitectureScientist() {
+export const initializeGeasArchitectureScientist = async () => {
   const db = getPostgresPool();
   await db.query(`
     CREATE TABLE IF NOT EXISTS geas_architecture_scans (
@@ -1003,7 +1003,7 @@ export async function initializeGeasArchitectureScientist() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
-}
+};
 
 async function acquireArchitectureScanLease(ownerId: string, ttlMinutes = 30): Promise<boolean> {
   try {
