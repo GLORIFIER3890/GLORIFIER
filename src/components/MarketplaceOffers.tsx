@@ -76,6 +76,11 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
       setEvaluationErrors(previous => { const next = { ...previous }; delete next[offer.id]; return next; });
     } catch (e) {
       console.error('Offer AI evaluation failed:', e);
+      setEvaluationResults(previous => {
+        const next = { ...previous };
+        delete next[offer.id];
+        return next;
+      });
       setEvaluationErrors(previous => ({
         ...previous,
         [offer.id]: e instanceof Error ? e.message : 'AI evaluation unavailable.'
@@ -127,11 +132,14 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
           const isRejected = offer.status === 'REJECTED';
           const isCountered = offer.status === 'COUNTERED';
           const isEvaluating = evaluatingId === offer.id;
-          const assessment = evaluationResults[offer.id] || (
+          // A failed re-evaluation invalidates both the previous local result and any
+          // persisted offer assessment until a later successful evaluation clears the error.
+          const evaluationError = evaluationErrors[offer.id];
+          const assessment = evaluationError ? null : (evaluationResults[offer.id] || (
             typeof offer.aiBrokerScore === 'number' && offer.aiVerdict && offer.aiBrokerReasoning
               ? { score: offer.aiBrokerScore, verdict: offer.aiVerdict, reasoning: offer.aiBrokerReasoning }
               : null
-          );
+          ));
 
           const getVerdictBadge = () => {
             if (!assessment) {
