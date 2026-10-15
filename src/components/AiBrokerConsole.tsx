@@ -40,12 +40,12 @@ export const AiBrokerConsole: React.FC<AiBrokerConsoleProps> = ({
     {
       id: 'msg-welcome',
       sender: 'ai_broker',
-      content: `Hello. I am your autonomous personal data broker, powered by OpenAI GPT-4o. I represent your sovereign data rights across all digital broker syndicates, enforce strict differential privacy (ε), evaluate commercial AI training bids, and block unconsented shadow tracking.
+      content: `Welcome to the GLORIFIER broker console. This is static starter text, not a live AI response. Some panels use local sample policy values. Provider availability, real data streams, privacy enforcement, commercial bids, and revenue have not been verified. Changing a setting here does not earn, collect, or pay money.
 
-Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo under your $${policy.minimumMonthlyFloorUsd}/mo floor. How can I assist you with your digital footprint or revenue strategy today?`,
-      timestamp: 'Just now',
-      modelUsed: 'gpt-4o',
-      provider: 'OpenAI GPT Sovereign Broker',
+Choose an action to request a backend response. Any returned claim must be checked against its source and evidence.`,
+      timestamp: 'Template — not generated at runtime',
+      modelUsed: 'Starter template (not an AI result)',
+      provider: 'Not verified',
       suggestedAction: {
         label: 'Audit Active Tracker Exposure',
         type: 'run_audit'
@@ -72,7 +72,7 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
     const optimizerMsg: AiBrokerChatMessage = {
       id: `optimizer-${Date.now()}`,
       sender: 'ai_broker',
-      content: `[AI Policy Optimizer Applied (${selectedModel.toUpperCase()})]:\n\n${rationale}\n\n• Calibrated Privacy Epsilon: ε = ${optimizedPolicy.globalEpsilon}\n• Recalibrated Monthly Floor: $${optimizedPolicy.minimumMonthlyFloorUsd}/mo\n• Autonomous Stance: ${optimizedPolicy.brokerMode}\n• Status: Differential privacy proof attested. Mathematical risk containment active.`,
+      content: `Local policy preferences updated from the selected optimizer proposal.\n\nProposal rationale: ${rationale}\n\n• Configured privacy target ε: ${optimizedPolicy.globalEpsilon ?? 'unchanged'}\n• Configured monthly floor: ${optimizedPolicy.minimumMonthlyFloorUsd ?? 'unchanged'}\n• Local mode setting: ${optimizedPolicy.brokerMode ?? 'unchanged'}\n• Runtime privacy enforcement, proof attestation, provider execution, and revenue impact: NOT VERIFIED.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       modelUsed: selectedModel,
       provider: 'AI Policy Optimizer'
@@ -87,7 +87,7 @@ Currently, I have 5 data streams monetizing at an average pacing of ~$215/mo und
     const councilMsg: AiBrokerChatMessage = {
       id: `council-${Date.now()}`,
       sender: 'ai_broker',
-      content: `🏛️ **ALL-AI MODEL COUNCIL CONSENSUS ENACTED**\n\n${summary}\n\n• Participating Frontier AI Nodes: OpenAI GPT-4o, Google Gemini 3.8 Flash, Meta LLaMA 3.3 (Open Weights)\n• Consensus Agreement: 98%\n• Calibrated Privacy Epsilon: ε = ${directives.globalEpsilon}\n• Recalibrated Monthly Floor: $${directives.minimumMonthlyFloorUsd}/mo\n• Status: All models have signed the consensus proof. Commercial ad-broker tracking quarantined, and zero-PII sovereign AI pretraining authorized.`,
+      content: `**POLICY PROPOSAL APPLIED LOCALLY — NOT VERIFIED**\n\n${summary}\n\n• Configured privacy target ε: ${directives.globalEpsilon ?? 'unchanged'}\n• Configured monthly floor: ${directives.minimumMonthlyFloorUsd ?? 'unchanged'}\n• Local auto-negotiation setting: ${directives.autoNegotiateHighBids ?? 'unchanged'}\n• Multi-model consensus, signatures, privacy enforcement, tracker quarantine, and external execution: NOT VERIFIED.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       modelUsed: 'all-models',
       provider: 'All-AI Sovereign Collaboration Council'
