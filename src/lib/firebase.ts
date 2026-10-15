@@ -93,7 +93,17 @@ const nativeFetch = typeof window !== 'undefined' ? window.fetch.bind(window) : 
 const configuredApiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 let configuredApiOrigin: string | null = null;
 try {
-  if (configuredApiBase) configuredApiOrigin = new URL(configuredApiBase).origin;
+  if (configuredApiBase) {
+    const configuredUrl = new URL(configuredApiBase);
+    const isHttps = configuredUrl.protocol === 'https:';
+    const isLoopbackHttp = configuredUrl.protocol === 'http:' &&
+      ['localhost', '127.0.0.1', '[::1]', '::1'].includes(configuredUrl.hostname);
+    if (isHttps || isLoopbackHttp) {
+      configuredApiOrigin = configuredUrl.origin;
+    } else {
+      console.error('VITE_API_BASE_URL must use HTTPS (HTTP is allowed only for loopback development); external API requests will not receive automatic Firebase auth.');
+    }
+  }
 } catch {
   console.error('VITE_API_BASE_URL is invalid; external API requests will not receive automatic Firebase auth.');
 }
