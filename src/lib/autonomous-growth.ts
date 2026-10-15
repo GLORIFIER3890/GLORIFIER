@@ -22,7 +22,7 @@ export function getAutonomousGrowthPolicy() {
     version: GLORIFIER_AUTONOMOUS_GROWTH_VERSION,
     objective: 'EARN → VERIFY → PAYOUT → REINVEST → GROW → MEASURE → IMPROVE → REPEAT',
     autonomousRoutineWork: true,
-    autoPayoutRequest: boolEnv('GLORIFIER_AUTO_PAYOUT_ENABLED', true),
+    autoPayoutRequest: boolEnv('GLORIFIER_AUTO_PAYOUT_ENABLED', false),
     autoReinvestmentPlanning: boolEnv('GLORIFIER_AUTO_REINVEST_ENABLED', true),
     payoutMinUsd: numEnv('GLORIFIER_AUTO_PAYOUT_MIN_USD', 1),
     reinvestRatePct: Math.min(100, numEnv('GLORIFIER_AUTO_REINVEST_RATE_PCT', 20)),
