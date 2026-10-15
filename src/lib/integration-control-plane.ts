@@ -123,6 +123,7 @@ const persistSnapshotIfChanged = async (
   digestSha256: string
 ): Promise<IntegrationControlSnapshot> => {
   let client: SnapshotDbClient | null = null;
+  let discardClient = false;
   try {
     await ensureTable();
     client = await getPostgresPool().connect();
@@ -133,7 +134,6 @@ const persistSnapshotIfChanged = async (
     await client.query('COMMIT');
     return effectiveSnapshot;
   } catch (error) {
-    let discardClient = false;
     if (client) {
       try {
         await client.query('ROLLBACK');
