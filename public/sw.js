@@ -24,7 +24,9 @@ async function serveNavigation(request) {
 async function cacheSuccessfulAsset(request, event) {
   try {
     const response = await fetch(request);
-    if (response.ok && response.type !== 'opaque') {
+    const cacheControl = response.headers.get('Cache-Control') || '';
+    const isNoStore = /(?:^|,)\s*no-store\b/i.test(cacheControl);
+    if (response.ok && response.type !== 'opaque' && !isNoStore) {
       const copy = response.clone();
       event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)));
     }
