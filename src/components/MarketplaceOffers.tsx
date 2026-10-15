@@ -118,10 +118,10 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
           <div>
             <h2 className="text-base font-bold text-white flex items-center gap-2">
               <Scale className="w-5 h-5 text-emerald-400" />
-              Live Data Buyer Marketplace & Bid Clearing
+              Buyer Offers & Evaluation
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Commercial AI labs, biomedical research institutes, and economic analysts bid for access to your differentially private data vault. Your AI broker scrutinizes every bid before you license.
+              Review offer details and run an AI assessment when the evaluation service is configured. Scores and recommendations are shown only when a valid assessment is available.
             </p>
           </div>
 
@@ -283,7 +283,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="font-bold text-slate-200">AI Broker Assessment</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono font-semibold uppercase">
-                      {policy.aiModel || 'GPT-4o'}
+                      {policy.aiModel || 'AI model not configured'}
                     </span>
                   </div>
                   <span className="text-slate-300">{assessment?.reasoning || evaluationErrors[offer.id] || 'No verified AI assessment is available yet. Run an evaluation; a failed request will not produce a score or recommendation.'}</span>
@@ -303,7 +303,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                 <div className="mt-3 p-3.5 rounded-lg bg-slate-950 border border-amber-500/30 space-y-3">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-amber-300">
-                      AI-Assisted Counter-Proposal to {offer.buyerName}
+                      Counter-offer draft for {offer.buyerName}
                     </span>
                     <button
                       onClick={() => setCounteringOfferId(null)}
@@ -335,7 +335,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                     </button>
                   </div>
                   <p className="text-[10px] text-slate-400">
-                    Your AI broker will transmit cryptographic counter-terms stipulating strict retention limits and a revised compensation fee of ${counterPrice}/mo.
+                    This prepares a counter-offer for your review. No message is sent and no contract is created until the application confirms that action.
                   </p>
                 </div>
               )}
@@ -370,7 +370,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                         className="px-4 py-1.5 text-xs font-bold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20 transition-colors flex items-center gap-1.5"
                       >
                         <Check className="w-3.5 h-3.5" />
-                        Accept & Sign License
+                        Accept Offer
                       </button>
                     </>
                   )}
@@ -383,7 +383,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
 
                   {isAccepted && (
                     <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Active Licensing Contract
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Offer accepted
                     </span>
                   )}
 
