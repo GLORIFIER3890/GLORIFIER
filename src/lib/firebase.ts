@@ -130,9 +130,9 @@ const isApiRequestPath = (pathname: string): boolean => pathname.startsWith('/ap
 
 const shouldAttachFirebaseToken = (input: RequestInfo | URL): boolean => {
   const parsedUrl = parseRequestUrl(input);
-  return parsedUrl !== null &&
-    isApiRequestPath(parsedUrl.pathname) &&
-    isTrustedApiOrigin(parsedUrl.origin);
+  if (!parsedUrl) return false;
+  if (!isApiRequestPath(parsedUrl.pathname)) return false;
+  return isTrustedApiOrigin(parsedUrl.origin);
 };
 
 const addFirebaseAuthorizationHeader = async (headers: Headers): Promise<Headers> => {
