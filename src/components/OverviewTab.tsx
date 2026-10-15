@@ -190,7 +190,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateToTab }) => 
       <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
         <div className="mb-3 flex items-start justify-between gap-3"><div><h3 className="text-sm font-bold text-white flex items-center gap-2"><Activity className="w-4 h-4 text-emerald-400" />Governed Action Feed</h3><p className="text-xs text-slate-400">Recorded control-plane decisions, not simulated earnings.</p></div><div className="flex gap-2"><button onClick={loadControlPlane} className="text-[10px] px-2 py-1 rounded border border-slate-700 text-slate-300 hover:text-white">Refresh</button><button onClick={runGovernanceCheck} disabled={governanceBusy} className="text-[10px] px-2 py-1 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 disabled:opacity-50">{governanceBusy?'Running…':'Run Check'}</button></div></div>
         <div className="space-y-2">
-          {(controlPlane?.governance?.recentEvents || []).slice(0, 5).map((event) => (
+          {(controlPlane?.governance?.recentEvents || []).slice(0, 5).map((event: { id: string; machine: string; status: string; actionType: string; evidenceStatus: string }) => (
             <div
               key={event.id}
               className="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800/80 text-xs"
