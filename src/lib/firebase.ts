@@ -113,10 +113,9 @@ const getRequestUrl = (input: RequestInfo | URL): string => {
   return input.url;
 };
 
-const isTrustedApiOrigin = (origin: string): boolean => {
-  if (origin === window.location.origin) return true;
-  return configuredApiOrigin !== null && origin === configuredApiOrigin;
-};
+const isTrustedApiOrigin = (origin: string): boolean =>
+  origin === window.location.origin ||
+  (configuredApiOrigin !== null && origin === configuredApiOrigin);
 
 const parseRequestUrl = (input: RequestInfo | URL): URL | null => {
   if (typeof window === 'undefined') return null;
@@ -127,11 +126,13 @@ const parseRequestUrl = (input: RequestInfo | URL): URL | null => {
   }
 };
 
+const isApiRequestPath = (pathname: string): boolean => pathname.startsWith('/api/');
+
 const shouldAttachFirebaseToken = (input: RequestInfo | URL): boolean => {
   const parsedUrl = parseRequestUrl(input);
-  if (!parsedUrl) return false;
-  if (!parsedUrl.pathname.startsWith('/api/')) return false;
-  return isTrustedApiOrigin(parsedUrl.origin);
+  return parsedUrl !== null &&
+    isApiRequestPath(parsedUrl.pathname) &&
+    isTrustedApiOrigin(parsedUrl.origin);
 };
 
 const addFirebaseAuthorizationHeader = async (headers: Headers): Promise<Headers> => {
@@ -150,19 +151,26 @@ const getInputHeaders = (input: RequestInfo | URL): HeadersInit | undefined => {
 const withFirebaseAuthorization = async (
   input: RequestInfo | URL,
   init: RequestInit
-): Promise<RequestInit> => {
-  const sourceHeaders = init.headers || getInputHeaders(input);
-  const headers = new Headers(sourceHeaders);
-  const authorizedHeaders = await addFirebaseAuthorizationHeader(headers);
-  return { ...init, headers: authorizedHeaders };
+): Promise<RequestInit> => ({
+  ...init,
+  headers: await addFirebaseAuthorizationHeader(
+    new Headers(init.headers || getInputHeaders(input))
+  )
+});
+
+const fetchWithOptionalFirebaseAuthorization = async (
+  input: RequestInfo | URL,
+  init: RequestInit = {}
+): Promise<Response> => {
+  if (!nativeFetch || !shouldAttachFirebaseToken(input)) {
+    if (!nativeFetch) throw new Error('Fetch is unavailable in this environment.');
+    return nativeFetch(input, init);
+  }
+  return nativeFetch(input, await withFirebaseAuthorization(input, init));
 };
 
 if (typeof window !== 'undefined' && nativeFetch) {
-  window.fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
-    if (!shouldAttachFirebaseToken(input)) return nativeFetch(input, init);
-    const requestInit = await withFirebaseAuthorization(input, init);
-    return nativeFetch(input, requestInit);
-  };
+  window.fetch = fetchWithOptionalFirebaseAuthorization;
 }
 
 export const authenticatedFetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
