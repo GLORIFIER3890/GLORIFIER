@@ -42,7 +42,7 @@ jobs:
         run: npm run validate:geas-architecture
 
       - name: Validate authoritative source registry
-        run: npx tsx scripts/geas-authority-registry-validate.ts
+        run: ./node_modules/.bin/tsx scripts/geas-authority-registry-validate.ts
 
       - name: Execute authoritative architecture scan
         run: npm run scan:geas-architecture
