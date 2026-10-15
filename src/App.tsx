@@ -57,7 +57,7 @@ import {
   subscribeToUserGrants 
 } from './services/firestoreService';
 
-export default function App() {
+const App = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<string>('overview');
   const validTabs = new Set(['overview','geas_architecture','ai_ceo','integrations','agent_network','discovery','sentinel','connections','scientists','agent_miner','compliance','control','footprints','broker','mobile']);
@@ -582,4 +582,6 @@ export default function App() {
       </footer>
     </div>
   );
-}
+};
+
+export default App;
