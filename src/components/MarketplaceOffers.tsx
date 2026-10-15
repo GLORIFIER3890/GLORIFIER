@@ -17,6 +17,17 @@ import {
 } from 'lucide-react';
 import { BuyerOffer, MonetizationPolicy } from '../types';
 
+type OfferAssessment = { score: number; verdict: 'RECOMMEND' | 'CAUTION' | 'REJECT'; reasoning: string };
+
+const isValidAssessment = (value: unknown): value is OfferAssessment => {
+  if (!value || typeof value !== 'object') return false;
+  const assessment = value as Record<string, unknown>;
+  return typeof assessment.score === 'number' && Number.isFinite(assessment.score) &&
+    assessment.score >= 0 && assessment.score <= 100 &&
+    (assessment.verdict === 'RECOMMEND' || assessment.verdict === 'CAUTION' || assessment.verdict === 'REJECT') &&
+    typeof assessment.reasoning === 'string' && assessment.reasoning.trim().length > 0;
+};
+
 interface MarketplaceOffersProps {
   offers: BuyerOffer[];
   onAcceptOffer: (id: string) => void;
@@ -65,14 +76,10 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
         throw new Error(`HTTP ${res.status}`);
       }
       const data = await res.json();
-      if (!Number.isFinite(data.score) || data.score < 0 || data.score > 100 ||
-          !['RECOMMEND', 'CAUTION', 'REJECT'].includes(data.verdict) ||
-          typeof data.reasoning !== 'string' || !data.reasoning.trim()) {
+      if (!isValidAssessment(data)) {
         throw new Error('AI evaluation response was incomplete or invalid.');
       }
-      setEvaluationResults(previous => ({ ...previous, [offer.id]: {
-        score: data.score, verdict: data.verdict, reasoning: data.reasoning
-      }}));
+      setEvaluationResults(previous => ({ ...previous, [offer.id]: data }));
       setEvaluationErrors(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => id !== offer.id)));
     } catch (e) {
       console.error('Offer AI evaluation failed:', e);
@@ -131,11 +138,14 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
           // A failed re-evaluation invalidates both the previous local result and any
           // persisted offer assessment until a later successful evaluation clears the error.
           const evaluationError = evaluationErrors[offer.id];
-          const assessment = evaluationError ? null : (evaluationResults[offer.id] || (
-            typeof offer.aiBrokerScore === 'number' && offer.aiVerdict && offer.aiBrokerReasoning
-              ? { score: offer.aiBrokerScore, verdict: offer.aiVerdict, reasoning: offer.aiBrokerReasoning }
-              : null
-          ));
+          const persistedAssessment = {
+            score: offer.aiBrokerScore,
+            verdict: offer.aiVerdict,
+            reasoning: offer.aiBrokerReasoning,
+          };
+          const assessment = evaluationError ? null : (
+            evaluationResults[offer.id] || (isValidAssessment(persistedAssessment) ? persistedAssessment : null)
+          );
 
           const getVerdictBadge = () => {
             if (!assessment) {
