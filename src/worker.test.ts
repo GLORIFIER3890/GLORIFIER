@@ -103,6 +103,33 @@ async function run(): Promise<void> {
     assert.equal(getCapturedRequest().method, 'POST');
     assert.deepEqual(JSON.parse(await getCapturedRequest().text()), { action: 'observe' });
 
+    upstreamResponse = new Response(null, {
+      status: 302,
+      headers: {
+        Location: 'https://glorifier-artificial-intelligence-production.up.railway.app/auth/provider/callback?state=test',
+      },
+    });
+    const assetCallsBeforeAuth = assetCalls;
+    const authRedirect = await worker.fetch(
+      new Request('https://glorifier.glorifier.workers.dev/auth/provider/start'),
+      env,
+    );
+    assert.equal(authRedirect.status, 302);
+    assert.equal(
+      authRedirect.headers.get('location'),
+      'https://glorifier.glorifier.workers.dev/auth/provider/callback?state=test',
+      'backend auth redirects must be rewritten to the current public origin',
+    );
+    assert.equal(
+      getCapturedRequest().url,
+      'https://glorifier-artificial-intelligence-production.up.railway.app/auth/provider/start',
+    );
+    assert.equal(assetCalls, assetCallsBeforeAuth, 'auth routes must not fall through to the SPA assets');
+
+    upstreamResponse = new Response('{"ok":true}', {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
     shouldThrow = true;
     const unavailable = await worker.fetch(
       new Request('https://glorifier.glorifier.workers.dev/api/health'),
