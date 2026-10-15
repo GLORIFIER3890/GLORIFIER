@@ -31,11 +31,12 @@ test.describe('GLORIFIER production end-to-end', () => {
     expect(state.status).toBe(200);
     expect(state.body.ok).toBe(true);
 
-    const tabs = ['overview','ai_ceo','mediator','integrations','global_collaboration','discovery','ai_collaboration','sentinel','compute','accounts','binance','marketplace','compensation','monetization_sprint','compliance','patent','exposures','revenue_verified','connections','scientists','control','gmail','drive','privacy_lab','footprints','broker','gpt_cowork'];
-    const primaryTabs = new Set(['overview','ai_ceo','integrations','global_collaboration','discovery','sentinel','binance','revenue_verified']);
+    // Keep this list aligned with supported IDs in Header.tsx and App.tsx.
+    const tabs = ['overview','geas_architecture','ai_ceo','integrations','agent_network','discovery','sentinel','connections','mobile','scientists','agent_miner','compliance','control','footprints','broker'];
+    const primaryTabs = new Set(['overview','ai_ceo','integrations','discovery','sentinel']);
     for (const tab of tabs) {
       if (!primaryTabs.has(tab)) {
-        await page.getByRole('button', { name: 'Modules' }).click();
+        await page.getByRole('button', { name: /modules/i }).click();
       }
       const tabButton = page.locator('#tab-btn-' + tab);
       await expect(tabButton).toBeVisible();
