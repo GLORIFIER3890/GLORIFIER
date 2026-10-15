@@ -37,31 +37,31 @@ export default {
 
     try {
       const upstreamUrl = new URL(incomingUrl.pathname + incomingUrl.search, BACKEND_ORIGIN);
-      const headers = new Headers(request.headers);
-      headers.delete('host');
-      headers.delete('content-length');
-      headers.set('x-forwarded-host', incomingUrl.host);
-      headers.set('x-forwarded-proto', incomingUrl.protocol.slice(0, -1));
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.delete('host');
+      requestHeaders.delete('content-length');
+      requestHeaders.set('x-forwarded-host', incomingUrl.host);
+      requestHeaders.set('x-forwarded-proto', incomingUrl.protocol.slice(0, -1));
       const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
       const upstreamRequest = new Request(upstreamUrl, {
         method: request.method,
-        headers,
+        headers: requestHeaders,
         body: hasBody ? request.body : undefined,
         redirect: 'manual',
       });
 
       const upstreamResponse = await fetch(upstreamRequest);
-      const headers = new Headers(upstreamResponse.headers);
-      headers.set('Cache-Control', 'no-store');
-      headers.set('X-Content-Type-Options', 'nosniff');
+      const responseHeaders = new Headers(upstreamResponse.headers);
+      responseHeaders.set('Cache-Control', 'no-store');
+      responseHeaders.set('X-Content-Type-Options', 'nosniff');
 
       // Keep redirects on this public origin when the backend points to itself.
-      const location = headers.get('location');
+      const location = responseHeaders.get('location');
       if (location) {
         try {
           const redirectUrl = new URL(location, BACKEND_ORIGIN);
           if (redirectUrl.origin === BACKEND_ORIGIN) {
-            headers.set('Location', incomingUrl.origin + redirectUrl.pathname + redirectUrl.search + redirectUrl.hash);
+            responseHeaders.set('Location', incomingUrl.origin + redirectUrl.pathname + redirectUrl.search + redirectUrl.hash);
           }
         } catch {
           // Preserve an unparseable Location header unchanged; do not invent a redirect.
@@ -71,7 +71,7 @@ export default {
       return new Response(upstreamResponse.body, {
         status: upstreamResponse.status,
         statusText: upstreamResponse.statusText,
-        headers,
+        headers: responseHeaders,
       });
     } catch {
       return apiError(
