@@ -2,7 +2,6 @@ import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 
 type Props = {
   children: ReactNode;
-  onRetry?: () => void;
 };
 
 type State = {
@@ -35,12 +34,9 @@ export class ModuleErrorBoundary extends Component<Props, State> {
           <button
             type="button"
             className="mt-4 rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800"
-            onClick={() => {
-              this.setState({ failed: false });
-              this.props.onRetry?.();
-            }}
+            onClick={() => window.location.reload()}
           >
-            Try this panel again
+            Reload application
           </button>
         </section>
       );
