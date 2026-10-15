@@ -2752,7 +2752,7 @@ app.post('/api/scientists/resolve', async (req: Request, res: Response) => {
     });
     res.json({ ok: true, issue, monetization: getScientistMonetizationState() });
   } catch (err: any) {
-    res.status(500).json({ ok: false, error: err.message || 'Failed to resolve issue' });
+    res.status(503).json({ ok: false, status: 'unavailable', error: err.message || 'Independent issue verification is unavailable; no resolution was recorded.' });
   }
 });
 
@@ -2763,7 +2763,7 @@ app.post('/api/scientists/approve', (req: Request, res: Response) => {
     const issue = approveAndClaimIssueBounty(String(issueId), String(approver));
     res.json({ ok: true, issue, monetization: getScientistMonetizationState() });
   } catch (err: any) {
-    res.status(500).json({ ok: false, error: err.message || 'Failed to approve bounty' });
+    res.status(503).json({ ok: false, status: 'unavailable', error: err.message || 'Provider-confirmed bounty settlement is unavailable; no payout was recorded.' });
   }
 });
 
@@ -2776,19 +2776,23 @@ app.post('/api/scientists/submit', (req: Request, res: Response) => {
     const issue = submitTargetToScientistFleet({ target, domain, title, summary: summary || '', bountyRewardUsd });
     res.json({ ok: true, issue });
   } catch (err: any) {
-    res.status(500).json({ ok: false, error: err.message || 'Failed to submit target' });
+    res.status(503).json({ ok: false, status: 'unavailable', error: err.message || 'Scientist Fleet execution is unavailable; no target was submitted.' });
   }
 });
 
-app.post('/api/scientists/loop/toggle', (req: Request, res: Response) => {
-  const { enabled } = req.body || {};
-  const isRunning = toggle247AutonomousRunning(enabled !== undefined ? Boolean(enabled) : undefined);
-  res.json({ ok: true, is247AutonomousRunning: isRunning });
+app.post('/api/scientists/loop/toggle', (_req: Request, res: Response) => {
+  toggle247AutonomousRunning(false);
+  return res.status(503).json({
+    ok: false,
+    status: 'unavailable',
+    is247AutonomousRunning: false,
+    error: 'The scientist execution loop is disabled until real worker execution and independent verification are configured.'
+  });
 });
 
 app.post('/api/scientists/monetization/claim', (_req: Request, res: Response) => {
   const claim = claimAccruedScientistYield();
-  res.json({ ok: true, ...claim, state: getScientistMonetizationState() });
+  return res.status(503).json({ ok: false, ...claim, state: getScientistMonetizationState() });
 });
 
 // ============================================================================
@@ -3738,7 +3742,7 @@ async function startServer() {
   // Start the 24/7 autonomous scientist multi-agent daemon in the background
   try {
     start247ScientistDaemon(runIntelligenceModel);
-    console.log('[ScientistFleet] 24/7 Autonomous Multi-Agent Scientist Daemon initialized.');
+    console.log('[ScientistFleet] execution intentionally disabled: no independently verified work or provider-confirmed payouts are configured.');
   } catch (daemonErr) {
     console.warn('[ScientistFleet] Daemon init error (deferred):', daemonErr);
   }
