@@ -499,6 +499,10 @@ export default function App() {
         currentUser={currentUser}
       />
 
+      <aside role="status" aria-label="Evidence and sample-data notice" className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-7xl rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-xs leading-relaxed text-amber-100">
+        <strong>Evidence notice:</strong> Some modules start with local sample values. Treat account, AI-provider, balance, revenue, and external-connection status as <strong>NOT VERIFIED</strong> unless the relevant panel shows a successful server-backed check. A displayed estimate or sample value is not proof of a real transaction or earning.
+      </aside>
+
       {/* Main View Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'overview' && (
