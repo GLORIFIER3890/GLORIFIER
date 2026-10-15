@@ -1,0 +1,140 @@
+{
+  "version": "GEAS-AUTHORITY-2",
+  "policy": "Curated official project/specification sources only. Registry membership is discovery metadata, not proof that GLORIFIER implements a pattern.",
+  "sources": [
+    {
+      "id": "mcp-spec-2026-07-28",
+      "authority": "Model Context Protocol",
+      "domain": "integration",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28",
+      "claimsAllowed": [
+        "protocol-versioning",
+        "request-metadata",
+        "extension-negotiation"
+      ],
+      "reviewCadenceDays": 7,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "mcp-spec-versioning",
+      "authority": "Model Context Protocol",
+      "domain": "cybersecurity",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning",
+      "claimsAllowed": [
+        "version-compatibility",
+        "unsupported-version-fallback"
+      ],
+      "reviewCadenceDays": 7,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "a2a-current-specification",
+      "authority": "Agent2Agent Protocol",
+      "domain": "integration",
+      "url": "https://a2a-protocol.org/latest/",
+      "claimsAllowed": [
+        "agent-interoperability",
+        "capability-discovery",
+        "task-delegation"
+      ],
+      "reviewCadenceDays": 7,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "nist-csf-2",
+      "authority": "NIST",
+      "domain": "cybersecurity",
+      "url": "https://www.nist.gov/cyberframework",
+      "claimsAllowed": [
+        "cybersecurity-governance",
+        "risk-management"
+      ],
+      "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "nist-ai-rmf",
+      "authority": "NIST",
+      "domain": "ai",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "claimsAllowed": [
+        "ai-risk-governance",
+        "lifecycle-risk-management"
+      ],
+      "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "opentelemetry-docs",
+      "authority": "OpenTelemetry",
+      "domain": "observability",
+      "url": "https://opentelemetry.io/docs/",
+      "claimsAllowed": [
+        "telemetry-signals",
+        "distributed-context"
+      ],
+      "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "finops-framework",
+      "authority": "FinOps Foundation",
+      "domain": "finops",
+      "url": "https://www.finops.org/framework/",
+      "claimsAllowed": [
+        "cost-allocation",
+        "cost-value-outcomes"
+      ],
+      "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "slsa-specification",
+      "authority": "SLSA",
+      "domain": "software",
+      "url": "https://slsa.dev/spec/v1.2/",
+      "claimsAllowed": [
+        "build-provenance",
+        "artifact-integrity"
+      ],
+      "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "owasp-api-security",
+      "authority": "OWASP",
+      "domain": "cybersecurity",
+      "url": "https://owasp.org/www-project-api-security/",
+      "claimsAllowed": [
+        "api-authorization",
+        "api-resource-limits"
+      ],
+      "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "nist-iot-cybersecurity",
+      "authority": "NIST",
+      "domain": "iot",
+      "url": "https://www.nist.gov/itl/applied-cybersecurity/nist-cybersecurity-iot-program",
+      "claimsAllowed": [
+        "device-identity",
+        "device-lifecycle-security"
+      ],
+      "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    },
+    {
+      "id": "ethereum-security",
+      "authority": "Ethereum.org",
+      "domain": "blockchain",
+      "url": "https://ethereum.org/en/developers/docs/smart-contracts/security/",
+      "claimsAllowed": [
+        "smart-contract-security",
+        "independent-testing"
+      ],
+      "reviewCadenceDays": 30,
+      "implementationStatus": "not-assessed"
+    }
+  ]
+}
