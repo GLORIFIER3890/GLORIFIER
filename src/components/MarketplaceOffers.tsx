@@ -31,11 +31,15 @@ const isValidReasoning = (reasoning: unknown): reasoning is string =>
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
-const isValidAssessment = (value: unknown): value is OfferAssessment =>
-  isRecord(value) &&
-  isValidScore(value.score) &&
-  isValidVerdict(value.verdict) &&
-  isValidReasoning(value.reasoning);
+const isValidAssessment = (value: unknown): value is OfferAssessment => {
+  if (!isRecord(value)) return false;
+  const checks = [
+    isValidScore(value.score),
+    isValidVerdict(value.verdict),
+    isValidReasoning(value.reasoning),
+  ];
+  return checks.every(Boolean);
+};
 
 const getOfferAssessment = (
   offer: BuyerOffer,
