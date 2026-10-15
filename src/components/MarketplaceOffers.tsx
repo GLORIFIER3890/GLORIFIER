@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { BuyerOffer, MonetizationPolicy } from '../types';
 
-type OfferAssessment = { score: number; verdict: 'RECOMMEND' | 'CAUTION' | 'REJECT'; reasoning: string };
+type OfferAssessment = { score: number; verdict: 'RECOMMEND' | 'CAUTION' | 'REJECT'; reasoning: string; model?: string };
 
 const isValidScore = (score: unknown): score is number =>
   typeof score === 'number' && Number.isFinite(score) && score >= 0 && score <= 100;
@@ -37,6 +37,7 @@ const isValidAssessment = (value: unknown): value is OfferAssessment => {
     isValidScore(value.score),
     isValidVerdict(value.verdict),
     isValidReasoning(value.reasoning),
+    value.model === undefined || (typeof value.model === 'string' && value.model.trim().length > 0),
   ];
   return checks.every(Boolean);
 };
@@ -52,6 +53,7 @@ const getOfferAssessment = (
     score: offer.aiBrokerScore,
     verdict: offer.aiVerdict,
     reasoning: offer.aiBrokerReasoning,
+    model: undefined,
   };
   return isValidAssessment(persisted) ? persisted : null;
 };
@@ -379,7 +381,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="font-bold text-slate-200">AI Broker Assessment</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono font-semibold uppercase">
-                      {policy.aiModel || 'Server default model (not independently verified)'}
+                      {assessment?.model || policy.aiModel || 'Server default: gpt-4o (model not returned by API)'}
                     </span>
                   </div>
                   <span className="text-slate-300">{assessment?.reasoning || evaluationError || 'No verified AI assessment is available yet. Run an evaluation; a failed request will not produce a score or recommendation.'}</span>
