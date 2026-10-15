@@ -39,6 +39,24 @@ const isValidAssessment = (value: unknown): value is OfferAssessment => {
   ].every(Boolean);
 };
 
+const requestOfferAssessment = async (
+  offer: BuyerOffer,
+  policy: MonetizationPolicy
+): Promise<OfferAssessment> => {
+  const response = await fetch('/api/ai/evaluate-offer', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ offer, userPolicy: policy })
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+  const data: unknown = await response.json();
+  if (!isValidAssessment(data)) {
+    throw new Error('AI evaluation response was incomplete or invalid.');
+  }
+  return data;
+};
+
 interface MarketplaceOffersProps {
   offers: BuyerOffer[];
   onAcceptOffer: (id: string) => void;
@@ -81,20 +99,9 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
     evaluationRequestIds.current[offer.id] = requestId;
     setEvaluatingIds(previous => ({ ...previous, [offer.id]: true }));
     try {
-      const res = await fetch('/api/ai/evaluate-offer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ offer, userPolicy: policy })
-      });
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-      const data = await res.json();
-      if (!isValidAssessment(data)) {
-        throw new Error('AI evaluation response was incomplete or invalid.');
-      }
+      const assessment = await requestOfferAssessment(offer, policy);
       if (evaluationRequestIds.current[offer.id] !== requestId) return;
-      setEvaluationResults(previous => ({ ...previous, [offer.id]: data }));
+      setEvaluationResults(previous => ({ ...previous, [offer.id]: assessment }));
       setEvaluationErrors(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => id !== offer.id)));
     } catch (e) {
       if (evaluationRequestIds.current[offer.id] !== requestId) return;
