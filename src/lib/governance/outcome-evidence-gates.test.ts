@@ -35,6 +35,10 @@ const customer = {
 };
 if (validatePayingCustomerEvidence(customer) !== 'VERIFIED') throw new Error('complete production paying-customer evidence should pass');
 if (validatePayingCustomerEvidence({ ...customer, environment: 'staging' }) !== 'NOT VERIFIED') throw new Error('staging customer must not count as production customer');
+const unverifiedCustomerSettlement = validatePayingCustomerEvidence({ ...customer, settlementIndependentlyVerified: false });
+if (unverifiedCustomerSettlement.status !== 'NOT VERIFIED' || !unverifiedCustomerSettlement.failedChecks.includes('settlement_independently_verified')) {
+  throw new Error('unverified settlement must be explicitly reported as a failed check');
+}
 
 const revenue = {
   environment: 'production' as const,
