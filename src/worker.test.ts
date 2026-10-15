@@ -63,7 +63,7 @@ async function run(): Promise<void> {
     assert.equal(apiResponse.headers.get('cache-control'), 'no-store');
     assert.equal(getCapturedRequest().url, 'https://glorifier-artificial-intelligence-production.up.railway.app/api/runtime-verification?probeAi=false');
     assert.equal(getCapturedRequest().headers.get('x-forwarded-host'), 'glorifier.glorifier.workers.dev');
-    assert.equal(await apiResponse.json().then((body: any) => body.ok), true);
+    assert.equal(await apiResponse.json().then((body: { ok?: boolean }) => body.ok), true);
 
     upstreamResponse = new Response('{"ok":false,"error":"not found"}', {
       status: 404,
@@ -85,7 +85,7 @@ async function run(): Promise<void> {
       env,
     );
     assert.equal(htmlApiResponse.status, 502, 'HTML from the backend must not masquerade as a successful API response');
-    assert.equal(await htmlApiResponse.json().then((body: any) => body.code), 'API_HTML_RESPONSE');
+    assert.equal(await htmlApiResponse.json().then((body: { code?: string }) => body.code), 'API_HTML_RESPONSE');
 
     upstreamResponse = new Response('{"ok":true}', {
       status: 200,
