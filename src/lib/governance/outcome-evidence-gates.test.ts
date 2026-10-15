@@ -56,7 +56,7 @@ if (validatePayingCustomerEvidence(customer).status !== 'VERIFIED') {
 if (validatePayingCustomerEvidence({ ...customer, environment: 'staging' }).status !== 'NOT VERIFIED') {
   throw new Error('staging customer must not count as production customer');
 }
-if (validatePayingCustomerEvidence({ ...customer, settlementIndependentlyVerified: false }).failedChecks.includes('settlement_independently_verified')) {
+if (!validatePayingCustomerEvidence({ ...customer, settlementIndependentlyVerified: false }).failedChecks.includes('settlement_independently_verified')) {
   throw new Error('unverified settlement must be explicitly reported as a failed check');
 }
 
