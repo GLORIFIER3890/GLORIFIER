@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { 
   Scale, 
   CheckCircle2, 
@@ -16,6 +16,16 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { BuyerOffer, MonetizationPolicy } from '../types';
+
+type OfferAssessment = { score: number; verdict: 'RECOMMEND' | 'CAUTION' | 'REJECT'; reasoning: string };
+
+const isValidAssessment = (value: unknown): value is OfferAssessment => {
+  if (typeof value !== 'object' || value === null) return false;
+  const assessment = value as Record<string, unknown>;
+  return typeof assessment.score === 'number' && Number.isFinite(assessment.score) && assessment.score >= 0 && assessment.score <= 100
+    && (assessment.verdict === 'RECOMMEND' || assessment.verdict === 'CAUTION' || assessment.verdict === 'REJECT')
+    && typeof assessment.reasoning === 'string' && assessment.reasoning.trim().length > 0;
+};
 
 interface MarketplaceOffersProps {
   offers: BuyerOffer[];
@@ -35,7 +45,10 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
   const [filter, setFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
   const [counteringOfferId, setCounteringOfferId] = useState<string | null>(null);
   const [counterPrice, setCounterPrice] = useState<number>(0);
-  const [evaluatingId, setEvaluatingId] = useState<string | null>(null);
+  const [evaluatingIds, setEvaluatingIds] = useState<Record<string, boolean>>({});
+  const [evaluationResults, setEvaluationResults] = useState<Record<string, OfferAssessment>>({});
+  const [evaluationErrors, setEvaluationErrors] = useState<Record<string, string>>({});
+  const evaluationRequestIds = useRef<Record<string, number>>({});
 
   const filteredOffers = offers.filter(o => {
     if (filter === 'all') return true;
@@ -52,29 +65,30 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
   };
 
   const handleRunAiEvaluation = async (offer: BuyerOffer) => {
-    setEvaluatingId(offer.id);
+    const requestId = (evaluationRequestIds.current[offer.id] || 0) + 1;
+    evaluationRequestIds.current[offer.id] = requestId;
+    setEvaluatingIds(previous => ({ ...previous, [offer.id]: true }));
     try {
       const res = await fetch('/api/ai/evaluate-offer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ offer, userPolicy: policy })
       });
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-      const data = await res.json();
-      if (data.score) {
-        offer.aiBrokerScore = data.score;
-        offer.aiVerdict = data.verdict;
-        offer.aiBrokerReasoning = data.reasoning;
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: unknown = await res.json();
+      if (!isValidAssessment(data)) throw new Error('AI evaluation response was incomplete or invalid.');
+      if (evaluationRequestIds.current[offer.id] !== requestId) return;
+      setEvaluationResults(previous => ({ ...previous, [offer.id]: data }));
+      setEvaluationErrors(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => id !== offer.id)));
     } catch (e) {
+      if (evaluationRequestIds.current[offer.id] !== requestId) return;
       console.error('Offer evaluation unavailable; no recommendation was inferred:', e);
-      delete (offer as any).aiBrokerScore;
-      offer.aiVerdict = 'NOT VERIFIED' as any;
-      offer.aiBrokerReasoning = 'The evaluation service did not return a result. No score, buyer legitimacy, privacy guarantee, or recommendation was inferred.';
+      setEvaluationResults(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => id !== offer.id)));
+      setEvaluationErrors(previous => ({ ...previous, [offer.id]: e instanceof Error ? e.message : 'AI evaluation unavailable.' }));
     } finally {
-      setEvaluatingId(null);
+      if (evaluationRequestIds.current[offer.id] === requestId) {
+        setEvaluatingIds(previous => ({ ...previous, [offer.id]: false }));
+      }
     }
   };
 
@@ -123,29 +137,34 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
           const isAccepted = offer.status === 'ACCEPTED';
           const isRejected = offer.status === 'REJECTED';
           const isCountered = offer.status === 'COUNTERED';
-          const isEvaluating = evaluatingId === offer.id;
+          const isEvaluating = evaluatingIds[offer.id] === true;
+          const persistedAssessment = { score: offer.aiBrokerScore, verdict: offer.aiVerdict, reasoning: offer.aiBrokerReasoning };
+          const assessment = evaluationErrors[offer.id] ? null : (evaluationResults[offer.id] || (isValidAssessment(persistedAssessment) ? persistedAssessment : null));
 
           const getVerdictBadge = () => {
-            if (offer.aiVerdict === 'RECOMMEND') {
+            if (!assessment) {
+              return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Not evaluated</span>;
+            }
+            if (assessment.verdict === 'RECOMMEND') {
               return (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  Stored verdict: RECOMMEND · score {offer.aiBrokerScore}/100 · NOT VERIFIED
+                  Stored verdict: RECOMMEND · score {assessment.score}/100 · NOT VERIFIED
                 </span>
               );
             }
-            if (offer.aiVerdict === 'CAUTION') {
+            if (assessment.verdict === 'CAUTION') {
               return (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  Stored verdict: CAUTION · score {offer.aiBrokerScore}/100 · NOT VERIFIED
+                  Stored verdict: CAUTION · score {assessment.score}/100 · NOT VERIFIED
                 </span>
               );
             }
             return (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30">
                 <XCircle className="w-3.5 h-3.5" />
-                Stored verdict: REJECT · score {offer.aiBrokerScore}/100 · NOT VERIFIED
+                Stored verdict: REJECT · score {assessment.score}/100 · NOT VERIFIED
               </span>
             );
           };
@@ -244,7 +263,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                       {policy.aiModel || 'GPT-4o'}
                     </span>
                   </div>
-                  <span className="text-slate-300">{offer.aiBrokerReasoning}</span>
+                  <span className="text-slate-300">{evaluationErrors[offer.id] || assessment?.reasoning || 'No verified AI assessment is available. Run an evaluation; failed requests will not produce a score or recommendation.'}</span>
                 </div>
                 <button
                   onClick={() => handleRunAiEvaluation(offer)}
