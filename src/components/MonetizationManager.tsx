@@ -21,7 +21,7 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
     void fetch('/api/monetization/subscription?customerReference=' + encodeURIComponent(currentUser.uid), { cache: 'no-store' })
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
-        if (!response.ok || data?.ok === false) throw new Error(data?.error || 'Subscription status unavailable');
+        if (!response.ok || data?.ok !== true) throw new Error(data?.error || 'Subscription status unavailable');
         if (!cancelled) setSubscription(data.subscription || null);
       })
       .catch((error) => {
@@ -63,8 +63,14 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
       const response = await fetch('/api/monetization/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerReference: currentUser.uid, planId }) });
       const data = await response.json();
       const approvalUrl = data?.checkout?.approvalUrl || data?.approvalUrl;
-      if (!response.ok || data?.ok !== true || typeof approvalUrl !== 'string' || !approvalUrl.startsWith('https://')) throw new Error(data.error || 'Checkout did not return a valid PayPal approval URL');
-      window.location.href = approvalUrl;
+      let parsedApprovalUrl: URL | null = null;
+      try { parsedApprovalUrl = new URL(approvalUrl); } catch { parsedApprovalUrl = null; }
+      const allowedPayPalHost = parsedApprovalUrl &&
+        (parsedApprovalUrl.hostname === 'paypal.com' || parsedApprovalUrl.hostname.endsWith('.paypal.com'));
+      if (!response.ok || data?.ok !== true || !parsedApprovalUrl || parsedApprovalUrl.protocol !== 'https:' || !allowedPayPalHost) {
+        throw new Error(data.error || 'Checkout did not return a valid PayPal approval URL');
+      }
+      window.location.href = parsedApprovalUrl.href;
     } catch (error) {
       setPaymentMessage(error instanceof Error ? error.message : 'Checkout unavailable.');
       setCheckoutLoading(null);
