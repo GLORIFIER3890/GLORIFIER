@@ -80,7 +80,9 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
   onUpdatePolicy,
   userReference = 'anonymous'
 }) => {
-  const [amount, setAmount] = useState<number>(Math.max(0, Number(stats.totalEarnedUsd) || 0));
+  const [amount, setAmount] = useState<number>(0);
+  const [verifiedAvailableUsd, setVerifiedAvailableUsd] = useState<number | null>(null);
+  const [balanceLoading, setBalanceLoading] = useState(false);
   type PayoutMethod = 'crypto' | 'gcash' | 'binance' | 'fiat';
   const [payoutCategory, setPayoutCategory] = useState<PayoutMethod>('crypto');
   const [gcashAccount, setGcashAccount] = useState('');
@@ -123,6 +125,35 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
     timestamp: string;
     isCrypto: boolean;
   } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!userReference || userReference === 'anonymous') {
+      setVerifiedAvailableUsd(null);
+      setAmount(0);
+      return;
+    }
+    setBalanceLoading(true);
+    fetch('/api/payouts?userReference=' + encodeURIComponent(userReference), { cache: 'no-store' })
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data?.ok !== true || !data?.balance || !Number.isFinite(Number(data.balance.availableUsd))) {
+          throw new Error(data?.error || 'Verified payout balance is unavailable.');
+        }
+        if (cancelled) return;
+        const available = Math.max(0, Number(data.balance.availableUsd));
+        setVerifiedAvailableUsd(available);
+        setAmount(available);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setVerifiedAvailableUsd(null);
+        setAmount(0);
+        setPayoutError(error instanceof Error ? error.message : 'Verified payout balance is unavailable.');
+      })
+      .finally(() => { if (!cancelled) setBalanceLoading(false); });
+    return () => { cancelled = true; };
+  }, [userReference]);
 
   // Address validation per chain
   const validateAddress = (addr: string, chain: CryptoChain): boolean => {
