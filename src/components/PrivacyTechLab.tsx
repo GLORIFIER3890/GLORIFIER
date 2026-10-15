@@ -88,7 +88,8 @@ export const PrivacyTechLab: React.FC = () => {
   const [zkpAttribute, setZkpAttribute] = useState<'credit_score' | 'age_verification' | 'geo_jurisdiction'>('credit_score');
   const [zkpSecretValue, setZkpSecretValue] = useState<number>(765);
   const [zkpPublicThreshold, setZkpPublicThreshold] = useState<number>(700);
-  const [zkpProofHex, setZkpProofHex] = useState<string>('0x7f208acb4198...de09');
+  const [zkpProofHex, setZkpProofHex] = useState<string>('NOT GENERATED — simulation only');
+  const [zkpHasRun, setZkpHasRun] = useState(false);
   const [zkpVerifierResult, setZkpVerifierResult] = useState<boolean>(true);
   const [zkpIsGenerating, setZkpIsGenerating] = useState<boolean>(false);
 
@@ -98,6 +99,7 @@ export const PrivacyTechLab: React.FC = () => {
     const proof = '0x' + seed.toString(16).padStart(12, '0').slice(-12) + '...' + (seed * 53).toString(16).padStart(4, '0').slice(-4);
     setZkpVerifierResult(isValid);
     setZkpProofHex(proof);
+    setZkpHasRun(true);
     setZkpIsGenerating(false);
   };
 
@@ -489,7 +491,7 @@ export const PrivacyTechLab: React.FC = () => {
             {/* Proof result */}
             <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Generated zk-SNARK Proof π:</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400">Generated pseudo-proof (not cryptographic):</span>
                 <button
                   onClick={handleGenerateZkProof}
                   disabled={zkpIsGenerating}
@@ -509,7 +511,7 @@ export const PrivacyTechLab: React.FC = () => {
                 <span className={`text-xs font-bold font-mono px-2 py-0.5 rounded ${
                   zkpVerifierResult ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
                 }`}>
-                  {zkpVerifierResult ? 'PROOF VALID (STATEMENT TRUE)' : 'PROOF REJECTED (FALSE)'}
+                  {!zkpHasRun ? 'NOT RUN' : zkpVerifierResult ? 'SIMULATED PASS — NOT A CRYPTOGRAPHIC PROOF' : 'SIMULATED FAIL — NOT A CRYPTOGRAPHIC PROOF'}
                 </span>
               </div>
             </div>
