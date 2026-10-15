@@ -76,6 +76,17 @@ async function run(): Promise<void> {
     assert.equal(missingRoute.status, 404, 'unknown API routes must stay backend errors, not SPA success');
     assert.equal(await missingRoute.json().then((body: any) => body.ok), false);
 
+    upstreamResponse = new Response('<!doctype html><title>SPA</title>', {
+      status: 200,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    });
+    const htmlApiResponse = await worker.fetch(
+      new Request('https://glorifier.glorifier.workers.dev/api/misrouted-endpoint'),
+      env,
+    );
+    assert.equal(htmlApiResponse.status, 502, 'HTML from the backend must not masquerade as a successful API response');
+    assert.equal(await htmlApiResponse.json().then((body: any) => body.code), 'API_HTML_RESPONSE');
+
     upstreamResponse = new Response('{"ok":true}', {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
