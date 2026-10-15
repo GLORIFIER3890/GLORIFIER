@@ -5,14 +5,16 @@ Source: [GLORIFIER7/GLORIFIER](https://github.com/GLORIFIER7/GLORIFIER)
 
 ## Build locally
 
-From the repository root:
+From the repository root, create your local environment file from the tracked example, then review it before running the container:
 
 ```sh
+cp .env.example .env
+# Edit .env and replace every placeholder with deployment-appropriate values.
 docker build --pull -t glorifier/glorifier:local .
 docker run --rm -p 3000:3000 --env-file .env glorifier/glorifier:local
 ```
 
-Only provide environment variables the deployment actually needs. Do not bake secrets into the image or build arguments. The application listens on port 3000 by default; set `PORT` if your deployment requires a different port.
+Do not commit the local `.env` file; only provide environment variables the deployment actually needs. Do not bake secrets into the image or build arguments. The application listens on port 3000 by default; set `PORT` if your deployment requires a different port.
 
 Check the application health endpoint:
 
