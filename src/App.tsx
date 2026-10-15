@@ -197,106 +197,55 @@ export default function App() {
     }
   };
 
-  // Toggle footprint monetization
+  // This control changes a local preference only; it does not connect a source or create revenue.
   const handleToggleFootprint = (id: string) => {
     setFootprints(prev => {
-      const next = prev.map(f => {
-        if (f.id === id) {
-          const willMonetize = !f.isMonetized;
-          return {
-            ...f,
-            isMonetized: willMonetize,
-            status: willMonetize ? ('active-monetizing' as const) : ('shielded-private' as const),
-            userMonthlyCompUsd: willMonetize ? Math.round(f.marketMonthlyValueUsd * 0.8) : 0
-          };
-        }
-        return f;
-      });
-
-      // Recalculate stats
-      const activeCount = next.filter(f => f.isMonetized).length;
-      const totalComp = next.filter(f => f.isMonetized).reduce((sum, f) => sum + f.userMonthlyCompUsd, 0);
-      setStats(s => ({
-        ...s,
-        activeDataStreamsCount: activeCount,
-        monthlyPacingUsd: totalComp
-      }));
+      const next = prev.map(f => f.id === id
+        ? { ...f, isMonetized: !f.isMonetized, status: 'configured-not-verified' as const }
+        : f);
+      const requestedEnabled = next.find(f => f.id === id)?.isMonetized === true;
       void persistAppState({ footprints: next });
-      void recordGovernedAction('footprint-monetization-policy-change', { footprintId: id, enabled: next.find(f => f.id === id)?.isMonetized === true });
-
+      void recordGovernedAction('footprint-local-configuration-change', {
+        footprintId: id,
+        requestedEnabled,
+        externalDataConnectionVerified: false,
+        monetizationVerified: false,
+      });
       return next;
     });
   };
 
-  // Update privacy tier & epsilon
+  // Privacy selections are stored as configuration only; this UI does not transform source data.
   const handleUpdatePrivacyTier = (id: string, tier: PrivacyTier, epsilon: number) => {
     setFootprints(prev => {
-      const next = prev.map(f => {
-        if (f.id === id) {
-          const multiplier = epsilon < 0.25 ? 0.65 : epsilon < 0.6 ? 0.8 : 0.95;
-          const adjustedComp = f.isMonetized ? Math.round(f.marketMonthlyValueUsd * multiplier) : 0;
-          return { ...f, privacyTier: tier, privacyEpsilon: epsilon, userMonthlyCompUsd: adjustedComp };
-        }
-        return f;
-      });
+      const next = prev.map(f => f.id === id
+        ? { ...f, privacyTier: tier, privacyEpsilon: epsilon, status: 'configured-not-verified' as const }
+        : f);
       void persistAppState({ footprints: next });
-      void recordGovernedAction('footprint-privacy-policy-change', { footprintId: id, privacyTier: tier, epsilon });
+      void recordGovernedAction('footprint-privacy-configuration-change', {
+        footprintId: id,
+        privacyTier: tier,
+        epsilon,
+        runtimeEnforcementVerified: false,
+      });
       return next;
     });
   };
 
-  // Update policy with dynamic shield calculation
+  // Save policy preferences without inventing a privacy score or revenue forecast.
   const handleUpdatePolicy = (newPolicy: Partial<MonetizationPolicy>) => {
     setPolicy(prev => {
       const updated = { ...prev, ...newPolicy };
-      
-      // Calculate dynamic privacy shield score based on policy protections
-      let baseShield = 91;
-      if (updated.brokerMode === 'strict-sovereign') {
-        baseShield = 95;
-      } else if (updated.brokerMode === 'balanced-protective') {
-        baseShield = 91;
-      } else {
-        baseShield = 84;
-      }
-
-      // Epsilon strength factor (lower epsilon = more noise = stronger mathematical shield)
-      if (updated.globalEpsilon <= 0.15) {
-        baseShield += 2;
-      } else if (updated.globalEpsilon <= 0.35) {
-        baseShield += 1;
-      } else if (updated.globalEpsilon >= 0.60) {
-        baseShield -= 2;
-      }
-
-      // Protective constraints
-      if (!updated.allowAdTargeting) baseShield += 1;
-      if (!updated.allowInsuranceRiskProfiling) baseShield += 1;
-      if (!updated.allowAiModelPretraining) baseShield += 1;
-
-      const finalShield = Math.min(100, Math.max(50, baseShield));
-
-      // Calculate estimated pacing
-      let pacing = 215.30;
-      if (updated.brokerMode === 'autonomous-maximize') {
-        pacing = 382.40;
-      } else if (updated.brokerMode === 'strict-sovereign') {
-        pacing = 145.00;
-      }
-
-      setStats(s => ({ 
-        ...s, 
-        monthlyPacingUsd: pacing, 
-        privacyShieldIndex: finalShield 
-      }));
-
       if (currentUser) {
         void import('./services/firestoreService')
           .then(({ saveUserPolicy }) => saveUserPolicy(currentUser.uid, updated))
           .catch(console.error);
-        void recordGovernedAction('monetization-policy-change', { policy: updated });
+        void recordGovernedAction('monetization-policy-change', {
+          policy: updated,
+          privacyRuntimeEnforcementVerified: false,
+          revenueForecastVerified: false,
+        });
       }
-
       return updated;
     });
   };
