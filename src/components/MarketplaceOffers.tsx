@@ -470,7 +470,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
 
                   {isCountered && (
                     <span className="text-xs text-amber-400 font-semibold flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" /> Awaiting Buyer Response
+                      <Clock className="w-3.5 h-3.5" /> Counter-offer recorded locally (not sent)
                     </span>
                   )}
 
