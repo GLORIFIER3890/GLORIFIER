@@ -107,46 +107,60 @@ try {
 } catch {
   console.error('VITE_API_BASE_URL is invalid; external API requests will not receive automatic Firebase auth.');
 }
-const getRequestUrl = (input: RequestInfo | URL): string =>
-  typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+const getRequestUrl = (input: RequestInfo | URL): string => {
+  if (typeof input === 'string') return input;
+  if (input instanceof URL) return input.toString();
+  return input.url;
+};
 
-const isTrustedApiOrigin = (origin: string): boolean =>
-  origin === window.location.origin ||
-  (configuredApiOrigin !== null && origin === configuredApiOrigin);
+const isTrustedApiOrigin = (origin: string): boolean => {
+  if (origin === window.location.origin) return true;
+  return configuredApiOrigin !== null && origin === configuredApiOrigin;
+};
+
+const parseRequestUrl = (input: RequestInfo | URL): URL | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return new URL(getRequestUrl(input), window.location.origin);
+  } catch {
+    return null;
+  }
+};
 
 const shouldAttachFirebaseToken = (input: RequestInfo | URL): boolean => {
-  if (typeof window === 'undefined') return false;
-  try {
-    const parsedUrl = new URL(getRequestUrl(input), window.location.origin);
-    return parsedUrl.pathname.startsWith('/api/') && isTrustedApiOrigin(parsedUrl.origin);
-  } catch {
-    return false;
-  }
+  const parsedUrl = parseRequestUrl(input);
+  if (!parsedUrl) return false;
+  if (!parsedUrl.pathname.startsWith('/api/')) return false;
+  return isTrustedApiOrigin(parsedUrl.origin);
 };
 
 const addFirebaseAuthorizationHeader = async (headers: Headers): Promise<Headers> => {
   if (headers.has('Authorization')) return headers;
   const token = await getIdToken();
-  if (token) headers.set('Authorization', `Bearer ${token}`);
+  if (!token) return headers;
+  headers.set('Authorization', `Bearer ${token}`);
   return headers;
 };
 
-const getInputHeaders = (input: RequestInfo | URL): HeadersInit | undefined =>
-  typeof input !== 'string' && !(input instanceof URL) ? input.headers : undefined;
+const getInputHeaders = (input: RequestInfo | URL): HeadersInit | undefined => {
+  if (typeof input === 'string' || input instanceof URL) return undefined;
+  return input.headers;
+};
 
 const withFirebaseAuthorization = async (
   input: RequestInfo | URL,
   init: RequestInit
 ): Promise<RequestInit> => {
-  const headers = new Headers(init.headers || getInputHeaders(input));
-  return { ...init, headers: await addFirebaseAuthorizationHeader(headers) };
+  const sourceHeaders = init.headers || getInputHeaders(input);
+  const headers = new Headers(sourceHeaders);
+  const authorizedHeaders = await addFirebaseAuthorizationHeader(headers);
+  return { ...init, headers: authorizedHeaders };
 };
 
 if (typeof window !== 'undefined' && nativeFetch) {
   window.fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
-    const requestInit = shouldAttachFirebaseToken(input)
-      ? await withFirebaseAuthorization(input, init)
-      : init;
+    if (!shouldAttachFirebaseToken(input)) return nativeFetch(input, init);
+    const requestInit = await withFirebaseAuthorization(input, init);
     return nativeFetch(input, requestInit);
   };
 }
@@ -155,7 +169,7 @@ export const authenticatedFetch = async (input: RequestInfo | URL, init: Request
   const token = await getIdToken();
   if (!token) throw new Error('Authentication required. Please sign in again.');
   const headers = new Headers(init.headers);
-  headers.set('Authorization', 'Bearer ' + token);
+  headers.set('Authorization', `Bearer ${token}`);
   return fetch(input, { ...init, headers });
 };
 
