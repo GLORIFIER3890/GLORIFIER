@@ -124,16 +124,22 @@ const shouldAttachFirebaseToken = (input: RequestInfo | URL): boolean => {
   }
 };
 
+const addFirebaseAuthorizationHeader = async (headers: Headers): Promise<Headers> => {
+  if (headers.has('Authorization')) return headers;
+  const token = await getIdToken();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  return headers;
+};
+
+const getInputHeaders = (input: RequestInfo | URL): HeadersInit | undefined =>
+  typeof input !== 'string' && !(input instanceof URL) ? input.headers : undefined;
+
 const withFirebaseAuthorization = async (
   input: RequestInfo | URL,
   init: RequestInit
 ): Promise<RequestInit> => {
-  const inputHeaders = typeof input !== 'string' && !(input instanceof URL) ? input.headers : undefined;
-  const headers = new Headers(init.headers || inputHeaders);
-  if (headers.has('Authorization')) return { ...init, headers };
-  const token = await getIdToken();
-  if (token) headers.set('Authorization', 'Bearer ' + token);
-  return { ...init, headers };
+  const headers = new Headers(init.headers || getInputHeaders(input));
+  return { ...init, headers: await addFirebaseAuthorizationHeader(headers) };
 };
 
 if (typeof window !== 'undefined' && nativeFetch) {
