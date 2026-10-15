@@ -115,9 +115,10 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
           <div className="flex items-center gap-4 bg-slate-950 px-4 py-2.5 rounded-lg border border-slate-800/80">
             <div>
               <div className="text-[10px] uppercase font-semibold text-slate-400">Sample value inputs (illustrative)</div>
-              <div className="text-sm font-bold font-mono text-slate-400 line-through">
+              <div className="text-sm font-bold font-mono text-slate-400">
                 ${totalMarketValue.toFixed(2)}/mo
               </div>
+              <div className="text-[9px] text-amber-300">SAMPLE ONLY · NOT MARKET EVIDENCE</div>
             </div>
             <ArrowRight className="w-4 h-4 text-emerald-400" />
             <div>
@@ -125,6 +126,7 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
               <div className="text-sm font-bold font-mono text-emerald-400">
                 ${userCapturedValue.toFixed(2)}/mo
               </div>
+              <div className="text-[9px] text-amber-300">NOT REVENUE · NOT PAYABLE</div>
             </div>
           </div>
         </div>
@@ -222,7 +224,7 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
                     className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition-colors"
                   >
                     <Eye className="w-3.5 h-3.5 text-emerald-400" />
-                    Inspect Noise Samples
+                    Inspect sample records
                   </button>
 
                   <button
@@ -236,7 +238,7 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
                     ) : (
                       <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                     )}
-                    AI Leak Audit
+                    Request AI audit
                   </button>
 
                   <button
@@ -264,10 +266,10 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         {[
-                          { id: 'differential-privacy', label: 'Differential Privacy (ε)', desc: 'Laplacian mathematical noise injection' },
-                          { id: 'zero-knowledge', label: 'Zero-Knowledge Proof', desc: 'Attest facts without revealing values' },
-                          { id: 'privacy-twin', label: 'Privacy Twin AI', desc: 'Abstract privacy-preserving counterpart model' },
-                          { id: 'k-anonymity', label: 'k-Anonymity (k=50)', desc: 'Grouped into indistinguishable cohorts' },
+                          { id: 'differential-privacy', label: 'Differential Privacy (ε)', desc: 'Selection only; runtime enforcement not verified' },
+                          { id: 'zero-knowledge', label: 'Zero-Knowledge Proof', desc: 'Selection only; runtime enforcement not verified' },
+                          { id: 'privacy-twin', label: 'Privacy Twin AI', desc: 'Selection only; runtime enforcement not verified' },
+                          { id: 'k-anonymity', label: 'k-Anonymity (k=50)', desc: 'Selection only; runtime enforcement not verified' },
                         ].map((tierOption) => (
                           <div
                             key={tierOption.id}
@@ -289,7 +291,7 @@ export const FootprintManager: React.FC<FootprintManagerProps> = ({
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
-                          Differential Privacy Budget (ε = {fp.privacyEpsilon})
+                          Epsilon target (configuration only): ε = {fp.privacyEpsilon}
                         </label>
                         <span className="text-[10px] font-mono text-emerald-400">
                           {fp.privacyEpsilon <= 0.25 ? 'Lower ε target' : fp.privacyEpsilon <= 0.6 ? 'Middle ε target' : 'Higher ε target'}
