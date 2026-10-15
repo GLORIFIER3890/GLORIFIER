@@ -145,10 +145,15 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
   const [filter, setFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
   const [counteringOfferId, setCounteringOfferId] = useState<string | null>(null);
   const [counterPrice, setCounterPrice] = useState<number>(0);
-  const [evaluatingIds, setEvaluatingIds] = useState<Record<string, boolean>>({});
+  const [evaluatingIds, setEvaluatingIds] = useState<Record<string, string>>({});
   const evaluationRequestIds = useRef<Record<string, number>>({});
+  const currentEvaluationKeys = useRef<Record<string, string>>({});
   const [evaluationResults, setEvaluationResults] = useState<Record<string, { key: string; assessment: OfferAssessment }>>({});
-  const [evaluationErrors, setEvaluationErrors] = useState<Record<string, string>>({});
+  const [evaluationErrors, setEvaluationErrors] = useState<Record<string, { key: string; message: string }>>({});
+
+  offers.forEach(offer => {
+    currentEvaluationKeys.current[offer.id] = JSON.stringify({ offer, policy });
+  });
 
   const filteredOffers = offers.filter(o => {
     if (filter === 'all') return true;
@@ -164,8 +169,9 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
     setCounterPrice(suggested);
   };
 
-  const isCurrentEvaluation = (offerId: string, requestId: number) =>
-    evaluationRequestIds.current[offerId] === requestId;
+  const isCurrentEvaluation = (offerId: string, requestId: number, evaluationKey: string) =>
+    evaluationRequestIds.current[offerId] === requestId &&
+    currentEvaluationKeys.current[offerId] === evaluationKey;
 
   const clearEvaluationResult = (offerId: string) => {
     setEvaluationResults(previous => Object.fromEntries(
@@ -173,11 +179,14 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
     ));
   };
 
-  const storeEvaluationFailure = (offerId: string, error: unknown) => {
+  const storeEvaluationFailure = (offerId: string, evaluationKey: string, error: unknown) => {
     clearEvaluationResult(offerId);
     setEvaluationErrors(previous => ({
       ...previous,
-      [offerId]: error instanceof Error ? error.message : 'AI evaluation unavailable.'
+      [offerId]: {
+        key: evaluationKey,
+        message: error instanceof Error ? error.message : 'AI evaluation unavailable.'
+      }
     }));
   };
 
@@ -187,7 +196,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
     evaluationKey: string,
     assessment: OfferAssessment
   ) => {
-    if (!isCurrentEvaluation(offerId, requestId)) return;
+    if (!isCurrentEvaluation(offerId, requestId, evaluationKey)) return;
     setEvaluationResults(previous => ({ ...previous, [offerId]: { key: evaluationKey, assessment } }));
     setEvaluationErrors(previous => Object.fromEntries(
       Object.entries(previous).filter(([id]) => id !== offerId)
@@ -197,29 +206,32 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
   const storeCurrentEvaluationFailure = (
     offerId: string,
     requestId: number,
+    evaluationKey: string,
     error: unknown
   ) => {
-    if (!isCurrentEvaluation(offerId, requestId)) return;
+    if (!isCurrentEvaluation(offerId, requestId, evaluationKey)) return;
     console.error('Offer AI evaluation failed:', error);
-    storeEvaluationFailure(offerId, error);
+    storeEvaluationFailure(offerId, evaluationKey, error);
   };
 
-  const finishCurrentEvaluation = (offerId: string, requestId: number) => {
-    if (!isCurrentEvaluation(offerId, requestId)) return;
-    setEvaluatingIds(previous => ({ ...previous, [offerId]: false }));
+  const finishCurrentEvaluation = (offerId: string, requestId: number, evaluationKey: string) => {
+    if (!isCurrentEvaluation(offerId, requestId, evaluationKey)) return;
+    setEvaluatingIds(previous => Object.fromEntries(
+      Object.entries(previous).filter(([id, key]) => id !== offerId || key !== evaluationKey)
+    ));
   };
 
   const handleRunAiEvaluation = async (offer: BuyerOffer) => {
     const evaluationKey = JSON.stringify({ offer, policy });
     const requestId = (evaluationRequestIds.current[offer.id] || 0) + 1;
     evaluationRequestIds.current[offer.id] = requestId;
-    setEvaluatingIds(previous => ({ ...previous, [offer.id]: true }));
+    setEvaluatingIds(previous => ({ ...previous, [offer.id]: evaluationKey }));
     await runOfferAssessment(
       offer,
       policy,
       assessment => storeEvaluationSuccess(offer.id, requestId, evaluationKey, assessment),
-      error => storeCurrentEvaluationFailure(offer.id, requestId, error),
-      () => finishCurrentEvaluation(offer.id, requestId)
+      error => storeCurrentEvaluationFailure(offer.id, requestId, evaluationKey, error),
+      () => finishCurrentEvaluation(offer.id, requestId, evaluationKey)
     );
   };
 
@@ -264,12 +276,13 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
           const isAccepted = offer.status === 'ACCEPTED';
           const isRejected = offer.status === 'REJECTED';
           const isCountered = offer.status === 'COUNTERED';
-          const isEvaluating = evaluatingIds[offer.id] === true;
-          // A failed re-evaluation invalidates both the previous local result and any
-          // persisted offer assessment until a later successful evaluation clears the error.
-          const evaluationError = evaluationErrors[offer.id];
+          const evaluationKey = currentEvaluationKeys.current[offer.id];
+          const isEvaluating = evaluatingIds[offer.id] === evaluationKey;
+          // Only assessments and errors for the exact current offer/policy inputs are displayed.
+          const storedError = evaluationErrors[offer.id];
+          const evaluationError = storedError?.key === evaluationKey ? storedError.message : undefined;
           const storedEvaluation = evaluationResults[offer.id];
-          const currentAssessment = storedEvaluation?.key === JSON.stringify({ offer, policy })
+          const currentAssessment = storedEvaluation?.key === evaluationKey
             ? storedEvaluation.assessment
             : undefined;
           const assessment = getOfferAssessment(
@@ -366,7 +379,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                       {policy.aiModel || 'Server default: gpt-4o'}
                     </span>
                   </div>
-                  <span className="text-slate-300">{assessment?.reasoning || evaluationErrors[offer.id] || 'No verified AI assessment is available yet. Run an evaluation; a failed request will not produce a score or recommendation.'}</span>
+                  <span className="text-slate-300">{assessment?.reasoning || evaluationError || 'No verified AI assessment is available yet. Run an evaluation; a failed request will not produce a score or recommendation.'}</span>
                 </div>
                 <button
                   onClick={() => handleRunAiEvaluation(offer)}
