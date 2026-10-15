@@ -293,7 +293,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
                     </button>
                   </div>
                   <p className="text-[10px] text-slate-400">
-                    Your AI broker will transmit cryptographic counter-terms stipulating strict retention limits and a revised compensation fee of ${counterPrice}/mo.
+                    This local counter-offer draft does not transmit a contract or enforce retention limits. Proposed compensation (not verified): ${counterPrice}/mo.
                   </p>
                 </div>
               )}
@@ -341,7 +341,7 @@ export const MarketplaceOffers: React.FC<MarketplaceOffersProps> = ({
 
                   {isAccepted && (
                     <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Active Licensing Contract
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Accepted offer record (local only)
                     </span>
                   )}
 
