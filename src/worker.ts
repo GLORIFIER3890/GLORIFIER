@@ -37,9 +37,18 @@ export default {
 
     try {
       const upstreamUrl = new URL(incomingUrl.pathname + incomingUrl.search, BACKEND_ORIGIN);
-      const upstreamRequest = new Request(upstreamUrl, request);
-      upstreamRequest.headers.set('x-forwarded-host', incomingUrl.host);
-      upstreamRequest.headers.set('x-forwarded-proto', incomingUrl.protocol.slice(0, -1));
+      const headers = new Headers(request.headers);
+      headers.delete('host');
+      headers.delete('content-length');
+      headers.set('x-forwarded-host', incomingUrl.host);
+      headers.set('x-forwarded-proto', incomingUrl.protocol.slice(0, -1));
+      const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
+      const upstreamRequest = new Request(upstreamUrl, {
+        method: request.method,
+        headers,
+        body: hasBody ? request.body : undefined,
+        redirect: 'manual',
+      });
 
       const upstreamResponse = await fetch(upstreamRequest);
       const headers = new Headers(upstreamResponse.headers);
