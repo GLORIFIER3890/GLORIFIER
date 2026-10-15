@@ -138,7 +138,13 @@ export function claimAccruedScientistYield(): { claimedUsd: number; newClaimable
 }
 
 // Autonomous Resolution Engine: Can be called on demand or during 24/7 loop
-export async function resolveInternetIssue(issueId: string): Promise<InternetIssue> {
+export async function resolveInternetIssue(
+  issueId: string,
+  _options?: {
+    modelRunner?: (provider: 'gemini' | 'openai', prompt: string, opts?: any) => Promise<{ text: string; model: string } | null>;
+    actor?: string;
+  }
+): Promise<InternetIssue> {
   const issue = issues.find((item) => item.id === issueId);
   if (!issue) throw new Error(`Issue ${issueId} not found in the live issue registry.`);
   // This path is intentionally non-mutating until an independent verifier can attest a result.
