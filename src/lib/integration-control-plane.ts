@@ -89,6 +89,34 @@ const getIntegrationInvariants = () => [
 
 type SnapshotDbClient = PoolClient;
 
+const insertSnapshot = async (
+  client: SnapshotDbClient,
+  snapshot: IntegrationControlSnapshot,
+  digestSha256: string
+): Promise<IntegrationControlSnapshot> => {
+  await client.query(
+    'INSERT INTO integration_control_snapshots(id,synchronized_at,last_checked_at,snapshot,digest_sha256) VALUES($1,$2,NOW(),$3,$4)',
+    [snapshot.id, snapshot.synchronizedAt, JSON.stringify(snapshot), digestSha256]
+  );
+  return snapshot;
+};
+
+const refreshSnapshotCheck = async (
+  client: SnapshotDbClient,
+  row: { id: string; snapshot?: IntegrationControlSnapshot },
+  fallback: IntegrationControlSnapshot
+): Promise<IntegrationControlSnapshot> => {
+  const checked = await client.query<{ last_checked_at: Date | string }>(
+    'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1 RETURNING last_checked_at',
+    [row.id]
+  );
+  if (checked.rowCount !== 1 || !checked.rows[0]) {
+    throw new Error(`integration snapshot ${row.id} missing during last_checked_at update`);
+  }
+  // Keep synchronizedAt stable for unchanged content; last_checked_at tracks freshness.
+  return row.snapshot ?? fallback;
+};
+
 const persistSnapshotInTransaction = async (
   client: SnapshotDbClient,
   snapshot: IntegrationControlSnapshot,
@@ -98,26 +126,20 @@ const persistSnapshotInTransaction = async (
     'SELECT id, digest_sha256, snapshot FROM integration_control_snapshots ORDER BY synchronized_at DESC LIMIT 1'
   );
   const row = previous.rows[0];
-
-  if (row?.digest_sha256 !== digestSha256) {
-    await client.query(
-      'INSERT INTO integration_control_snapshots(id,synchronized_at,last_checked_at,snapshot,digest_sha256) VALUES($1,$2,NOW(),$3,$4)',
-      [snapshot.id, snapshot.synchronizedAt, JSON.stringify(snapshot), digestSha256]
-    );
-    return snapshot;
+  if (row?.digest_sha256 === digestSha256) {
+    return refreshSnapshotCheck(client, row, snapshot);
   }
+  return insertSnapshot(client, snapshot, digestSha256);
+};
 
-  const checked = await client.query<{ last_checked_at: Date | string }>(
-    'UPDATE integration_control_snapshots SET last_checked_at = NOW() WHERE id = $1 RETURNING last_checked_at',
-    [row.id]
-  );
-  if (checked.rowCount !== 1 || !checked.rows[0]) {
-    throw new Error(`integration snapshot ${row.id} missing during last_checked_at update`);
+const rollbackSnapshotTransaction = async (client: SnapshotDbClient): Promise<boolean> => {
+  try {
+    await client.query('ROLLBACK');
+    return false;
+  } catch {
+    // A failed rollback leaves the connection state uncertain; discard it.
+    return true;
   }
-
-  // synchronizedAt is the snapshot's state-change time, not the latest read/check time.
-  // Keep it stable for unchanged content; last_checked_at records the freshness check.
-  return (row.snapshot as IntegrationControlSnapshot | undefined) ?? snapshot;
 };
 
 const persistSnapshotIfChanged = async (
@@ -136,18 +158,11 @@ const persistSnapshotIfChanged = async (
     await client.query('COMMIT');
     return effectiveSnapshot;
   } catch (error) {
-    if (client) {
-      try {
-        await client.query('ROLLBACK');
-      } catch {
-        // A failed rollback leaves the connection state uncertain; discard it.
-        discardClient = true;
-      }
-    }
+    if (client) discardClient = await rollbackSnapshotTransaction(client);
     console.warn('[IntegrationControlPlane] persistence deferred:', error instanceof Error ? error.message : error);
     return snapshot;
   } finally {
-    client?.release(Boolean(client && discardClient));
+    client?.release(discardClient);
   }
 };
 
