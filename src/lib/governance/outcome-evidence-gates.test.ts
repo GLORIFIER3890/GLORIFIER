@@ -125,4 +125,4 @@ if (validateA2AConformanceEvidence({ ...a2a, reportSha256: 'not-a-digest' }).sta
   throw new Error('missing report integrity must fail closed');
 }
 
-process.stdout.write('OUTCOME_EVIDENCE_GATES_TEST_OK\\n');
+process.stdout.write('OUTCOME_EVIDENCE_GATES_TEST_OK\n');
