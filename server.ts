@@ -312,7 +312,7 @@ function classifyIntegration(item: { status: string; detail: string; id: string 
 
 
 // Monetization and payout API contracts.
-app.post('/api/monetization/checkout', requireOwner, async (req: Request, res: Response) => {
+app.post('/api/monetization/checkout', requireAuthentication, async (req: Request, res: Response) => {
   try {
     const authenticatedUid = String((req as any).auth?.uid || '').trim();
     const customerReference = String(req.body?.customerReference || '').trim();
@@ -328,7 +328,7 @@ app.post('/api/monetization/checkout', requireOwner, async (req: Request, res: R
   }
 });
 
-app.post('/api/monetization/capture', requireOwner, async (req: Request, res: Response) => {
+app.post('/api/monetization/capture', requireAuthentication, async (req: Request, res: Response) => {
   try {
     const authenticatedUid = String((req as any).auth?.uid || '').trim();
     const customerReference = String(req.body?.customerReference || '').trim();
@@ -344,7 +344,7 @@ app.post('/api/monetization/capture', requireOwner, async (req: Request, res: Re
   }
 });
 
-app.get('/api/monetization/subscription', requireOwner, async (req: Request, res: Response) => {
+app.get('/api/monetization/subscription', requireAuthentication, async (req: Request, res: Response) => {
   try {
     const authenticatedUid = String((req as any).auth?.uid || '').trim();
     const customerReference = String(req.query.customerReference || '').trim();
