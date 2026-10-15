@@ -1,18 +1,61 @@
-const CACHE_NAME = 'glorifier-ai-v1';
+const CACHE_NAME = 'glorifier-shell-v2';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest'];
+const API_PREFIXES = ['/api/', '/auth/'];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys.filter((key) => key.startsWith('glorifier-') && key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET') return;
+
   const url = new URL(request.url);
-  if (url.pathname.includes('/api/')) return;
-  event.respondWith(fetch(request).catch(() => caches.match(request).then((response) => response || caches.match('./index.html'))));
+  if (url.origin !== self.location.origin) return;
+  if (API_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(async () => {
+        const cachedShell = await caches.match('./index.html');
+        return cachedShell || new Response(
+          'GLORIFIER is offline. Reconnect and reload to try again.',
+          { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }
+        );
+      })
+    );
+    return;
+  }
+
+  if (!['script', 'style', 'image', 'font'].includes(request.destination)) return;
+
+  event.respondWith(
+    fetch(request).then((response) => {
+      if (!response.ok || response.type === 'opaque') return response;
+      const copy = response.clone();
+      event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)));
+      return response;
+    }).catch(async () => {
+      const cachedAsset = await caches.match(request);
+      return cachedAsset || new Response('Asset unavailable while offline.', {
+        status: 503,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+      });
+    })
+  );
 });
