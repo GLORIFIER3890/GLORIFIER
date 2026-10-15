@@ -26,6 +26,12 @@ Scope: public Cloudflare Workers URL, repository frontend entry point, Vite conf
 - Add a frontend guard that turns HTML returned for /api/* into an explicit 502 JSON error rather than a confusing JSON parse exception.
 - Add an explicit Cloudflare Worker proxy for /api/* and /auth/* to the existing Railway backend; unknown backend routes stay backend responses instead of being treated as successful SPA pages.
 - Display a persistent evidence notice because several modules initialize from local sample values.
+- Replace seeded sample earnings, pending payouts, buyer offers, connected accounts, incident reports, and claimed bounty transactions with empty/unverified initial states.
+- Disable the scientist-fleet simulator and synthetic bounty-claim routes until real work verification and provider-confirmed settlement are implemented.
+- Require human approval for all payout requests and disable autonomous payout-request creation by default.
+- Load payout availability from the backend's verified ledger and label created payout requests as pending, not settled.
+- Treat privacy controls and epsilon values as configuration only; do not display a calculated privacy-protection score as an attested result.
+- Return an explicit 404 when Cloudflare's SPA fallback returns HTML for a missing static asset, and a 502 JSON error when an API path returns HTML.
 - Restrict service-worker cleanup to the one known legacy cache, avoiding deletion of other caches that happen to share a prefix.
 
 ## Safe rebuild acceptance gates
