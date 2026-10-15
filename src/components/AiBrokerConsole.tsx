@@ -197,7 +197,7 @@ Choose an action to request a backend response. Any returned claim must be check
                 </div>
                 <p className="text-[11px] text-slate-400">
                   {selectedModel === 'all-models' 
-                    ? 'All AI Models Collaborative Council (OpenAI GPT-4o + Google Gemini + Meta LLaMA)' 
+                    ? 'All AI Models Collaborative Council (OpenAI GPT-4o (availability not verified) + Google Gemini (availability not verified) + Meta LLaMA)' 
                     : selectedModel === 'gemini-3.8-flash'
                     ? 'Google Gemini 3.8 Flash Low-Latency Multimodal Reasoning'
                     : selectedModel === 'consensus'
@@ -253,7 +253,7 @@ Choose an action to request a backend response. Any returned claim must be check
                     ? 'bg-emerald-500 text-slate-950 shadow-sm font-bold'
                     : 'text-slate-400 hover:text-white'
                 }`}
-                title="Dual Consensus: Synthesize analysis from both GPT-4o and Gemini 3.8 Flash"
+                title="Consensus requested (not verified): Synthesize analysis from both GPT-4o and Gemini 3.8 Flash"
               >
                 Consensus
               </button>
@@ -623,10 +623,10 @@ Choose an action to request a backend response. Any returned claim must be check
             Smart Licensing Protocol
           </div>
           <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-            Every data release is signed with an on-chain zero-knowledge attestation (ZK-SNARK). Buyers verify the statistical validity of the dataset without receiving any raw identifier or unperturbed personal attributes.
+            This panel does not generate or verify a cryptographic proof, sign a data release, or prove that outbound data has been privacy-transformed. Smart-contract licensing, ZK attestation, and runtime epsilon enforcement are NOT VERIFIED.
           </p>
-          <div className="mt-2 text-[10px] font-mono text-emerald-400 flex items-center gap-2">
-            <span>Protocol: ZK-DataShield v3.4</span> • <span>Epsilon Verifier: Active</span>
+          <div className="mt-2 text-[10px] font-mono text-amber-300 flex items-center gap-2">
+            <span>Protocol implementation: NOT VERIFIED</span> • <span>Provider execution: NOT VERIFIED</span>
           </div>
         </div>
 
@@ -635,11 +635,11 @@ Choose an action to request a backend response. Any returned claim must be check
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
               <Cpu className="w-4 h-4 text-emerald-400" />
-              AI Intelligence Architecture
+              Configured AI provider preference
             </div>
             <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
               {selectedModel === 'all-models'
-                ? 'All-AI Model Council'
+                ? 'Model selection (not live consensus)'
                 : selectedModel === 'gpt-4o'
                 ? 'OpenAI GPT-4o'
                 : selectedModel === 'gpt-4o-mini'
@@ -651,7 +651,7 @@ Choose an action to request a backend response. Any returned claim must be check
           </div>
           <div className="space-y-1.5 text-[11px] text-slate-400">
             <div className="flex justify-between border-b border-slate-800/60 pb-1">
-              <span>Active Architecture:</span>
+              <span>Selected provider configuration:</span>
               <span className="text-slate-200 font-mono font-medium">
                 {selectedModel === 'all-models'
                   ? 'OpenAI + Gemini + Meta LLaMA'
@@ -673,7 +673,7 @@ Choose an action to request a backend response. Any returned claim must be check
             <div className="flex justify-between pt-0.5">
               <span>Negotiation Capability:</span>
               <span className="text-slate-200">
-                {selectedModel === 'all-models' ? 'Multi-Model Consensus & Counter-Offers' : 'Autonomous Counter-Offers'}
+                {selectedModel === 'all-models' ? 'Multi-Model Consensus & Counter-Offers' : 'Counter-offer policy settings (execution not verified)'}
               </span>
             </div>
           </div>
