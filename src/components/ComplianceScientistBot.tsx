@@ -166,7 +166,7 @@ AI-generated responses, when available, are advisory and require human review.`
       const data = await res.json();
       const assistantMsg: ComplianceChatMessage = {
         role: 'assistant',
-        text: data.content || 'Regulatory evaluation complete.',
+        text: data.content || 'No evaluation content was returned. No conclusion was verified.',
         mode: specialtyMode,
         modelUsed: data.modelUsed || (aiModel === 'gpt-4o' ? 'OpenAI GPT-4o' : 'Google Gemini 3.8 Flash'),
         timestamp: new Date().toLocaleTimeString()
@@ -223,9 +223,9 @@ AI-generated responses, when available, are advisory and require human review.`
             <button
               onClick={handleExportAudit}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs transition-colors shadow-lg shadow-amber-950/40"
-              title="Download full statutory audit memo in Markdown format"
+              title="Download a draft compliance review memo in Markdown format"
             >
-              <Download className="w-4 h-4" /> Download Audit Memo (.MD)
+              <Download className="w-4 h-4" /> Download Draft Review Memo (.MD)
             </button>
             {onOpenClawbackTab && (
               <button
@@ -249,7 +249,7 @@ AI-generated responses, when available, are advisory and require human review.`
         </div>
       </div>
 
-      {/* Real-time Regulatory Scorecard */}
+      {/* Compliance topic checklist (not an assessment) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md space-y-2">
           <div className="flex items-center justify-between">
