@@ -9,6 +9,7 @@ test.describe('GLORIFIER production end-to-end', () => {
     const { email, password } = testCredentials();
     await page.goto('/');
     await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
+    await page.getByRole('button', { name: /sign in/i }).click();
     await page.getByRole('button', { name: /create a new account/i }).click();
     await page.locator('input[autocomplete="name"]').fill('GLORIFIER E2E');
     await page.locator('input[autocomplete="email"]').fill(email!);
