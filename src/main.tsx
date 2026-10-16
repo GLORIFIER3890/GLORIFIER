@@ -9,18 +9,22 @@ const isLoopbackHttp = (url: URL): boolean =>
   url.protocol === 'http:' &&
   ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
 
+const isAllowedApiBaseProtocol = (url: URL): boolean =>
+  url.protocol === 'https:' || isLoopbackHttp(url);
+
+const hasForbiddenApiBaseSyntax = (value: string, url: URL): boolean =>
+  /[?#]/.test(value) || Boolean(url.username || url.password || url.search || url.hash);
+
 const getNativeApiBase = (value: string): string => {
   if (!value) return '';
+  let url: URL;
   try {
-    const url = new URL(value);
-    if (url.protocol !== 'https:' && !isLoopbackHttp(url)) return '';
-    // Reject delimiters even when the URL parser normalizes a bare '?' or '#'
-    // to an empty search/hash value; otherwise appending API paths can be misrouted.
-    if (/[?#]/.test(value) || url.username || url.password || url.search || url.hash) return '';
-    return value;
+    url = new URL(value);
   } catch {
     return '';
   }
+  // Reject bare delimiters too: URL.search/hash can normalize '?' or '#' to empty.
+  return isAllowedApiBaseProtocol(url) && !hasForbiddenApiBaseSyntax(value, url) ? value : '';
 };
 
 const nativeApiBase = getNativeApiBase(configuredApiBase);
