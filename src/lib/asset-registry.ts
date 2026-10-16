@@ -427,7 +427,7 @@ async function seedCanonicalGLRRegistry() {
     assetIdentifier: '7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9',
     programId: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
     deploymentTransaction: 'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa',
-    status: 'fully_verified',
+    status: 'partially_verified',
     explorer: 'Solscan',
     sourceVerificationStatus: 'verified',
     verificationMode: 'finalized-read-only-reconciliation',
@@ -443,8 +443,13 @@ async function seedCanonicalGLRRegistry() {
       verificationRunId: '37886411021',
       verificationRunUrl: 'https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021',
       reconciliationEvidenceArtifactReview: 'REVIEWED_2026-10-09',
+      crossFileProvenanceStatus: 'NOT_VERIFIED',
+      conflictingMintTransactionSignatures: [
+        'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa',
+        'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa'
+      ],
       source: 'github-actions-evidence',
-      note: 'Technical identity verification only; does not assert market liquidity, price, audit, or legal compliance.'
+      note: 'Finalized on-chain identity reconciliation passed, but repository mint-transaction provenance is inconsistent. Keep deployment status partially_verified until an independent finalized RPC check identifies the canonical signature. This status does not assert market liquidity, price, audit, or legal compliance.'
     }
   });
 }
