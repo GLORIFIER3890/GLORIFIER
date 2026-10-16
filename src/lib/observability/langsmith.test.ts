@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { withLangSmithTrace } from './langsmith';
-import { buildProviderRegistryTraceInputs, summarizeProviderRegistryTrace } from '../ai/registry';
+import { buildProviderRegistryTraceInputs, executeThroughProviderRegistry, summarizeProviderRegistryTrace } from '../ai/registry';
 
 async function main() {
   const originalEnv = {
@@ -82,6 +82,24 @@ async function main() {
     assert.equal(registryTrace.includes(privateMarker), false, 'registry metadata must exclude prompt, output, error, and arbitrary identifiers');
     assert.equal(registrySummary.errorCount, 1);
     assert.deepEqual(registrySummary.attemptedProviders, ['unknown', 'openai']);
+
+    // Exercise the real registry-to-trace boundary with no provider attempts.
+    // Any future addition of raw prompts, outputs, errors, or arbitrary IDs to
+    // the actual registry trace payload must fail this test.
+    await executeThroughProviderRegistry({
+      messages: [{ role: 'user', content: privateMarker }],
+      model: privateMarker,
+      capability: privateMarker,
+      preferredProvider: 'openai',
+      policy: { maxAttempts: 0, maxDiscoveryRefreshes: 0, refreshDiscoveryBeforeExhaustion: false },
+    });
+    const realRegistryTrace = JSON.stringify(capturedBody);
+    assert.equal(realRegistryTrace.includes(privateMarker), false,
+      'actual registry telemetry must never include prompt/model/capability markers');
+    assert.ok(capturedBody && capturedBody.inputs.messageCount === 1,
+      'actual registry telemetry should contain only the safe message count');
+    assert.ok(capturedBody && !JSON.stringify(capturedBody.outputs || {}).includes(privateMarker),
+      'actual registry output summary must not expose private response/error markers');
 
     const summarizedResult = await withLangSmithTrace(
       'summarizer-failure',
