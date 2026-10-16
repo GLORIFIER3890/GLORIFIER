@@ -36,7 +36,7 @@ No registry state may claim verification without evidence from the corresponding
 |---|---:|---|---|---|
 | Ethereum Mainnet | 1 | `0x9db6f9afe2f4ada50060d32d7c7c0bebbccf89eb` | `0x8b92e5b669ea3188fe55052ed68d3eae0cc7715a0cf8c96e71ee7e95d846f81a` | FULLY VERIFIED |
 | BNB Smart Chain Mainnet | 56 | `0x5e0B0A449232FDA7cA6Ea3419A50873b08F64804` | `0xf5698f6bbde7ff173be1cbd0bb83da53f03389842c68ca2f6e4e287b89d9bbc0` | FULLY VERIFIED |
-| Solana Mainnet Beta | `solana:mainnet-beta` | `7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9` (Token-2022 mint) | `Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa` (canonical signature not yet reconciled) | PARTIALLY VERIFIED |
+| Solana Mainnet Beta | `solana:mainnet-beta` | `7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9` (Token-2022 mint) | Not selected — conflicting signatures are documented in the provenance review | PARTIALLY VERIFIED |
 
 The BNB record is based on an existing-deployment reconciliation; the verification mode is `verify-existing` and does not broadcast a new blockchain transaction.
 
