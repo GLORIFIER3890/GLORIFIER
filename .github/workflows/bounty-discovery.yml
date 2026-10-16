@@ -1,6 +1,11 @@
 name: GLORIFIER Bounty Opportunity Discovery
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/bounty-discovery.yml"
+      - "scripts/run-bounty-discovery-no-db.mjs"
   schedule:
     - cron: "17 */6 * * *"
   workflow_dispatch:
