@@ -62,7 +62,7 @@ jobs:
             test "${CONFIRMATION}" = "VERIFY_GLORIFIER_SOLANA_DEVNET"
           elif [[ "${GITHUB_EVENT_NAME}" == "workflow_run" ]]; then
             test "${{ github.event.workflow_run.conclusion }}" = "success"
-            test "${WORKFLOW_RUN_EVENT}" = "push"
+            test "${WORKFLOW_RUN_EVENT}" = "workflow_dispatch"
             test "${WORKFLOW_RUN_HEAD_BRANCH}" = "main"
             test "${WORKFLOW_RUN_REPOSITORY}" = "${GITHUB_REPOSITORY}"
             test "${CONFIRMATION}" = "VERIFY_GLORIFIER_SOLANA_DEVNET"
