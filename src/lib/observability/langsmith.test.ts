@@ -91,7 +91,7 @@ async function main() {
       model: privateMarker,
       capability: privateMarker,
       preferredProvider: 'openai',
-      policy: { maxAttempts: 0, maxDiscoveryRefreshes: 0, refreshDiscoveryBeforeExhaustion: false },
+      policy: { maxAttempts: 0, maxDiscoveryRefreshes: 0, refreshDiscoveryBeforeExhaustion: true },
     });
     const realRegistryTrace = JSON.stringify(capturedBody);
     assert.equal(realRegistryTrace.includes(privateMarker), false,
