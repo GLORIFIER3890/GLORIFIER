@@ -34,3 +34,9 @@ This finding concerns **repository provenance consistency**, not a claim that th
 ## Follow-up status update — 2026-10-16
 
 The canonical identity file, runtime asset-registry seed, current registry documentation, and repository presentation metadata are being aligned to report `PARTIALLY_VERIFIED` while the two signatures remain unreconciled. The on-chain reconciliation evidence is preserved; no transaction signature is selected by inference, and no on-chain operation is needed for this status correction.
+
+## Explorer cross-check — 2026-10-16
+
+A public Solscan lookup now returns the `HChmY7` signature as a successful, finalized transaction minting 1,000,000,000 GLR to the canonical mint account: [Solscan transaction](https://solscan.io/tx/Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa). The `HChyV7` candidate returns “unable to locate this tx hash”: [Solscan lookup](https://solscan.io/tx/Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa).
+
+This is useful corroborating explorer evidence, but it is not yet the direct finalized Solana RPC reconciliation required by the acceptance gate. Keep the canonical signature unset and the overall status `PARTIALLY_VERIFIED` until `getTransaction` / signature-status data from a trusted mainnet RPC confirms the successful finalized transaction and the registry files are reconciled in one reviewed change.
