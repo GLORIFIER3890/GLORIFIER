@@ -1,33 +1,31 @@
-# Cloudflare Pages deployment
+# Cloudflare Workers frontend deployment
 
-This repository can be deployed as a static Vite frontend on Cloudflare Pages while keeping the existing Railway API and Neon database.
+GLORIFIER already has a Cloudflare Worker entry point in `src/worker.ts` and configuration in `wrangler.jsonc`. Use the existing Worker at `https://glorifier.glorifier.workers.dev/` rather than creating a separate Cloudflare Pages project.
 
-## Cloudflare Pages settings
+## Existing architecture
 
-- Connect Git repository: `GLORIFIER7/GLORIFIER`
-- Production branch: `main`
-- Framework preset: `Vite`
-- Build command: `npm run build:frontend`
-- Build output directory: `dist`
-- Root directory: leave blank
-- Node.js version: use a version compatible with the repository's CI
+- Static frontend: Vite build output in `dist`, served through the Worker's `ASSETS` binding.
+- API and authentication: `/api/*` and `/auth/*` are proxied by the Worker to the existing Railway backend.
+- Database: keep the existing Neon PostgreSQL connection on the backend; never expose database credentials in frontend or Worker client-visible values.
 
-The `public/_redirects` file is copied into `dist`. It proxies relative `/api/*` and `/auth/*` requests to the existing Railway backend and sends other paths to the SPA entry point.
+## GitHub-connected deployment
 
-## Environment variables
+1. In Cloudflare Dashboard, open **Workers & Pages**.
+2. Select the existing `glorifier` Worker.
+3. Under **Settings → Builds**, connect the `GLORIFIER7/GLORIFIER` GitHub repository if it is not already connected.
+4. Configure the production branch as `main`, build command as `npm ci && npm run build:frontend` (use the repository's lockfile/install convention), and deploy command to deploy the Worker using the repository's `wrangler.jsonc` configuration. Check the current dashboard's detected settings before saving.
+5. Keep secrets in Cloudflare Worker secrets or Railway environment variables, never in `VITE_*` variables.
+6. Deploy a preview and test before changing any production routing.
 
-Use the same non-secret frontend configuration currently required by the app. If `VITE_API_BASE_URL` is configured, set it to:
+Cloudflare's documented Git integration can build and deploy a Worker on pushes and provides preview deployments for non-production branches: https://developers.cloudflare.com/workers/ci-cd/builds/
 
-`https://glorifier-artificial-intelligence-production.up.railway.app`
+## Verification before production
 
-Only put public frontend values in variables prefixed with `VITE_`. Never put API keys, database credentials, session secrets, or service tokens in frontend variables.
+- Home page loads and static assets return the expected content types.
+- Nested routes survive direct navigation and refresh.
+- `/api/health` returns a valid API response rather than HTML.
+- Login/logout, session cookies, protected API calls, and CORS work on mobile.
+- Missing JavaScript/CSS assets return 404 rather than the SPA HTML.
+- Worker logs show no upstream failures or secret leakage.
 
-## Safe migration checklist
-
-1. Deploy a Cloudflare Pages preview first; do not change the production URL or DNS yet.
-2. Verify the home page, direct navigation and refresh on nested routes, login/logout, `/api/health`, protected API calls, and CORS/cookie behavior on a mobile browser.
-3. Check that the browser is not exposing server-only secrets and that authentication cookies work on the preview domain.
-4. Confirm the preview works with the production Railway API before promoting it.
-5. Switch production traffic only after successful verification. Keep Vercel available as a rollback until Cloudflare is confirmed healthy.
-
-This configuration does not deploy or configure a Cloudflare Pages project automatically; connect the repository in the Cloudflare dashboard and verify the preview before switching traffic.
+Do not disable or delete the Vercel deployment until the Cloudflare Worker is verified and a rollback path is confirmed.
