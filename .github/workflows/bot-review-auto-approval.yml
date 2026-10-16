@@ -1,8 +1,7 @@
 name: Bot Review Auto-Approval Gate
 
 on:
-  check_suite:
-    types: [completed]
+  # Deliberately manual: check_suite events fan out across every check and caused repeated runs.
   workflow_dispatch:
     inputs:
       pull_request_number:
@@ -17,7 +16,7 @@ permissions:
   checks: read
 
 concurrency:
-  group: bot-review-auto-approval-${{ github.event.pull_request.number || inputs.pull_request_number || github.event.check_suite.head_sha || github.run_id }}
+  group: bot-review-auto-approval-${{ inputs.pull_request_number || github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -38,32 +37,11 @@ jobs:
             });
             const ownCheckRunIds = new Set(currentJobs.map(job => job.id));
 
-            if (context.eventName === 'check_suite') {
-              const ownWorkflowRuns = await github.paginate(github.rest.actions.listWorkflowRunsForWorkflow, {
-                owner,
-                repo,
-                workflow_id: 'bot-review-auto-approval.yml',
-                check_suite_id: context.payload.check_suite.id,
-                per_page: 100
-              });
-              if (ownWorkflowRuns.length > 0) {
-                core.notice('Ignoring this workflow’s own check suite.');
-                return;
-              }
-            }
-
             let pr = context.payload.pull_request || context.payload.review?.pull_request || null;
             const requestedNumber = Number(context.payload.inputs?.pull_request_number || 0);
 
             if (!pr && requestedNumber > 0) {
               pr = (await github.rest.pulls.get({ owner, repo, pull_number: requestedNumber })).data;
-            }
-
-            if (!pr && context.eventName === 'check_suite') {
-              const associated = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-                owner, repo, commit_sha: context.payload.check_suite.head_sha
-              });
-              pr = associated.data.find(item => item.state === 'open') || null;
             }
 
             if (!pr) {
