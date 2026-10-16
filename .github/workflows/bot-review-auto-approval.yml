@@ -3,6 +3,8 @@ name: Bot Review Auto-Approval Gate
 on:
   check_suite:
     types: [completed]
+  check_run:
+    types: [completed]
   workflow_dispatch:
     inputs:
       pull_request_number:
@@ -17,7 +19,7 @@ permissions:
   checks: read
 
 concurrency:
-  group: bot-review-auto-approval-${{ github.event.pull_request.number || inputs.pull_request_number || github.event.check_suite.head_sha || github.run_id }}
+  group: bot-review-auto-approval-${{ github.event.pull_request.number || inputs.pull_request_number || github.event.check_suite.head_sha || github.event.check_run.head_sha || github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -57,6 +59,11 @@ jobs:
               }
             }
 
+            if (context.eventName === 'check_run' && context.payload.check_run?.app?.slug === 'github-actions') {
+              core.notice('Ignoring GitHub Actions check_run event; check_suite handles workflow completion.');
+              return;
+            }
+
             let pr = context.payload.pull_request || context.payload.review?.pull_request || null;
             const requestedNumber = Number(context.payload.inputs?.pull_request_number || 0);
 
@@ -64,9 +71,10 @@ jobs:
               pr = (await github.rest.pulls.get({ owner, repo, pull_number: requestedNumber })).data;
             }
 
-            if (!pr && context.eventName === 'check_suite') {
+            if (!pr && ['check_suite', 'check_run'].includes(context.eventName)) {
+              const eventHeadSha = context.eventName === 'check_run' ? context.payload.check_run.head_sha : context.payload.check_suite.head_sha;
               const associated = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-                owner, repo, commit_sha: context.payload.check_suite.head_sha
+                owner, repo, commit_sha: eventHeadSha
               });
               pr = associated.data.find(item => item.state === 'open') || null;
             }
