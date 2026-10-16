@@ -18,7 +18,7 @@ These strings differ (`HChmY7` versus `HChyV7`). The current canonical identity 
 
 ## Acceptance gate
 
-1. Query both signatures independently from a trusted Solana Mainnet RPC or explorer using finalized commitment.
+1. Query both signatures independently from a trusted Solana Mainnet RPC using finalized commitment. Explorer results are corroborating evidence only and cannot satisfy this RPC gate on their own.
 2. Capture each signature's status, slot, transaction message, instructions, and relevant account/mint addresses. Record unavailable/not-found responses explicitly.
 3. Compare the observed transaction with the finalized reconciliation artifact and immutable deployment provenance for the canonical mint.
 4. Have a reviewer confirm which signature represents the mint transaction. If neither does, investigate the actual mint initialization history rather than inventing a replacement.
