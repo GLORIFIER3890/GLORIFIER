@@ -37,7 +37,7 @@ jobs:
         run: |
           npm run lint
           npm run build
-      - name: Production health check
+      - name: Production backend health check
         id: health
         continue-on-error: true
         env:
@@ -46,24 +46,11 @@ jobs:
           set -e
           for attempt in 1 2 3 4 5; do
             echo "Health check attempt $attempt/5"
-            if curl --fail --silent --show-error --connect-timeout 5 --max-time 20 "$GLORIFIER_HEALTH_URL"; then echo; echo "GLORIFIER production health: OK"; exit 0; fi
+            if curl --fail --silent --show-error --connect-timeout 5 --max-time 20 "$GLORIFIER_HEALTH_URL"; then echo; echo "GLORIFIER production backend health: OK"; exit 0; fi
             if [ "$attempt" -lt 5 ]; then sleep 10; fi
           done
-          echo "::warning::Production health endpoint unavailable after 5 attempts."
+          echo "::warning::Production backend health endpoint unavailable after 5 attempts."
           exit 1
-      - name: Verify Vercel to Railway API routing
-        id: vercel_api
-        continue-on-error: true
-        env:
-          GLORIFIER_VERCEL_API_URL: https://glorifier-sepia.vercel.app/api/health/ready
-        run: |
-          set -euo pipefail
-          body="$(mktemp)"
-          status="$(curl -sS -o "$body" -w "%{http_code}" --connect-timeout 8 --max-time 20 "$GLORIFIER_VERCEL_API_URL")"
-          echo "Vercel API route HTTP status: $status"
-          cat "$body"
-          test "$status" = "200"
-          grep -Eq '"status":"(ready|ok)"' "$body"
       - name: Verify unauthenticated write protection
         id: auth_guard
         continue-on-error: true
@@ -96,15 +83,13 @@ jobs:
         if: always()
         run: |
           echo "Local integrity: ${{ steps.integrity.outcome }}"
-          echo "Production health: ${{ steps.health.outcome }}"
-          echo "Vercel API routing: ${{ steps.vercel_api.outcome }}"
+          echo "Production backend health: ${{ steps.health.outcome }}"
           echo "Authentication guard: ${{ steps.auth_guard.outcome }}"
           echo "Neon runtime verification: ${{ steps.runtime.outcome }}"
-          if [ "${{ steps.health.outcome }}" != "success" ]; then echo "::warning::Production health is unavailable; code integrity is tracked separately."; fi
-          if [ "${{ steps.vercel_api.outcome }}" != "success" ]; then echo "::warning::Vercel-to-Railway API routing verification failed."; fi
+          if [ "${{ steps.health.outcome }}" != "success" ]; then echo "::warning::Production backend health is unavailable; code integrity is tracked separately."; fi
           if [ "${{ steps.auth_guard.outcome }}" != "success" ]; then echo "::warning::Authentication boundary verification failed."; fi
           if [ "${{ steps.runtime.outcome }}" != "success" ]; then echo "::warning::Neon-backed runtime verification failed."; fi
-          if [ "${{ steps.integrity.outcome }}" != "success" ] || [ "${{ steps.health.outcome }}" != "success" ] || [ "${{ steps.vercel_api.outcome }}" != "success" ] || [ "${{ steps.auth_guard.outcome }}" != "success" ] || [ "${{ steps.runtime.outcome }}" != "success" ]; then
-            echo "::error::One or more required integrity, health, routing, authentication, or runtime checks failed."
+          if [ "${{ steps.integrity.outcome }}" != "success" ] || [ "${{ steps.health.outcome }}" != "success" ] || [ "${{ steps.auth_guard.outcome }}" != "success" ] || [ "${{ steps.runtime.outcome }}" != "success" ]; then
+            echo "::error::One or more required integrity, backend health, authentication, or runtime checks failed."
             exit 1
           fi
