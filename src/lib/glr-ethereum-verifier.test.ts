@@ -39,9 +39,21 @@ const verified = await verifyEthereumGLRTransfer({
   expectedAmount: '1',
   expectedPayerWallet: payer,
   fetchImpl: mockFetch,
-  env: { GLR_ETHEREUM_PAYMENT_RECIPIENT: recipient, GLR_ETHEREUM_MIN_CONFIRMATIONS: '12' }
+  env: { GLR_ETHEREUM_PAYMENT_RECIPIENT: recipient, GLR_ETHEREUM_MIN_CONFIRMATIONS: '12', GLR_ETHEREUM_RPC_URL: 'https://rpc.example/v2/private-key?api_key=secret' }
 });
 expect(verified.verified && verified.confirmations === 13, 'valid mainnet receipt with exact GLR transfer and finality must verify');
+expect(verified.verifier === 'https://rpc.example', 'verification evidence must not expose RPC paths or query credentials');
+
+let insecureRpcRejected = false;
+try {
+  await verifyEthereumGLRTransfer({
+    transactionHash: txHash, expectedAmount: '1', expectedPayerWallet: payer, fetchImpl: mockFetch,
+    env: { GLR_ETHEREUM_PAYMENT_RECIPIENT: recipient, GLR_ETHEREUM_RPC_URL: 'http://127.0.0.1:8545' }
+  });
+} catch (error) {
+  insecureRpcRejected = error instanceof Error && error.message.includes('HTTPS');
+}
+expect(insecureRpcRejected, 'non-HTTPS RPC URLs must be rejected before a request is made');
 let wrongPayerRejected = false;
 try {
   await verifyEthereumGLRTransfer({
