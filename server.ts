@@ -1132,7 +1132,7 @@ const llamaCloudRouteError = (res: Response, error: unknown) => {
   return res.status(502).json({ ok: false, code: 'llama_cloud_error', error: 'LlamaCloud request failed.', verified: false });
 };
 
-app.get('/api/llama-cloud/status', requireOwnerOrInternalService, async (_req: Request, res: Response) => {
+app.get('/api/llama-cloud/status', geasRateLimit, requireOwnerOrInternalService, async (_req: Request, res: Response) => {
   try {
     const status = await getLlamaCloudStatus();
     return res.status(status.connected || !status.configured ? 200 : 503).json({ ok: status.connected, ...status, verified: status.connected });
@@ -1141,20 +1141,20 @@ app.get('/api/llama-cloud/status', requireOwnerOrInternalService, async (_req: R
   }
 });
 
-app.get('/api/llama-cloud/indexes', requireOwnerOrInternalService, async (_req: Request, res: Response) => {
+app.get('/api/llama-cloud/indexes', geasRateLimit, requireOwnerOrInternalService, async (_req: Request, res: Response) => {
   try {
     const indexes = await listLlamaCloudIndexes();
-    return res.json({ ok: true, projectId: process.env.LLAMA_CLOUD_PROJECT_ID || '220520f6-c208-4b55-87fb-796881b3fc97', indexes, verified: true });
+    return res.json({ ok: true, projectId: process.env.LLAMA_CLOUD_PROJECT_ID || '220520f6-c208-4b55-87fb-796881b3fc97', indexes, indexListSucceeded: true, verified: false });
   } catch (error) {
     return llamaCloudRouteError(res, error);
   }
 });
 
-app.post('/api/llama-cloud/retrieve', requireOwnerOrInternalService, async (req: Request, res: Response) => {
+app.post('/api/llama-cloud/retrieve', geasRateLimit, requireOwnerOrInternalService, async (req: Request, res: Response) => {
   try {
     const { indexId, query, topK } = req.body || {};
     const result = await retrieveLlamaCloudContext({ indexId, query, topK });
-    return res.json({ ok: true, ...result, verified: true });
+    return res.json({ ok: true, ...result, retrievalSucceeded: true, verified: false });
   } catch (error) {
     return llamaCloudRouteError(res, error);
   }
