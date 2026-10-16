@@ -57,9 +57,9 @@ export function glrAmountToBaseUnits(amount: string): bigint {
 
 function addressTopic(address: string, chainName: string): string {
   if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-    throw new Error(\`Configured \${chainName} recipient address is invalid\`);
+    throw new Error(`Configured ${chainName} recipient address is invalid`);
   }
-  return \`0x\${address.slice(2).toLowerCase().padStart(64, '0')}\`;
+  return `0x${address.slice(2).toLowerCase().padStart(64, '0')}`;
 }
 
 function validateTransferInput<N extends EvmGLRNetwork>(
@@ -69,7 +69,7 @@ function validateTransferInput<N extends EvmGLRNetwork>(
 ) {
   const txHash = input.transactionHash.trim();
   if (!/^0x[a-fA-F0-9]{64}$/.test(txHash)) {
-    throw new Error(\`\${config.chainName} transaction hash is invalid\`);
+    throw new Error(`${config.chainName} transaction hash is invalid`);
   }
   const expectedUnits = glrAmountToBaseUnits(input.expectedAmount);
   if (expectedUnits <= 0n) throw new Error('Expected GLR amount must be greater than zero');
@@ -80,7 +80,7 @@ function validateTransferInput<N extends EvmGLRNetwork>(
   }
   const recipient = String(env[config.recipientEnv] || '').trim();
   if (!/^0x[a-fA-F0-9]{40}$/.test(recipient)) {
-    throw new Error(\`\${config.chainName} GLR payment recipient is not configured; verification is disabled\`);
+    throw new Error(`${config.chainName} GLR payment recipient is not configured; verification is disabled`);
   }
   return { txHash: txHash.toLowerCase(), expectedUnits, expectedPayerWallet, recipient };
 }
@@ -90,10 +90,10 @@ function parseSecureRpcUrl(value: string, chainName: string): URL {
   try {
     url = new URL(value);
   } catch {
-    throw new Error(\`\${chainName} RPC URL is invalid\`);
+    throw new Error(`${chainName} RPC URL is invalid`);
   }
   if (url.protocol !== 'https:' || !url.hostname || url.username || url.password) {
-    throw new Error(\`\${chainName} RPC URL must use HTTPS and must not contain credentials\`);
+    throw new Error(`${chainName} RPC URL must use HTTPS and must not contain credentials`);
   }
   return url;
 }
@@ -107,10 +107,10 @@ function createRpcClient(rpcUrl: string, chainName: string, fetchImpl: typeof fe
       body: JSON.stringify({ jsonrpc: '2.0', id: ++requestId, method, params }),
       signal: AbortSignal.timeout(8000),
     });
-    if (!response.ok) throw new Error(\`\${chainName} RPC request failed\`);
+    if (!response.ok) throw new Error(`${chainName} RPC request failed`);
     const payload = await response.json() as { error?: unknown; result?: unknown } | null;
     if (!payload || payload.error || !('result' in payload)) {
-      throw new Error(\`\${chainName} RPC returned an invalid response\`);
+      throw new Error(`${chainName} RPC returned an invalid response`);
     }
     return payload.result;
   };
@@ -122,7 +122,7 @@ async function verifyConfiguredChain<N extends EvmGLRNetwork>(
 ): Promise<void> {
   const chainId = asString(await rpc('eth_chainId', []));
   if (chainId.toLowerCase() !== config.chainIdHex) {
-    throw new Error(\`Configured RPC is not \${config.chainName} (chain ID \${config.chainIdHex})\`);
+    throw new Error(`Configured RPC is not ${config.chainName} (chain ID ${config.chainIdHex})`);
   }
 }
 
@@ -133,15 +133,15 @@ async function loadConfirmedReceipt<N extends EvmGLRNetwork>(
   minimumConfirmations: number,
 ): Promise<ConfirmedReceipt> {
   const transaction = await rpc('eth_getTransactionByHash', [txHash]) as { hash?: unknown; to?: unknown } | null;
-  if (!transaction) throw new Error(\`\${config.chainName} transaction was not found\`);
+  if (!transaction) throw new Error(`${config.chainName} transaction was not found`);
   if (asString(transaction.hash).toLowerCase() !== txHash) throw new Error('RPC transaction hash mismatch');
   if (asString(transaction.to).toLowerCase() !== config.contractAddress.toLowerCase()) {
-    throw new Error(\`Transaction destination is not the canonical \${config.chainName} GLR contract\`);
+    throw new Error(`Transaction destination is not the canonical ${config.chainName} GLR contract`);
   }
 
   const receipt = await rpc('eth_getTransactionReceipt', [txHash]) as Record<string, unknown> | null;
-  if (!receipt) throw new Error(\`\${config.chainName} transaction is not mined\`);
-  if (asString(receipt.status).toLowerCase() !== '0x1') throw new Error(\`\${config.chainName} transaction failed\`);
+  if (!receipt) throw new Error(`${config.chainName} transaction is not mined`);
+  if (asString(receipt.status).toLowerCase() !== '0x1') throw new Error(`${config.chainName} transaction failed`);
   if (asString(receipt.transactionHash).toLowerCase() !== txHash) throw new Error('RPC receipt hash mismatch');
 
   const receiptBlock = asString(receipt.blockNumber);
@@ -152,16 +152,16 @@ async function loadConfirmedReceipt<N extends EvmGLRNetwork>(
     blockNumber = Number(BigInt(receiptBlock));
     latestBlock = Number(BigInt(latestBlockHex));
   } catch {
-    throw new Error(\`\${config.chainName} RPC returned an invalid block number\`);
+    throw new Error(`${config.chainName} RPC returned an invalid block number`);
   }
   if (!Number.isSafeInteger(blockNumber) || blockNumber <= 0 || !Number.isSafeInteger(latestBlock)) {
-    throw new Error(\`\${config.chainName} receipt block number is invalid\`);
+    throw new Error(`${config.chainName} receipt block number is invalid`);
   }
 
   const confirmations = latestBlock - blockNumber + 1;
   if (!Number.isSafeInteger(confirmations) || confirmations < minimumConfirmations) {
     throw new Error(
-      \`\${config.chainName} transaction has insufficient finality (\${Math.max(0, confirmations)} / \${minimumConfirmations} confirmations)\`,
+      `${config.chainName} transaction has insufficient finality (${Math.max(0, confirmations)} / ${minimumConfirmations} confirmations)`,
     );
   }
   return { receipt, blockNumber, confirmations };
@@ -225,6 +225,6 @@ export async function verifyEvmGLRTransfer<N extends EvmGLRNetwork>(
     recipient,
     amountGLR: input.expectedAmount,
     verifier: parsedRpcUrl.origin,
-    evidenceRef: \`\${config.evidencePrefix}:\${txHash}:block:\${receipt.blockNumber}:confirmations:\${confirmations}\`,
+    evidenceRef: `${config.evidencePrefix}:${txHash}:block:${receipt.blockNumber}:confirmations:${confirmations}`,
   };
 }
