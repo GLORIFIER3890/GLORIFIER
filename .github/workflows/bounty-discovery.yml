@@ -9,37 +9,41 @@ permissions:
   contents: read
   issues: read
 
+concurrency:
+  group: bounty-discovery-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   discover:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
-      - name: Require discovery database configuration
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        shell: bash
-        run: |
-          if [[ -z "${DATABASE_URL:-}" ]]; then
-            echo "::error::GitHub Actions secret DATABASE_URL is missing. Add it under Settings > Secrets and variables > Actions before running opportunity discovery."
-            exit 1
-          fi
-
       - name: Checkout
         uses: actions/checkout@v7
+
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: package.json
-      - name: Install dependencies
-        run: npm install --ignore-scripts --no-audit --no-fund
+
       - name: Record discovery policy
         run: |
-          echo "DISCOVER -> VERIFY FUNDING -> VERIFY ELIGIBILITY -> CLAIM -> SOLVE -> PR/REPORT -> ACCEPTANCE -> VERIFY PAYOUT -> SETTLE"
+          echo "DATABASE-FREE READ-ONLY DISCOVERY"
+          echo "DISCOVER -> REVIEW SOURCE -> VERIFY FUNDING -> VERIFY ELIGIBILITY -> CLAIM ONLY WITH HUMAN AUTHORIZATION -> SOLVE -> SUBMIT -> VERIFY ACCEPTANCE -> VERIFY PAYOUT"
           echo "No advertised bounty is revenue until canonical payment evidence exists."
-          echo "No automatic claim, submission, payment acceptance, or settlement is performed."
-      - name: Run governed opportunity discovery
+          echo "No automatic claim, submission, payment acceptance, target testing, or settlement is performed."
+          echo "Findings are persisted as a workflow artifact only; no database is required."
+
+      - name: Run database-free opportunity discovery
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npx tsx scripts/run-opportunity-discovery.ts
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/run-bounty-discovery-no-db.mjs
+
+      - name: Upload discovery report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: glorifier-bounty-discovery-report-${{ github.run_id }}
+          path: artifacts/bounty-discovery.json
+          if-no-files-found: warn
+          retention-days: 14
