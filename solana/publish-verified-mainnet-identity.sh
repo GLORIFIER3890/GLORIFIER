@@ -16,7 +16,7 @@ jq -e '.cross_file_provenance_status=="VERIFIED" and .mint_transaction != null' 
 }
 CANONICAL_MINT_TX="$(jq -r '.mint_transaction // empty' solana/canonical-mainnet-identity.json)"
 PROVENANCE_MINT_TX="$(jq -r '.mintTransaction // empty' solana/deployment-mainnet-provenance.json)"
-RUNTIME_MINT_TX="$(grep -A 15 "deploymentId: 'glr-solana-mainnet-beta'" src/lib/asset-registry.ts | sed -n "s/.*deploymentTransaction: '\\([^']*\\)'.*/\\1/p" | head -n 1)"
+RUNTIME_MINT_TX="$(grep -A 15 "deploymentId: 'glr-solana-mainnet-beta'" src/lib/asset-registry.ts | sed -n "s/.*deploymentTransaction: '\([^']*\)'.*/\1/p" | head -n 1)"
 if [[ -z "$CANONICAL_MINT_TX" || "$CANONICAL_MINT_TX" != "$PROVENANCE_MINT_TX" || "$CANONICAL_MINT_TX" != "$RUNTIME_MINT_TX" ]]; then
   echo "::error::Canonical identity, deployment provenance, and runtime registry mint signatures do not match; refusing FULLY_VERIFIED publication."
   exit 1
