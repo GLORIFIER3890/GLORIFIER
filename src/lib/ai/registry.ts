@@ -373,25 +373,45 @@ const createProviderExecutionState = (): ProviderExecutionState => ({
   transientRetries: 0,
 });
 
+const TRACE_PROVIDER_IDS = new Set([
+  'gemini', 'anthropic', ...compatibleProviders.map((provider) => provider.id),
+]);
+
+const safeTraceProviderId = (value: string): string => TRACE_PROVIDER_IDS.has(value) ? value : 'unknown';
+
+export const buildProviderRegistryTraceInputs = (request: ProviderExecutionRequest): Record<string, unknown> => ({
+  messageCount: Array.isArray(request.messages) ? request.messages.length : 0,
+  messageRoles: Array.isArray(request.messages)
+    ? [...new Set(request.messages.map((message) =>
+        typeof message?.role === 'string' && ['system', 'developer', 'user', 'assistant', 'tool'].includes(message.role)
+          ? message.role
+          : 'unknown'))]
+    : [],
+  // Never transmit caller-controlled model/capability text in telemetry.
+  hasRequestedModel: Boolean(request.model),
+  hasPreferredProvider: Boolean(request.preferredProvider),
+  hasCapability: Boolean(request.capability),
+  maxTokens: typeof request.maxTokens === 'number' && Number.isFinite(request.maxTokens) ? request.maxTokens : null,
+});
+
+export const summarizeProviderRegistryTrace = (result: ProviderExecutionResult): Record<string, unknown> => ({
+  success: Boolean(result.response),
+  selectedProvider: safeTraceProviderId(result.provider),
+  attemptedProviderCount: result.attemptedProviders.length,
+  attemptedProviders: result.attemptedProviders.map(safeTraceProviderId),
+  providerStatuses: Object.fromEntries(Object.entries(result.providerStatuses)
+    .filter(([provider, status]) => TRACE_PROVIDER_IDS.has(provider)
+      && ['connected', 'unavailable', 'error'].includes(status))
+    .map(([provider, status]) => [provider, status])),
+  errorCount: result.errors.length,
+});
+
 /** Execute providers in governed order with bounded retries and one discovery refresh. */
 export const executeThroughProviderRegistry = async (
   request: ProviderExecutionRequest,
 ): Promise<ProviderExecutionResult> => withLangSmithTrace(
   'GLORIFIER Provider Registry',
-  {
-    messageCount: Array.isArray(request.messages) ? request.messages.length : 0,
-    messageRoles: Array.isArray(request.messages)
-      ? [...new Set(request.messages.map((message) =>
-          typeof message?.role === 'string' && ['system', 'developer', 'user', 'assistant', 'tool'].includes(message.role)
-            ? message.role
-            : 'unknown'))]
-      : [],
-    // Do not send caller-controlled model or capability strings to telemetry.
-    hasRequestedModel: Boolean(request.model),
-    hasPreferredProvider: Boolean(request.preferredProvider),
-    hasCapability: Boolean(request.capability),
-    maxTokens: typeof request.maxTokens === 'number' && Number.isFinite(request.maxTokens) ? request.maxTokens : null,
-  },
+  buildProviderRegistryTraceInputs(request),
   async () => {
     const policy = resolveExecutionPolicy(request);
     assertGovernedFallbackPolicy(policy);
@@ -408,12 +428,5 @@ export const executeThroughProviderRegistry = async (
     if (refreshed) return buildExecutionResult(refreshed.provider, refreshed.response, state);
     return buildExecutionResult('provider-registry-exhausted', undefined, state);
   },
-  (result) => ({
-    success: Boolean(result.response),
-    selectedProvider: result.provider,
-    attemptedProviderCount: result.attemptedProviders.length,
-    attemptedProviders: result.attemptedProviders,
-    providerStatuses: result.providerStatuses,
-    errorCount: result.errors.length,
-  }),
+  summarizeProviderRegistryTrace,
 );
