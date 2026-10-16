@@ -52,7 +52,7 @@ void (async () => {
 
   const valid = await createAuthenticatedPayerIntent(
     'firebase-uid-a',
-    { payerAgentId: 'firebase-uid-a', amount: '5', memo: 'test' },
+    { amount: '5', memo: 'test' },
     async (input) => {
       capturedInputs.push(input);
       return { id: 'intent-test', truthStatus: 'NOT_SETTLED' };
