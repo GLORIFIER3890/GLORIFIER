@@ -88,6 +88,9 @@ jobs:
       - name: GLR payer identity binding regression tests
         run: npm run test:payer-identity
 
+      - name: Backend internal-service authentication regression tests
+        run: npm run test:backend-auth
+
       - name: Currency intelligence arithmetic and fail-closed quote tests
         run: npm run test:currency-intelligence
 
