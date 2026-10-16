@@ -219,7 +219,9 @@ app.use('/api', (req: Request, res: Response, next) => {
     '/governance',
     '/control-plane',
     '/app-state',
-    '/auth/session'
+    '/auth/session',
+    // Payment-intent reads expose payer/payee and settlement metadata; require identity.
+    '/economy/glr/intents'
   ].some(prefix => pathName === prefix || pathName.startsWith(prefix + '/'));
   if ((req.method === 'GET' || req.method === 'HEAD') && !protectedRead) return next();
   return requireAuthentication(req as any, res, next);
