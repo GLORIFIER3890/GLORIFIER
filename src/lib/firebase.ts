@@ -86,20 +86,62 @@ export const getIdToken = async (): Promise<string | null> => {
   return user.getIdToken();
 };
 
-// Central API authentication bridge: every same-origin /api request automatically
-// receives the current Firebase ID token. Existing UI modules can continue using
-// fetch(), while privileged backend routes still enforce verification server-side.
+// Central API authentication bridge: attach Firebase ID tokens only to trusted API origins.
+// The configured API origin is explicit; never forward credentials to arbitrary external URLs.
 const nativeFetch = typeof window !== 'undefined' ? window.fetch.bind(window) : null;
+const configuredApiBase = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
+let configuredApiOrigin: string | null = null;
+try {
+  if (configuredApiBase) {
+    const configuredUrl = new URL(configuredApiBase);
+    const isHttps = configuredUrl.protocol === 'https:';
+    const isLoopbackHttp = configuredUrl.protocol === 'http:' &&
+      ['localhost', '127.0.0.1', '[::1]'].includes(configuredUrl.hostname);
+    if (isHttps || isLoopbackHttp) {
+      configuredApiOrigin = configuredUrl.origin;
+    } else {
+      console.error('VITE_API_BASE_URL must use HTTPS except for loopback development; automatic Firebase auth is disabled for that origin.');
+    }
+  }
+} catch {
+  console.error('VITE_API_BASE_URL is invalid; automatic Firebase auth is disabled for the configured origin.');
+}
+
+const resolveRequestUrl = (input: RequestInfo | URL): URL | null => {
+  try {
+    let rawUrl: string;
+    if (typeof input === 'string') rawUrl = input;
+    else if (input instanceof URL) rawUrl = input.toString();
+    else rawUrl = input.url;
+    return new URL(rawUrl, window.location.origin);
+  } catch {
+    return null;
+  }
+};
+
+const isTrustedApiUrl = (requestUrl: URL): boolean => {
+  const isApiPath = requestUrl.pathname.startsWith('/api/');
+  const isSameOrigin = requestUrl.origin === window.location.origin;
+  const isConfiguredOrigin = configuredApiOrigin !== null && requestUrl.origin === configuredApiOrigin;
+  return isApiPath && (isSameOrigin || isConfiguredOrigin);
+};
+
+const createAuthenticatedHeaders = async (input: RequestInfo | URL, init: RequestInit): Promise<Headers> => {
+  const inputHeaders = typeof input === 'string' || input instanceof URL ? undefined : input.headers;
+  const headers = new Headers(inputHeaders);
+  new Headers(init.headers).forEach((value, key) => headers.set(key, value));
+  if (!headers.has('Authorization')) {
+    const token = await getIdToken();
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+  }
+  return headers;
+};
+
 if (typeof window !== 'undefined' && nativeFetch) {
   window.fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
-    const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-    const sameOriginApi = url.startsWith('/api/') || (url.startsWith(window.location.origin + '/api/'));
-    if (!sameOriginApi) return nativeFetch(input, init);
-    const headers = new Headers(init.headers || (typeof input !== 'string' && !(input instanceof URL) ? input.headers : undefined));
-    if (!headers.has('Authorization')) {
-      const token = await getIdToken();
-      if (token) headers.set('Authorization', 'Bearer ' + token);
-    }
+    const requestUrl = resolveRequestUrl(input);
+    if (!requestUrl || !isTrustedApiUrl(requestUrl)) return nativeFetch(input, init);
+    const headers = await createAuthenticatedHeaders(input, init);
     return nativeFetch(input, { ...init, headers });
   };
 }
