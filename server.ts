@@ -1144,7 +1144,7 @@ app.get('/api/llama-cloud/status', geasRateLimit, requireOwnerOrInternalService,
 app.get('/api/llama-cloud/indexes', geasRateLimit, requireOwnerOrInternalService, async (_req: Request, res: Response) => {
   try {
     const indexes = await listLlamaCloudIndexes();
-    return res.json({ ok: true, projectId: process.env.LLAMA_CLOUD_PROJECT_ID || '220520f6-c208-4b55-87fb-796881b3fc97', indexes, indexListSucceeded: true, verified: false });
+    return res.json({ ok: true, projectId: process.env.LLAMA_CLOUD_PROJECT_ID?.trim() || '220520f6-c208-4b55-87fb-796881b3fc97', indexes, indexListSucceeded: true, verified: false });
   } catch (error) {
     return llamaCloudRouteError(res, error);
   }
