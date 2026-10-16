@@ -45,6 +45,38 @@ try {
   await assert.rejects(() => retrieveLlamaCloudContext({ indexId: 'index-a', query: 'test', topK: 11 }, mockFetch),
     (error: unknown) => error instanceof LlamaCloudIntegrationError && error.code === 'invalid_top_k');
 
+  const paginatedFetch = (async (input: RequestInfo | URL) => {
+    const url = new URL(String(input));
+    if (url.searchParams.get('page_token') === 'page-2') {
+      return new Response(JSON.stringify({ items: [
+        { id: 'index-b', name: 'Second page', project_id: '220520f6-c208-4b55-87fb-796881b3fc97' },
+      ] }), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+    return new Response(JSON.stringify({
+      items: [{ id: 'index-a', name: 'First page', project_id: '220520f6-c208-4b55-87fb-796881b3fc97' }],
+      next_page_token: 'page-2',
+    }), { status: 200, headers: { 'content-type': 'application/json' } });
+  }) as typeof fetch;
+  const paginatedIndexes = await listLlamaCloudIndexes(paginatedFetch);
+  assert.deepEqual(paginatedIndexes.map((item) => item.id), ['index-a', 'index-b']);
+
+  const malformedIndexesFetch = (async () => new Response(JSON.stringify({}), {
+    status: 200, headers: { 'content-type': 'application/json' },
+  })) as typeof fetch;
+  await assert.rejects(() => listLlamaCloudIndexes(malformedIndexesFetch),
+    (error: unknown) => error instanceof LlamaCloudIntegrationError && error.code === 'invalid_upstream_response');
+
+  const malformedRetrievalFetch = (async (input: RequestInfo | URL) => {
+    if (String(input).includes('/api/v1/indexes')) {
+      return new Response(JSON.stringify({ items: [{ id: 'index-a', project_id: '220520f6-c208-4b55-87fb-796881b3fc97' }] }), {
+        status: 200, headers: { 'content-type': 'application/json' },
+      });
+    }
+    return new Response(JSON.stringify({}), { status: 200, headers: { 'content-type': 'application/json' } });
+  }) as typeof fetch;
+  await assert.rejects(() => retrieveLlamaCloudContext({ indexId: 'index-a', query: 'test' }, malformedRetrievalFetch),
+    (error: unknown) => error instanceof LlamaCloudIntegrationError && error.code === 'invalid_upstream_response');
+
   const unauthorizedFetch = (async () => new Response('unauthorized', { status: 401 })) as typeof fetch;
   await assert.rejects(() => getLlamaCloudStatus(unauthorizedFetch),
     (error: unknown) => error instanceof LlamaCloudIntegrationError && error.code === 'upstream_auth_failure');
