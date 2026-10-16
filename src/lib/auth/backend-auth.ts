@@ -53,7 +53,7 @@ export async function verifyBearerToken(req: Request): Promise<DecodedIdToken | 
   }
 }
 
-export function isInternalServiceRequest(req: Request): boolean {
+export const isInternalServiceRequest = (req: Request): boolean => {
   // Network location, Host, forwarded headers, and marker headers are not credentials.
   // Trust internal callers only when they present the configured high-entropy token.
   const configured = process.env.GLORIFIER_INTERNAL_SERVICE_TOKEN?.trim();
@@ -63,7 +63,7 @@ export function isInternalServiceRequest(req: Request): boolean {
   const suppliedBytes = Buffer.from(supplied, 'utf8');
   return expectedBytes.length === suppliedBytes.length &&
     crypto.timingSafeEqual(expectedBytes, suppliedBytes);
-}
+};
 
 export function requireAuthentication(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   if (isInternalServiceRequest(req)) {
