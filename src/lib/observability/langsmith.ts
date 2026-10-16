@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 
 type TraceSummary = Record<string, unknown>;
-type LangSmithConfig = { apiKey: string; endpoint: string; project: string; workspaceId?: string };
+type LangSmithEndpoint = 'https://api.smith.langchain.com' | 'https://eu.api.smith.langchain.com';
+type LangSmithConfig = { apiKey: string; endpoint: LangSmithEndpoint; project: string; workspaceId?: string };
 
 function getConfig(): LangSmithConfig | null {
   if (process.env.LANGSMITH_TRACING !== 'true') return null;
@@ -31,7 +32,10 @@ function getConfig(): LangSmithConfig | null {
 
   return {
     apiKey,
-    endpoint: parsedEndpoint.origin,
+    // Map validated hosts to fixed origins so no caller-controlled URL reaches fetch().
+    endpoint: parsedEndpoint.hostname === 'eu.api.smith.langchain.com'
+      ? 'https://eu.api.smith.langchain.com'
+      : 'https://api.smith.langchain.com',
     project: (process.env.LANGSMITH_PROJECT || 'GLORIFIER').trim() || 'GLORIFIER',
     workspaceId: process.env.LANGSMITH_WORKSPACE_ID?.trim() || undefined,
   };
