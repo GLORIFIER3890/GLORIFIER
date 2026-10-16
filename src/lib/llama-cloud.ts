@@ -111,9 +111,9 @@ export async function getLlamaCloudStatus(fetchImpl: typeof fetch = fetch) {
 }
 
 export async function retrieveLlamaCloudContext(input: { indexId: string; query: string; topK?: number }, fetchImpl: typeof fetch = fetch): Promise<{ indexId: string; results: LlamaCloudResult[] }> {
-  const indexId = input.indexId?.trim();
-  const query = input.query?.trim();
-  const topK = input.topK ?? 5;
+  const indexId = typeof input?.indexId === 'string' ? input.indexId.trim() : '';
+  const query = typeof input?.query === 'string' ? input.query.trim() : '';
+  const topK = input?.topK ?? 5;
   if (!indexId || indexId.length > 200) throw new LlamaCloudIntegrationError('A valid indexId is required.', 400, 'invalid_index_id');
   if (!query || query.length > 2000) throw new LlamaCloudIntegrationError('Query must contain 1–2000 characters.', 400, 'invalid_query');
   if (!Number.isInteger(topK) || topK < 1 || topK > 10) throw new LlamaCloudIntegrationError('topK must be an integer from 1 to 10.', 400, 'invalid_top_k');
