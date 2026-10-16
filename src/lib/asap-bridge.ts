@@ -59,6 +59,11 @@ const SENSITIVE_CAPABILITIES = new Set([
 ]);
 
 const normalize = (value: string) => value.trim().toLowerCase();
+// Agent and correlation identifiers are data, never arbitrary unbounded strings.
+// Permit common UUIDs and namespaced IDs while rejecting whitespace/control chars.
+const SAFE_IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+const isSafeIdentifier = (value: unknown): value is string =>
+  typeof value === 'string' && SAFE_IDENTIFIER.test(value.trim());
 
 export function isAsapIntegrationEnabled(value = process.env.GLORIFIER_ASAP_ENABLED): boolean {
   return String(value ?? '').trim().toLowerCase() === 'true';
@@ -85,6 +90,13 @@ export function prepareAsapHandoff(
   ];
   if (required.some(value => typeof value !== 'string' || !value.trim())) {
     return { allowed: false, status: 'BLOCKED', reason: 'Required handoff identity and task fields are missing.' };
+  }
+  if (![candidate.taskId, candidate.correlationId, candidate.requesterAgentId, candidate.targetAgentId]
+    .every(isSafeIdentifier)) {
+    return { allowed: false, status: 'BLOCKED', reason: 'Task, correlation, and agent identifiers must use the supported safe identifier format.' };
+  }
+  if (candidate.objective.length > 4_000 || candidate.capability.length > 128) {
+    return { allowed: false, status: 'BLOCKED', reason: 'Objective or capability exceeds the supported length limit.' };
   }
   if (!authorization.authenticated) {
     return { allowed: false, status: 'BLOCKED', reason: 'Caller identity is not authenticated.' };
