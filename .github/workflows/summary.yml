@@ -8,16 +8,10 @@ jobs:
   summary:
     runs-on: ubuntu-latest
     permissions:
-      issues: write
+      issues: read
       models: read
-      contents: read
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
       - name: Run AI inference
         id: inference
         uses: actions/ai-inference@v3
@@ -30,10 +24,11 @@ jobs:
         env:
           COPILOT_GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Comment with AI summary
-        run: |
-          gh issue comment "$ISSUE_NUMBER" --body "$RESPONSE"
+      - name: Publish summary to workflow run only
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
           RESPONSE: ${{ steps.inference.outputs.response }}
+        run: |
+          {
+            printf '%s\n\n' '## AI-generated issue summary (review before reuse)'
+            printf '%s\n' "$RESPONSE"
+          } >> "$GITHUB_STEP_SUMMARY"
