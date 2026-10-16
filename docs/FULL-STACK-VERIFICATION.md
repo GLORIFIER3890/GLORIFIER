@@ -1,6 +1,6 @@
-# GLORIFIER FULL-STACK VERIFICATION MATRIX
+# GLORIFIER FULL-STACK VERIFICATION MATRIX — HISTORICAL SNAPSHOT
 
-Last live verification: 2026-10-01.
+Historical live verification: 2026-10-01. This matrix is not current production proof; use docs/CI-STATUS-CHECK-CONVENTION.md for status meanings and required evidence, and refresh each row with a new live check before claiming current verification.
 
 Current live evidence:
 - Vercel production deployment is READY and points to main commit ad4d8b59af26d8d7349af5a3249e716a998b9175.
