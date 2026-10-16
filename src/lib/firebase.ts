@@ -125,16 +125,18 @@ const resolveRequestUrl = (input: RequestInfo | URL): URL | null => {
   }
 };
 
+const matchesApiPath = (pathname: string, prefix = ''): boolean => {
+  const apiRoot = prefix ? `${prefix}/api` : '/api';
+  return pathname === apiRoot || pathname.startsWith(`${apiRoot}/`);
+};
+
 const isTrustedApiUrl = (requestUrl: URL): boolean => {
-  const isSameOrigin = requestUrl.origin === window.location.origin;
-  const isConfiguredOrigin = configuredApiOrigin !== null && requestUrl.origin === configuredApiOrigin;
-  const isApiPath = isSameOrigin
-    ? requestUrl.pathname === '/api' || requestUrl.pathname.startsWith('/api/')
-    : configuredApiPathPrefix
-      ? requestUrl.pathname === `${configuredApiPathPrefix}/api` ||
-        requestUrl.pathname.startsWith(`${configuredApiPathPrefix}/api/`)
-      : requestUrl.pathname === '/api' || requestUrl.pathname.startsWith('/api/');
-  return isApiPath && (isSameOrigin || isConfiguredOrigin);
+  if (requestUrl.origin === window.location.origin) {
+    return matchesApiPath(requestUrl.pathname);
+  }
+  return configuredApiOrigin !== null &&
+    requestUrl.origin === configuredApiOrigin &&
+    matchesApiPath(requestUrl.pathname, configuredApiPathPrefix);
 };
 
 const createAuthenticatedHeaders = async (input: RequestInfo | URL, init: RequestInit): Promise<Headers> => {
