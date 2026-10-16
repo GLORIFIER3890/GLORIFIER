@@ -49,6 +49,9 @@ jobs:
           bash -n solana/publish-verified-mainnet-identity.sh
           jq -e '.asset=="GLORIFIER" and .symbol=="GLR" and .network=="solana-devnet" and .token_standard=="Token-2022"' solana/canonical-devnet-identity.json >/dev/null
 
+      - name: Solana GLR cross-file provenance gate
+        run: npm run test:solana-provenance
+
       - name: Type-check
         run: npm run lint
 
