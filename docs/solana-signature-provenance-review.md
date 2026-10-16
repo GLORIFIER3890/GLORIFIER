@@ -6,15 +6,15 @@
 
 ## Observed repository values
 
-The current `solana/canonical-mainnet-identity.json` records the mint transaction as:
+The historical canonical identity and the deployment provenance record reported this signature:
 
 `Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa`
 
-The current `solana/token.json` does not include a mint-transaction signature. The canonical deployment seed in `src/lib/asset-registry.ts` records:
+The canonical deployment seed in `src/lib/asset-registry.ts` reported a different signature:
 
 `Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa`
 
-These strings differ (`HChmY7` versus `HChyV7`). Repository text alone cannot determine which value is correct. Do not silently choose one, infer a typo, or alter on-chain state.
+These strings differ (`HChmY7` versus `HChyV7`). The current canonical identity now leaves `mint_transaction` unset and records both observed values; the runtime registry likewise leaves `deploymentTransaction` unset. Repository text alone cannot determine which value is correct. Do not silently choose one, infer a typo, or alter on-chain state.
 
 ## Acceptance gate
 
