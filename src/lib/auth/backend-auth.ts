@@ -53,17 +53,11 @@ export async function verifyBearerToken(req: Request): Promise<DecodedIdToken | 
 }
 
 export function isInternalServiceRequest(req: Request): boolean {
+  // Internal identity must be proven by the configured shared secret. Caller-controlled
+  // marker, Host, forwarded-host, and network-address values are not authentication.
   const configured = process.env.GLORIFIER_INTERNAL_SERVICE_TOKEN?.trim();
   const supplied = req.get('x-glorifier-internal-token')?.trim();
-  if (configured && supplied && supplied === configured) return true;
-  const marker = req.get('x-glorifier-internal-service')?.trim();
-  const remote = String(req.socket?.remoteAddress || '').replace(/^::ffff:/, '');
-  const privateIpv4 = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(remote);
-  const privateIpv6 = remote.startsWith('fc') || remote.startsWith('fd') || remote === '::1';
-  const host = String(req.get('host') || '').toLowerCase().replace(/:\d+$/, '');
-  const forwardedHost = String(req.get('x-forwarded-host') || '').split(',')[0].trim().toLowerCase().replace(/:\d+$/, '');
-  const internalRailwayHost = host === 'glorifier-artificial-intelligence.railway.internal' || forwardedHost === 'glorifier-artificial-intelligence.railway.internal';
-  return marker === 'permanent-orchestrator' && (privateIpv4 || privateIpv6 || internalRailwayHost);
+  return Boolean(configured && supplied && supplied === configured);
 }
 
 export function requireAuthentication(req: AuthenticatedRequest, res: Response, next: NextFunction) {
