@@ -96,12 +96,10 @@ export function prepareAsapHandoff(
   const capability = normalize(candidate.capability);
   const risk = candidate.risk;
   const explicitlyLowRisk = risk === 'low' && LOW_RISK_CAPABILITIES.has(capability);
-  const requiresHumanApproval =
-    !explicitlyLowRisk ||
-    risk === 'medium' ||
-    risk === 'high' ||
-    risk === 'irreversible' ||
-    SENSITIVE_CAPABILITIES.has(capability);
+  // Only the exact low-risk + allowlisted combination can bypass approval.
+  // Every other risk value (including undefined) fails closed without comparing
+  // mutually exclusive string-literal types.
+  const requiresHumanApproval = !explicitlyLowRisk || SENSITIVE_CAPABILITIES.has(capability);
 
   if (requiresHumanApproval && authorization.humanApproved !== true) {
     return { allowed: false, status: 'BLOCKED', reason: 'Explicit human approval is required for high-risk, unknown, or non-allowlisted capabilities.' };
