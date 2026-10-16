@@ -22,7 +22,7 @@ export class LlamaCloudIntegrationError extends Error {
 
 function config() {
   const apiKey = process.env.LLAMA_CLOUD_API_KEY?.trim() || '';
-  const projectId = process.env.LLAMA_CLOUD_PROJECT_ID?.trim() || DEFAULT_PROJECT_ID;
+  const projectId = (process.env.LLAMA_CLOUD_PROJECT_ID?.trim() || DEFAULT_PROJECT_ID).toLowerCase();
   const baseUrl = (process.env.LLAMA_CLOUD_BASE_URL?.trim() || DEFAULT_BASE_URL).replace(/\/+$/, '');
   let parsed: URL;
   try { parsed = new URL(baseUrl); } catch {
@@ -96,15 +96,31 @@ function normalizeIndexes(payload: any): LlamaCloudIndex[] {
   }));
 }
 
+function readCachedIndexes(cacheKey: string, fetchImpl: typeof fetch): LlamaCloudIndex[] | undefined {
+  if (fetchImpl !== fetch) return undefined;
+  const cached = indexCache.get(cacheKey);
+  if (!cached) return undefined;
+  if (cached.expiresAt <= Date.now()) {
+    indexCache.delete(cacheKey);
+    return undefined;
+  }
+  return cached.indexes.map((item) => ({ ...item }));
+}
+
+function writeCachedIndexes(cacheKey: string, fetchImpl: typeof fetch, indexes: LlamaCloudIndex[]): void {
+  if (fetchImpl !== fetch) return;
+  indexCache.set(cacheKey, {
+    expiresAt: Date.now() + INDEX_CACHE_TTL_MS,
+    indexes: indexes.map((item) => ({ ...item })),
+  });
+}
+
 export async function listLlamaCloudIndexes(fetchImpl: typeof fetch = fetch): Promise<LlamaCloudIndex[]> {
   const { projectId, baseUrl } = config();
   const cacheKey = `${baseUrl}|${projectId}`;
-  // Only cache real upstream requests, never injected test/custom fetch implementations.
-  if (fetchImpl === fetch) {
-    const cached = indexCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) return cached.indexes.map((item) => ({ ...item }));
-    indexCache.delete(cacheKey);
-  }
+  // Cache only real upstream requests; custom fetch implementations stay isolated.
+  const cachedIndexes = readCachedIndexes(cacheKey, fetchImpl);
+  if (cachedIndexes) return cachedIndexes;
   const allIndexes: LlamaCloudIndex[] = [];
   const seenTokens = new Set<string>();
   let pageToken: string | undefined;
@@ -119,9 +135,7 @@ export async function listLlamaCloudIndexes(fetchImpl: typeof fetch = fetch): Pr
       : '';
     if (!nextToken) {
       const scopedIndexes = allIndexes.filter((item) => item.project_id === projectId);
-      if (fetchImpl === fetch) {
-        indexCache.set(cacheKey, { expiresAt: Date.now() + INDEX_CACHE_TTL_MS, indexes: scopedIndexes.map((item) => ({ ...item })) });
-      }
+      writeCachedIndexes(cacheKey, fetchImpl, scopedIndexes);
       return scopedIndexes;
     }
     if (seenTokens.has(nextToken)) {
