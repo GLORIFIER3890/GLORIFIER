@@ -1,3 +1,0 @@
-/api/* https://glorifier-artificial-intelligence-production.up.railway.app/api/:splat 200
-/auth/* https://glorifier-artificial-intelligence-production.up.railway.app/auth/:splat 200
-/* /index.html 200
