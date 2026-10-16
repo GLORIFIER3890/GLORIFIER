@@ -43,6 +43,7 @@ async function submitTrace(config: LangSmithConfig, payload: Record<string, unkn
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
+      redirect: 'error',
       signal: AbortSignal.timeout(1200),
     });
   } catch {
@@ -70,7 +71,12 @@ export async function withLangSmithTrace<T>(
 
   try {
     const result = await operation();
-    outputs = summarize(result);
+    try {
+      outputs = summarize(result);
+    } catch {
+      // Telemetry summarization must never turn a successful inference into a failure.
+      outputs = { completed: true };
+    }
     return result;
   } catch (cause) {
     error = 'operation_failed';
@@ -90,6 +96,7 @@ export async function withLangSmithTrace<T>(
     };
     if (outputs) payload.outputs = outputs;
     if (error) payload.error = error;
-    await submitTrace(config, payload);
+    // Never block inference on telemetry; submitTrace is bounded and self-contained.
+    void submitTrace(config, payload).catch(() => undefined);
   }
 }
