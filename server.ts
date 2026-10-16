@@ -52,7 +52,7 @@ import { getGeasPolicy, evaluateGeasPolicy, registerAgent, getAgent, listControl
 import { initializeGeasArchitectureScientist, runGeasArchitectureScan, getLatestGeasArchitectureScan, getGeasArchitectureModel, getGeasArchitectureSources, getGeasArchitecturePatterns, getGeasArchitectureControls, getGeasArchitectureReliabilityContract, getGeasSovereigntyDefaults, createAIImpactAssessment, createFinOpsArchitectureDecision, startGeasArchitectureScientistDaemon } from './src/lib/governance/geas-architecture-scientist';
 import { getPermanentGlorifierStack, validatePermanentStack } from './src/lib/governance/permanent-stack';
 import { getGeasArchitectureManifest, validateGeasArchitectureManifest, evaluateAuthorityChain, attenuateAuthority, createTelemetryEnvelope, getGeasDegradedModeContracts, reconcileGeasArchitecture, persistGeasManifest, persistGeasAuthorityEnvelope, persistGeasTelemetryEnvelope, persistGeasReconciliation, persistGeasFinOpsRecord, initializeGeasReconciliation } from './src/lib/governance/geas-reconciliation';
-import { requireAuthentication, requireOwner, requireOwnerOrInternalService, authenticationStatus, isOwner, isInternalServiceRequest } from './src/lib/auth/backend-auth';
+import { requireAuthentication, requireOwner, requireOwnerOrInternalService, authenticationStatus, isOwner, isInternalServiceRequest, type AuthenticatedRequest } from './src/lib/auth/backend-auth';
 import { startAutonomousAuthenticationVerificationDaemon, getAutonomousAuthenticationVerificationSnapshot, runAutonomousAuthenticationVerification } from './src/lib/autonomous-auth-verification';
 import { startGlobalVerificationFabric, getGlobalVerificationFabricSnapshot, runGlobalVerificationFabricNow } from './src/lib/global-verification-fabric';
 import { reconcileIntegrationControlPlane, getIntegrationControlSnapshot } from './src/lib/integration-control-plane';
@@ -2233,7 +2233,7 @@ app.get('/api/economy/glr/intents/:id', async (req: Request, res: Response) => {
 
 app.post('/api/economy/glr/intents', requireAuthentication, async (req: Request, res: Response) => {
   try {
-    const auth = (req as any).auth as { uid?: string } | undefined;
+    const auth = (req as AuthenticatedRequest).auth;
     if (!auth?.uid) {
       return res.status(401).json({ ok: false, error: 'Authenticated payer identity required' });
     }
