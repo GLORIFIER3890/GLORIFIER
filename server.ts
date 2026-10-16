@@ -210,7 +210,7 @@ app.use((req: Request, res: Response, next) => {
 // synchronization, or AI execution.
 app.use('/api', (req: Request, res: Response, next) => {
   if (req.method === 'OPTIONS') return next();
-  const pathName = req.path || '';
+  const pathName = (req.path || '').toLowerCase();
   const protectedRead = [
     '/payouts',
     '/monetization/subscription',
