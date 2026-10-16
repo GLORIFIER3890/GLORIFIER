@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { withLangSmithTrace } from './langsmith';
+import { buildProviderRegistryTraceInputs, summarizeProviderRegistryTrace } from '../ai/registry';
 
 async function main() {
   const originalEnv = {
@@ -62,6 +63,33 @@ async function main() {
     assert.equal(capturedBody.inputs.messageCount, 1);
     assert.equal(JSON.stringify(capturedBody).includes('PRIVATE MODEL OUTPUT'), false);
     assert.equal(JSON.stringify(capturedBody).includes('PRIVATE ERROR'), false);
+
+    const privateMarker = 'PRIVATE_MARKER_DO_NOT_TRANSMIT';
+    const registryInputs = buildProviderRegistryTraceInputs({
+      messages: [{ role: 'user', content: privateMarker }],
+      model: privateMarker,
+      capability: privateMarker,
+      preferredProvider: 'openai',
+    } as any);
+    const registrySummary = summarizeProviderRegistryTrace({
+      provider: privateMarker,
+      attemptedProviders: [privateMarker, 'openai'],
+      providerStatuses: { [privateMarker]: 'error', openai: 'connected' },
+      errors: [privateMarker],
+      response: { text: privateMarker },
+    } as any);
+    const registryTrace = JSON.stringify({ inputs: registryInputs, outputs: registrySummary });
+    assert.equal(registryTrace.includes(privateMarker), false, 'registry metadata must exclude prompt, output, error, and arbitrary identifiers');
+    assert.equal(registrySummary.errorCount, 1);
+    assert.deepEqual(registrySummary.attemptedProviders, ['unknown', 'openai']);
+
+    const summarizedResult = await withLangSmithTrace(
+      'summarizer-failure',
+      {},
+      async () => 'inference-still-successful',
+      () => { throw new Error(privateMarker); },
+    );
+    assert.equal(summarizedResult, 'inference-still-successful', 'telemetry summarizer failure must not break inference');
 
     process.env.LANGSMITH_ENDPOINT = 'https://attacker.example';
     const beforeInvalidEndpoint = calls;
