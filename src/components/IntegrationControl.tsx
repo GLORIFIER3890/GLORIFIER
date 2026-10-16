@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Activity, CheckCircle2, CircleAlert, ExternalLink, Globe2, LockKeyhole, RefreshCw } from 'lucide-react';
 import { IntelligenceHub } from './IntelligenceHub';
 import { MediatorDashboard } from './MediatorDashboard';
+import { getTrustedAlpacaAuthorizationUrl } from '../lib/alpaca-oauth-url';
 
 type CollaborationProvider = { id: string; name: string; category: string; capabilities: string[]; status: string; authorized: boolean; requiresHumanApproval: boolean; connectionId: string | null; scopes: string[]; };
 
@@ -64,23 +65,6 @@ const statusLabel: Record<string, string> = {
   planned: 'Planned',
   optional: 'Optional',
   'needs-config': 'Needs configuration'
-};
-
-const getTrustedAlpacaAuthorizationUrl = (value: unknown): string | null => {
-  if (typeof value !== 'string') return null;
-  try {
-    const url = new URL(value);
-    if (
-      url.protocol !== 'https:' ||
-      url.origin !== 'https://app.alpaca.markets' ||
-      url.pathname !== '/oauth/authorize' ||
-      url.username ||
-      url.password
-    ) return null;
-    return url.href;
-  } catch {
-    return null;
-  }
 };
 
 export const IntegrationControl: React.FC = () => {
