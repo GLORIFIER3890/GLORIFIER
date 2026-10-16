@@ -14,7 +14,9 @@ const getNativeApiBase = (value: string): string => {
   try {
     const url = new URL(value);
     if (url.protocol !== 'https:' && !isLoopbackHttp(url)) return '';
-    if (url.username || url.password || url.search || url.hash) return '';
+    // Reject delimiters even when the URL parser normalizes a bare '?' or '#'
+    // to an empty search/hash value; otherwise appending API paths can be misrouted.
+    if (/[?#]/.test(value) || url.username || url.password || url.search || url.hash) return '';
     return value;
   } catch {
     return '';
@@ -26,7 +28,7 @@ const nativeApiBase = getNativeApiBase(configuredApiBase);
 function resolveRequestUrl(input: RequestInfo | URL): URL | null {
   try {
     const rawUrl = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    return new URL(rawUrl, window.location.href);
+    return new URL(rawUrl, window.location.origin);
   } catch {
     return null;
   }
