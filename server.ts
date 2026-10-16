@@ -2233,7 +2233,18 @@ app.get('/api/economy/glr/intents/:id', async (req: Request, res: Response) => {
 
 app.post('/api/economy/glr/intents', async (req: Request, res: Response) => {
   try {
-    const intent = await createGLRPaymentIntent(req.body || {});
+    const auth = (req as any).auth as { uid?: string } | undefined;
+    if (!auth?.uid) {
+      return res.status(401).json({ ok: false, error: 'Authenticated payer identity required' });
+    }
+    const requestedPayer = typeof req.body?.payerAgentId === 'string' ? req.body.payerAgentId.trim() : '';
+    if (requestedPayer && requestedPayer !== auth.uid) {
+      return res.status(403).json({ ok: false, error: 'Payer identity must match the authenticated principal' });
+    }
+    const intent = await createGLRPaymentIntent({
+      ...(req.body || {}),
+      payerAgentId: auth.uid,
+    });
     res.status(201).json({ ok: true, intent, truth: intent.truthStatus });
   } catch (error) { return apiError(res, 400, 'Invalid GLR payment intent', error); }
 });
