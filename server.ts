@@ -2243,7 +2243,7 @@ app.post('/api/economy/glr/intents', requireAuthentication, async (req: Request,
       ...(req.body || {}),
       payerAgentId: payer.payerAgentId,
     });
-    res.status(201).json({ ok: true, intent, truth: intent.truthStatus });
+    return res.status(201).json({ ok: true, intent, truth: intent.truthStatus });
   } catch (error) { return apiError(res, 400, 'Invalid GLR payment intent', error); }
 });
 
