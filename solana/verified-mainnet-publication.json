@@ -1,6 +1,8 @@
 {
   "status": "VERIFIED_ON_CHAIN",
-  "mainnetStatus": "FULLY_VERIFIED",
+  "mainnetStatus": "PARTIALLY_VERIFIED",
+  "crossFileProvenanceStatus": "NOT_VERIFIED",
+  "provenanceNote": "The historical on-chain reconciliation remains recorded, but the canonical mint transaction signature is unset until conflicting repository values are independently reconciled.",
   "mint": "7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9",
   "verificationRunId": "37886411021",
   "verificationRunUrl": "https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021",
