@@ -30,7 +30,7 @@ assert.match(
 );
 assert.match(
   creationRoute,
-  /input\s*=>\s*createGLRPaymentIntent\(input as Parameters<typeof createGLRPaymentIntent>\[0\]\)/,
+  /\(?\s*input\s*\)?\s*=>\s*createGLRPaymentIntent\(input as Parameters<typeof createGLRPaymentIntent>\[0\]\)/,
   'the authenticated-payer result must be the input to GLR intent persistence',
 );
 
