@@ -3,6 +3,7 @@ import { AnthropicProvider } from './providers/anthropic';
 import { OpenAICompatibleProvider } from './providers/openai-compatible';
 import type { AIProvider, AIProviderId, ProviderRegistryEntry } from './types';
 import { discoverGlobalProviders, getGlobalProviderDiscoverySnapshot, type DiscoveredProvider } from './provider-discovery';
+import { withLangSmithTrace } from '../observability/langsmith';
 
 const compatibleProviders = [
   { id: 'openai', name: 'OpenAI', apiKeyEnv: 'OPENAI_API_KEY', baseUrlEnv: 'OPENAI_BASE_URL', modelEnv: 'OPENAI_MODEL', defaultBaseUrl: 'https://api.openai.com/v1', defaultModel: 'gpt-4o' },
@@ -375,19 +376,38 @@ const createProviderExecutionState = (): ProviderExecutionState => ({
 /** Execute providers in governed order with bounded retries and one discovery refresh. */
 export const executeThroughProviderRegistry = async (
   request: ProviderExecutionRequest,
-): Promise<ProviderExecutionResult> => {
-  const policy = resolveExecutionPolicy(request);
-  assertGovernedFallbackPolicy(policy);
-  const connected = getConnectedProviders();
-  const preferredProvider = resolvePreferredProvider(request);
-  const discovery = new Map(getGlobalProviderDiscoverySnapshot().map((entry) => [entry.id, entry]));
-  const ordered = [...connected]
-    .filter((provider) => isProviderEligible(provider, discovery, request.capability))
-    .sort((a, b) => compareProviderOrder(a, b, discovery, preferredProvider));
-  const state = createProviderExecutionState();
-  const initial = await tryOrderedProviders(ordered, request, policy, discovery, state);
-  if (initial) return buildExecutionResult(initial.provider, initial.response, state);
-  const refreshed = await tryDiscoveryRefresh(request, policy, discovery, state);
-  if (refreshed) return buildExecutionResult(refreshed.provider, refreshed.response, state);
-  return buildExecutionResult('provider-registry-exhausted', undefined, state);
-};
+): Promise<ProviderExecutionResult> => withLangSmithTrace(
+  'GLORIFIER Provider Registry',
+  {
+    messageCount: Array.isArray(request.messages) ? request.messages.length : 0,
+    messageRoles: Array.isArray(request.messages) ? [...new Set(request.messages.map((message) => message.role))] : [],
+    requestedModel: request.model || null,
+    preferredProvider: request.preferredProvider || null,
+    capability: request.capability || null,
+    maxTokens: request.maxTokens ?? null,
+  },
+  async () => {
+    const policy = resolveExecutionPolicy(request);
+    assertGovernedFallbackPolicy(policy);
+    const connected = getConnectedProviders();
+    const preferredProvider = resolvePreferredProvider(request);
+    const discovery = new Map(getGlobalProviderDiscoverySnapshot().map((entry) => [entry.id, entry]));
+    const ordered = [...connected]
+      .filter((provider) => isProviderEligible(provider, discovery, request.capability))
+      .sort((a, b) => compareProviderOrder(a, b, discovery, preferredProvider));
+    const state = createProviderExecutionState();
+    const initial = await tryOrderedProviders(ordered, request, policy, discovery, state);
+    if (initial) return buildExecutionResult(initial.provider, initial.response, state);
+    const refreshed = await tryDiscoveryRefresh(request, policy, discovery, state);
+    if (refreshed) return buildExecutionResult(refreshed.provider, refreshed.response, state);
+    return buildExecutionResult('provider-registry-exhausted', undefined, state);
+  },
+  (result) => ({
+    success: Boolean(result.response),
+    selectedProvider: result.provider,
+    attemptedProviderCount: result.attemptedProviders.length,
+    attemptedProviders: result.attemptedProviders,
+    providerStatuses: result.providerStatuses,
+    errorCount: result.errors.length,
+  }),
+);
