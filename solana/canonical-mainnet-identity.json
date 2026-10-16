@@ -26,7 +26,7 @@
   "cross_file_provenance_status": "NOT_VERIFIED",
   "cross_file_provenance_note": "Historical identity and runtime registry records contained different mint transaction signatures (HChmY7 versus HChyV7). A public explorer reports HChmY7 as successful/finalized and cannot locate HChyV7, but direct finalized RPC reconciliation remains pending. The current canonical identity and runtime registry leave the canonical transaction unset until that independent check is complete.",
   "mainnet_status": "PARTIALLY_VERIFIED",
-  "verification_boundary": "Mainnet identity is verified from finalized read-only reconciliation, immutable deployment provenance, and transaction confirmation. Repository presentation metadata is supplemental and does not override the immutable on-chain URI.",
+  "verification_boundary": "On-chain mint identity, supply, decimals, and authority evidence were verified by the recorded finalized reconciliation. Overall status remains PARTIALLY_VERIFIED because cross-file mint-transaction provenance is unresolved. Repository presentation metadata is supplemental and does not override the immutable on-chain URI.",
   "next_action": "Independently reconcile the conflicting mint transaction signatures using finalized Solana RPC data; do not infer a canonical signature or redeploy. Metadata pointer and update authorities are disabled, so the immutable on-chain URI cannot be changed.",
   "verification_run_id": "37886411021",
   "verification_run_url": "https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021",
