@@ -53,8 +53,8 @@ jobs:
                 check_suite_id: context.payload.check_suite.id,
                 per_page: 100
               });
-              if (ownWorkflowRuns.length > 0) {
-                core.notice('Ignoring this workflow’s own check suite.');
+              if (ownWorkflowRuns.length > 1) {
+                core.notice('A prior run of this workflow already handled this check suite; skipping duplicate.');
                 return;
               }
             }
