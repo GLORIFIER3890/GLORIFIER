@@ -177,7 +177,7 @@ function hasExactTransfer<N extends EvmGLRNetwork>(
   const expectedRecipientTopic = addressTopic(recipient, config.chainName);
   const expectedPayerTopic = addressTopic(payer, config.chainName);
   const logs = Array.isArray(receipt.logs) ? receipt.logs as Array<Record<string, unknown>> : [];
-  return logs.some((log) => {
+  return logs.filter((log) => {
     const topics = log.topics;
     if (
       asString(log.address).toLowerCase() !== config.contractAddress.toLowerCase() ||
@@ -191,7 +191,7 @@ function hasExactTransfer<N extends EvmGLRNetwork>(
     } catch {
       return false;
     }
-  });
+  }).length === 1;
 }
 
 export async function verifyEvmGLRTransfer<N extends EvmGLRNetwork>(
