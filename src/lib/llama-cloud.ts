@@ -1,6 +1,8 @@
 const DEFAULT_PROJECT_ID = '220520f6-c208-4b55-87fb-796881b3fc97';
 const DEFAULT_BASE_URL = 'https://api.cloud.llamaindex.ai';
 const ALLOWED_API_HOSTS = new Set(['api.cloud.llamaindex.ai', 'api.cloud.eu.llamaindex.ai']);
+const INDEX_CACHE_TTL_MS = 10_000;
+const indexCache = new Map<string, { expiresAt: number; indexes: LlamaCloudIndex[] }>();
 
 export interface LlamaCloudIndex { id: string; name: string; project_id?: string; status?: string; }
 export interface LlamaCloudResult {
@@ -95,7 +97,14 @@ function normalizeIndexes(payload: any): LlamaCloudIndex[] {
 }
 
 export async function listLlamaCloudIndexes(fetchImpl: typeof fetch = fetch): Promise<LlamaCloudIndex[]> {
-  const { projectId } = config();
+  const { projectId, baseUrl } = config();
+  const cacheKey = `${baseUrl}|${projectId}`;
+  // Only cache real upstream requests, never injected test/custom fetch implementations.
+  if (fetchImpl === fetch) {
+    const cached = indexCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached.indexes.map((item) => ({ ...item }));
+    indexCache.delete(cacheKey);
+  }
   const allIndexes: LlamaCloudIndex[] = [];
   const seenTokens = new Set<string>();
   let pageToken: string | undefined;
@@ -109,7 +118,11 @@ export async function listLlamaCloudIndexes(fetchImpl: typeof fetch = fetch): Pr
       ? payload.next_page_token.trim()
       : '';
     if (!nextToken) {
-      return allIndexes.filter((item) => item.project_id === projectId);
+      const scopedIndexes = allIndexes.filter((item) => item.project_id === projectId);
+      if (fetchImpl === fetch) {
+        indexCache.set(cacheKey, { expiresAt: Date.now() + INDEX_CACHE_TTL_MS, indexes: scopedIndexes.map((item) => ({ ...item })) });
+      }
+      return scopedIndexes;
     }
     if (seenTokens.has(nextToken)) {
       throw new LlamaCloudIntegrationError('LlamaCloud returned a repeated pagination token.', 502, 'invalid_upstream_response');
