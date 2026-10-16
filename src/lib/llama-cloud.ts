@@ -120,7 +120,10 @@ export async function retrieveLlamaCloudContext(input: { indexId: string; query:
   const indexes = await listLlamaCloudIndexes(fetchImpl);
   if (!indexes.some((item) => item.id === indexId)) throw new LlamaCloudIntegrationError('Index not found in configured LlamaCloud project.', 404, 'index_not_found');
   const payload = await request('/api/v1/retrieval/retrieve', { method: 'POST', body: JSON.stringify({ index_id: indexId, query, top_k: topK }) }, fetchImpl);
-  return { indexId, results: (Array.isArray(payload?.results) ? payload.results : []).map((item: any) => ({
+  if (!Array.isArray(payload?.results)) {
+    throw new LlamaCloudIntegrationError('LlamaCloud returned an unsupported retrieval response.', 502, 'invalid_upstream_response');
+  }
+  return { indexId, results: payload.results.map((item: any) => ({
     content: typeof item?.content === 'string' ? item.content : '',
     ...(typeof item?.score === 'number' ? { score: item.score } : {}),
     ...(typeof item?.rerank_score === 'number' ? { rerank_score: item.rerank_score } : {}),
