@@ -46,15 +46,21 @@ expect(verified.verified && verified.confirmations === 13, 'valid mainnet receip
 assert.equal(verified.verifier, 'https://rpc.example', 'verification evidence must not expose RPC paths or query credentials');
 
 let insecureRpcRejected = false;
+let insecureFetchCalls = 0;
+const insecureGuardFetch: typeof fetch = async (input, init) => {
+  insecureFetchCalls++;
+  return mockFetch(input, init);
+};
 try {
   await verifyEthereumGLRTransfer({
-    transactionHash: txHash, expectedAmount: '1', expectedPayerWallet: payer, fetchImpl: mockFetch,
+    transactionHash: txHash, expectedAmount: '1', expectedPayerWallet: payer, fetchImpl: insecureGuardFetch,
     env: { GLR_ETHEREUM_PAYMENT_RECIPIENT: recipient, GLR_ETHEREUM_RPC_URL: 'http://127.0.0.1:8545' }
   });
 } catch (error) {
   insecureRpcRejected = error instanceof Error && error.message.includes('HTTPS');
 }
 assert.ok(insecureRpcRejected, 'non-HTTPS RPC URLs must be rejected before a request is made');
+assert.equal(insecureFetchCalls, 0, 'insecure RPC URLs must be rejected before invoking the fetch implementation');
 const duplicateFetch: typeof fetch = async (_input, init) => {
   const body = JSON.parse(String(init?.body || '{}'));
   const result = body.method === 'eth_getTransactionReceipt'
