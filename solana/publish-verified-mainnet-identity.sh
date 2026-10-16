@@ -8,6 +8,13 @@ test -n "${GH_TOKEN:-}"
 jq -e '.status=="VERIFIED_ON_CHAIN" and .network=="solana-mainnet" and .programId=="TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb" and .name=="GLORIFIER" and .symbol=="GLR" and .decimals==9 and .totalSupply=="1000000000" and .mintAuthority==null and .freezeAuthority==null and .metadataUriInDisplay==true and .commitment=="finalized" and .finalized==true and .transactionSemanticsVerified==true and .metadataPointerAuthority==null and .metadataUpdateAuthority==null and (.metadataPointerAuthorityRevocationTransaction or .metadataPointerAuthorityInitiallyNone==true)' solana/reconciliation-mainnet-evidence.json >/dev/null
 MINT="$(jq -r '.mint' solana/reconciliation-mainnet-evidence.json)"
 
+# Never overwrite a partial canonical status until the repository transaction
+# signature has been independently reconciled against finalized RPC evidence.
+jq -e '.cross_file_provenance_status=="VERIFIED"' solana/canonical-mainnet-identity.json >/dev/null || {
+  echo "::error::Cross-file mint transaction provenance is not VERIFIED; refusing to publish FULLY_VERIFIED status."
+  exit 1
+}
+
 SOURCE_RUN_ID="$(jq -er '.deploymentRunId' solana/deployment-mainnet-provenance.json)"
 ARTIFACT_ID="$(jq -er '.deploymentArtifactId' solana/deployment-mainnet-provenance.json)"
 ARTIFACT_DIGEST="$(jq -er '.deploymentArtifactDigest' solana/deployment-mainnet-provenance.json)"
