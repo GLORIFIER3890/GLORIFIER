@@ -13,8 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      FRONTEND_URL: ${{ vars.GLORIFIER_FRONTEND_URL || 'https://glorifier-glorifier.vercel.app' }}
-      FRONTEND_HEALTH_URL: ${{ vars.GLORIFIER_FRONTEND_HEALTH_URL || 'https://glorifier-glorifier.vercel.app/api/health/ready' }}
+      FRONTEND_URL: ${{ vars.GLORIFIER_FRONTEND_URL || 'https://glorifier.glorifier.workers.dev' }}
       RAILWAY_URL: ${{ vars.GLORIFIER_RAILWAY_URL || 'https://glorifier-artificial-intelligence-production.up.railway.app' }}
     steps:
       - name: Checkout triggering commit
