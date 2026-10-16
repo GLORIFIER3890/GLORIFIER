@@ -25,7 +25,7 @@ Vercel's GitHub integration may post an external status named Vercel even when V
 - Do not fabricate a passing status, overwrite a failed status, or add a success-shaped shim.
 - Do not weaken or bypass CI/security checks.
 - If Vercel is listed as a required status check, remove only that exact requirement in the applicable repository branch protection/ruleset; preserve all required code, security, and review gates.
-- If settings cannot be inspected or changed through the available authenticated integration, report that limitation and provide the exact manual path: GitHub repository → Settings → Rules → ruleset/branch rule targeting main → Require status checks → remove Vercel only if listed → Save changes. Check both active rulesets and classic branch protection where applicable.
+- If settings cannot be inspected or changed through the available authenticated integration, report that limitation. For rulesets: GitHub repository → Settings → Rules → ruleset targeting `main` → Require status checks. For classic branch protection: GitHub repository → Settings → Branches → branch protection rule targeting `main` → Require status checks. Remove Vercel only if it is explicitly listed, preserve all other required gates, and check all active rulesets plus applicable classic rules before saving.
 - A Vercel status still visible on a commit does not by itself prove it is required. Status visibility and merge-blocking policy are separate facts.
 
 The workflow at .github/workflows/vercel-production-deploy.yml performs local dependency installation, lint, frontend build, and output-file verification; it does not itself deploy to Vercel. Do not remove those build checks merely because the file has a legacy Vercel name.
