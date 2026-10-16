@@ -53,6 +53,7 @@ import { initializeGeasArchitectureScientist, runGeasArchitectureScan, getLatest
 import { getPermanentGlorifierStack, validatePermanentStack } from './src/lib/governance/permanent-stack';
 import { getGeasArchitectureManifest, validateGeasArchitectureManifest, evaluateAuthorityChain, attenuateAuthority, createTelemetryEnvelope, getGeasDegradedModeContracts, reconcileGeasArchitecture, persistGeasManifest, persistGeasAuthorityEnvelope, persistGeasTelemetryEnvelope, persistGeasReconciliation, persistGeasFinOpsRecord, initializeGeasReconciliation } from './src/lib/governance/geas-reconciliation';
 import { requireAuthentication, requireOwner, requireOwnerOrInternalService, authenticationStatus, isOwner, isInternalServiceRequest } from './src/lib/auth/backend-auth';
+import { isProtectedApiReadPath } from './src/lib/auth/protected-api-paths';
 import { startAutonomousAuthenticationVerificationDaemon, getAutonomousAuthenticationVerificationSnapshot, runAutonomousAuthenticationVerification } from './src/lib/autonomous-auth-verification';
 import { startGlobalVerificationFabric, getGlobalVerificationFabricSnapshot, runGlobalVerificationFabricNow } from './src/lib/global-verification-fabric';
 import { reconcileIntegrationControlPlane, getIntegrationControlSnapshot } from './src/lib/integration-control-plane';
@@ -210,19 +211,7 @@ app.use((req: Request, res: Response, next) => {
 // synchronization, or AI execution.
 app.use('/api', (req: Request, res: Response, next) => {
   if (req.method === 'OPTIONS') return next();
-  const pathName = (req.path || '').toLowerCase();
-  const protectedRead = [
-    '/payouts',
-    '/monetization/subscription',
-    '/connections',
-    '/agents',
-    '/governance',
-    '/control-plane',
-    '/app-state',
-    '/auth/session',
-    // Payment-intent reads expose payer/payee and settlement metadata; require identity.
-    '/economy/glr/intents'
-  ].some(prefix => pathName === prefix || pathName.startsWith(prefix + '/'));
+  const protectedRead = isProtectedApiReadPath(req.path || '');
   if ((req.method === 'GET' || req.method === 'HEAD') && !protectedRead) return next();
   return requireAuthentication(req as any, res, next);
 });
