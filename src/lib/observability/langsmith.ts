@@ -8,20 +8,30 @@ function getConfig(): LangSmithConfig | null {
   const apiKey = process.env.LANGSMITH_API_KEY?.trim();
   if (!apiKey) return null;
 
-  const endpoint = (process.env.LANGSMITH_ENDPOINT || 'https://api.smith.langchain.com').trim().replace(/\/+$/, '');
+  const configuredEndpoint = (process.env.LANGSMITH_ENDPOINT || 'https://api.smith.langchain.com').trim().replace(/\/+$/, '');
+  let parsedEndpoint: URL;
   try {
-    const parsed = new URL(endpoint);
-    const allowedHosts = new Set(['api.smith.langchain.com', 'eu.api.smith.langchain.com']);
-    if (parsed.protocol !== 'https:' || !allowedHosts.has(parsed.hostname) || parsed.pathname !== '' && parsed.pathname !== '/') {
-      return null;
-    }
+    parsedEndpoint = new URL(configuredEndpoint);
   } catch {
+    return null;
+  }
+  const allowedHosts = new Set(['api.smith.langchain.com', 'eu.api.smith.langchain.com']);
+  if (
+    parsedEndpoint.protocol !== 'https:' ||
+    !allowedHosts.has(parsedEndpoint.hostname) ||
+    (parsedEndpoint.pathname !== '' && parsedEndpoint.pathname !== '/') ||
+    parsedEndpoint.username !== '' ||
+    parsedEndpoint.password !== '' ||
+    parsedEndpoint.search !== '' ||
+    parsedEndpoint.hash !== '' ||
+    (parsedEndpoint.port !== '' && parsedEndpoint.port !== '443')
+  ) {
     return null;
   }
 
   return {
     apiKey,
-    endpoint,
+    endpoint: parsedEndpoint.origin,
     project: (process.env.LANGSMITH_PROJECT || 'GLORIFIER').trim() || 'GLORIFIER',
     workspaceId: process.env.LANGSMITH_WORKSPACE_ID?.trim() || undefined,
   };
