@@ -5,7 +5,7 @@ const oldKey = process.env.LLAMA_CLOUD_API_KEY;
 const oldProject = process.env.LLAMA_CLOUD_PROJECT_ID;
 const oldBase = process.env.LLAMA_CLOUD_BASE_URL;
 try {
-  process.env.LLAMA_CLOUD_PROJECT_ID = '220520f6-c208-4b55-87fb-796881b3fc97';
+  process.env.LLAMA_CLOUD_PROJECT_ID = 'f7d2b46c-8e2b-4b9a-9b65-9a4d9c2f1e70';
   delete process.env.LLAMA_CLOUD_BASE_URL;
   delete process.env.LLAMA_CLOUD_API_KEY;
   let calls = 0;
@@ -21,7 +21,7 @@ try {
   const mockFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     captured.push({ url: String(input), init });
     if (String(input).includes('/api/v1/indexes')) return new Response(JSON.stringify({ items: [
-      { id: 'index-a', name: 'GLORIFIER Knowledge', project_id: '220520f6-c208-4b55-87fb-796881b3fc97' },
+      { id: 'index-a', name: 'GLORIFIER Knowledge', project_id: 'f7d2b46c-8e2b-4b9a-9b65-9a4d9c2f1e70' },
       { id: 'foreign-index', name: 'Other project', project_id: '00000000-0000-0000-0000-000000000000' },
     ] }), { status: 200, headers: { 'content-type': 'application/json' } });
     return new Response(JSON.stringify({ results: [{ content: 'Governed retrieval result', score: 0.91, static_fields: { page_range_start: 2 } }] }), { status: 200, headers: { 'content-type': 'application/json' } });
@@ -31,7 +31,7 @@ try {
   assert.equal(indexes.length, 1);
   assert.equal(indexes[0].id, 'index-a');
   assert.equal((captured[0].init?.headers as Record<string, string>).authorization, 'Bearer test-key');
-  assert.ok(captured[0].url.includes('project_id=220520f6-c208-4b55-87fb-796881b3fc97'));
+  assert.ok(captured[0].url.includes('project_id=f7d2b46c-8e2b-4b9a-9b65-9a4d9c2f1e70'));
   const status = await getLlamaCloudStatus(mockFetch);
   assert.equal(status.connected, true);
   assert.equal(status.indexCount, 1);
@@ -50,11 +50,11 @@ try {
     const url = new URL(String(input));
     if (url.searchParams.get('page_token') === 'page-2') {
       return new Response(JSON.stringify({ items: [
-        { id: 'index-b', name: 'Second page', project_id: '220520f6-c208-4b55-87fb-796881b3fc97' },
+        { id: 'index-b', name: 'Second page', project_id: 'f7d2b46c-8e2b-4b9a-9b65-9a4d9c2f1e70' },
       ] }), { status: 200, headers: { 'content-type': 'application/json' } });
     }
     return new Response(JSON.stringify({
-      items: [{ id: 'index-a', name: 'First page', project_id: '220520f6-c208-4b55-87fb-796881b3fc97' }],
+      items: [{ id: 'index-a', name: 'First page', project_id: 'f7d2b46c-8e2b-4b9a-9b65-9a4d9c2f1e70' }],
       next_page_token: 'page-2',
     }), { status: 200, headers: { 'content-type': 'application/json' } });
   }) as typeof fetch;
@@ -69,7 +69,7 @@ try {
 
   const malformedRetrievalFetch = (async (input: RequestInfo | URL) => {
     if (String(input).includes('/api/v1/indexes')) {
-      return new Response(JSON.stringify({ items: [{ id: 'index-a', project_id: '220520f6-c208-4b55-87fb-796881b3fc97' }] }), {
+      return new Response(JSON.stringify({ items: [{ id: 'index-a', project_id: 'f7d2b46c-8e2b-4b9a-9b65-9a4d9c2f1e70' }] }), {
         status: 200, headers: { 'content-type': 'application/json' },
       });
     }
@@ -119,7 +119,7 @@ try {
 
   const malformedContentFetch = (async (input: RequestInfo | URL) => {
     if (String(input).includes('/api/v1/indexes')) {
-      return new Response(JSON.stringify({ items: [{ id: 'index-a', project_id: '220520f6-c208-4b55-87fb-796881b3fc97' }] }), {
+      return new Response(JSON.stringify({ items: [{ id: 'index-a', project_id: 'f7d2b46c-8e2b-4b9a-9b65-9a4d9c2f1e70' }] }), {
         status: 200, headers: { 'content-type': 'application/json' },
       });
     }
