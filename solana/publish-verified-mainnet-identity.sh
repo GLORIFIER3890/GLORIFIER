@@ -10,14 +10,17 @@ MINT="$(jq -r '.mint' solana/reconciliation-mainnet-evidence.json)"
 
 # Never overwrite a partial canonical status until all repository records agree
 # on a transaction independently reconciled against finalized RPC evidence.
-jq -e '.cross_file_provenance_status=="VERIFIED" and .mint_transaction != null' solana/canonical-mainnet-identity.json >/dev/null || {
+jq -e '.cross_file_provenance_status=="VERIFIED" and .mint_transaction != null and .status=="VERIFIED_ON_CHAIN" and .mainnet_status=="FULLY_VERIFIED"' solana/canonical-mainnet-identity.json >/dev/null || {
   echo "::error::Cross-file mint transaction provenance is not VERIFIED; refusing to publish FULLY_VERIFIED status."
   exit 1
 }
+CANONICAL_MINT="$(jq -r '.canonical_mint // empty' solana/canonical-mainnet-identity.json)"
 CANONICAL_MINT_TX="$(jq -r '.mint_transaction // empty' solana/canonical-mainnet-identity.json)"
 PROVENANCE_MINT_TX="$(jq -r '.mintTransaction // empty' solana/deployment-mainnet-provenance.json)"
+RUNTIME_MINT="$(grep -A 15 "deploymentId: 'glr-solana-mainnet-beta'" src/lib/asset-registry.ts | sed -n "s/.*assetIdentifier: '\([^']*\)'.*/\1/p" | head -n 1)"
 RUNTIME_MINT_TX="$(grep -A 15 "deploymentId: 'glr-solana-mainnet-beta'" src/lib/asset-registry.ts | sed -n "s/.*deploymentTransaction: '\([^']*\)'.*/\1/p" | head -n 1)"
-if [[ -z "$CANONICAL_MINT_TX" || "$CANONICAL_MINT_TX" != "$PROVENANCE_MINT_TX" || "$CANONICAL_MINT_TX" != "$RUNTIME_MINT_TX" ]]; then
+RUNTIME_STATUS="$(grep -A 15 "deploymentId: 'glr-solana-mainnet-beta'" src/lib/asset-registry.ts | sed -n "s/.*status: '\([^']*\)'.*/\1/p" | head -n 1)"
+if [[ -z "$MINT" || "$CANONICAL_MINT" != "$MINT" || "$RUNTIME_MINT" != "$MINT" || "$RUNTIME_STATUS" != "fully_verified" || -z "$CANONICAL_MINT_TX" || "$CANONICAL_MINT_TX" != "$PROVENANCE_MINT_TX" || "$CANONICAL_MINT_TX" != "$RUNTIME_MINT_TX" ]]; then
   echo "::error::Canonical identity, deployment provenance, and runtime registry mint signatures do not match; refusing FULLY_VERIFIED publication."
   exit 1
 fi
