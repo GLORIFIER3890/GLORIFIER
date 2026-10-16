@@ -100,6 +100,9 @@ jobs:
       - name: Solana Token-2022 GLR settlement verifier tests
         run: npm run test:glr-solana-verifier
 
+      - name: Trusted Alpaca OAuth redirect tests
+        run: npm run test:alpaca-oauth-url
+
       - name: Outcome evidence gate regression tests
         run: npm run test:outcome-evidence-gates
 
