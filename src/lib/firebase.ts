@@ -107,28 +107,41 @@ try {
   console.error('VITE_API_BASE_URL is invalid; automatic Firebase auth is disabled for the configured origin.');
 }
 
+const resolveRequestUrl = (input: RequestInfo | URL): URL | null => {
+  try {
+    let rawUrl: string;
+    if (typeof input === 'string') rawUrl = input;
+    else if (input instanceof URL) rawUrl = input.toString();
+    else rawUrl = input.url;
+    return new URL(rawUrl, window.location.origin);
+  } catch {
+    return null;
+  }
+};
+
+const isTrustedApiUrl = (requestUrl: URL): boolean => {
+  const isApiPath = requestUrl.pathname.startsWith('/api/');
+  const isSameOrigin = requestUrl.origin === window.location.origin;
+  const isConfiguredOrigin = configuredApiOrigin !== null && requestUrl.origin === configuredApiOrigin;
+  return isApiPath && (isSameOrigin || isConfiguredOrigin);
+};
+
+const createAuthenticatedHeaders = async (input: RequestInfo | URL, init: RequestInit): Promise<Headers> => {
+  const inputHeaders = typeof input === 'string' || input instanceof URL ? undefined : input.headers;
+  const headers = new Headers(inputHeaders);
+  new Headers(init.headers).forEach((value, key) => headers.set(key, value));
+  if (!headers.has('Authorization')) {
+    const token = await getIdToken();
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+  }
+  return headers;
+};
+
 if (typeof window !== 'undefined' && nativeFetch) {
   window.fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
-    let requestUrl: URL;
-    try {
-      const rawUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-      requestUrl = new URL(rawUrl, window.location.origin);
-    } catch {
-      return nativeFetch(input, init);
-    }
-
-    const isApiPath = requestUrl.pathname.startsWith('/api/');
-    const isTrustedOrigin = requestUrl.origin === window.location.origin ||
-      (configuredApiOrigin !== null && requestUrl.origin === configuredApiOrigin);
-    if (!isApiPath || !isTrustedOrigin) return nativeFetch(input, init);
-
-    const inputHeaders = typeof input === 'string' || input instanceof URL ? undefined : input.headers;
-    const headers = new Headers(inputHeaders);
-    new Headers(init.headers).forEach((value, key) => headers.set(key, value));
-    if (!headers.has('Authorization')) {
-      const token = await getIdToken();
-      if (token) headers.set('Authorization', `Bearer ${token}`);
-    }
+    const requestUrl = resolveRequestUrl(input);
+    if (!requestUrl || !isTrustedApiUrl(requestUrl)) return nativeFetch(input, init);
+    const headers = await createAuthenticatedHeaders(input, init);
     return nativeFetch(input, { ...init, headers });
   };
 }
