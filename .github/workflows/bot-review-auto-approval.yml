@@ -31,7 +31,16 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            const requestedNumber = Number(context.inputs?.pull_request_number ?? 0);
+            // Exclude this workflow's own check run, but retain every other check
+            // with the same display name or app identity.
+            const currentJobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              owner, repo, run_id: context.runId, per_page: 100
+            });
+            const ownCheckRunIds = new Set(currentJobs
+              .map(job => Number(String(job.check_run_url || '').split('/').pop()))
+              .filter(id => Number.isSafeInteger(id) && id > 0));
+
+            const requestedNumber = Number(context.payload.inputs?.pull_request_number ?? 0);
             if (!Number.isSafeInteger(requestedNumber) || requestedNumber < 1) {
               core.setFailed('Manual approval evaluation requires a valid pull_request_number input.');
               return;
@@ -134,7 +143,7 @@ jobs:
             const allRuns = await github.paginate(github.rest.checks.listForRef, {
               owner, repo, ref: headSha, per_page: 100
             });
-            const runs = allRuns;
+            const runs = allRuns.filter(run => !ownCheckRunIds.has(run.id));
             const combinedStatus = await github.rest.repos.getCombinedStatusForRef({ owner, repo, ref: headSha });
             if (combinedStatus.data.state !== 'success') {
               return stop(`combined commit status is ${combinedStatus.data.state}; required status contexts must pass.`);
