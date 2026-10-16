@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { resolveAuthenticatedPayer } from './payer-identity';
+import { createAuthenticatedPayerIntent, resolveAuthenticatedPayer } from './payer-identity';
 
 assert.deepEqual(
   resolveAuthenticatedPayer(undefined, 'payer-a'),
@@ -32,3 +32,38 @@ assert.deepEqual(
 );
 
 console.log('GLR payer identity binding regression tests passed');
+
+void (async () => {
+  let capturedInput: Record<string, unknown> | undefined;
+  const created = await createAuthenticatedPayerIntent(
+    'firebase-uid-a',
+    { payerAgentId: 'attacker-selected-payer', amount: '5', memo: 'test' },
+    async (input) => {
+      capturedInput = input;
+      return { id: 'intent-test', truthStatus: 'NOT_SETTLED' };
+    },
+  );
+  assert.deepEqual(
+    created,
+    { ok: false, status: 403, error: 'Payer identity must match the authenticated principal' },
+    'mismatched payer must be rejected before intent persistence',
+  );
+  assert.equal(capturedInput, undefined, 'persistence must not run for a mismatched payer');
+
+  const valid = await createAuthenticatedPayerIntent(
+    'firebase-uid-a',
+    { payerAgentId: 'firebase-uid-a', amount: '5', memo: 'test' },
+    async (input) => {
+      capturedInput = input;
+      return { id: 'intent-test', truthStatus: 'NOT_SETTLED' };
+    },
+  );
+  assert.ok(valid.ok, 'matching authenticated payer may create an intent');
+  assert.equal(capturedInput?.payerAgentId, 'firebase-uid-a',
+    'persisted payer must be derived from authenticated identity');
+  assert.equal(capturedInput?.amount, '5', 'other validated intent fields must be preserved');
+  console.log('GLR authenticated intent creation boundary tests passed');
+})().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
