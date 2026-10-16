@@ -53,7 +53,10 @@ async function submitTrace(config: LangSmithConfig, payload: Record<string, unkn
   if (config.workspaceId) headers['x-tenant-id'] = config.workspaceId;
 
   try {
-    await fetch(`${config.endpoint}/runs`, {
+    const runsUrl = config.endpoint === 'https://eu.api.smith.langchain.com'
+      ? 'https://eu.api.smith.langchain.com/runs'
+      : 'https://api.smith.langchain.com/runs';
+    await fetch(runsUrl, {
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
