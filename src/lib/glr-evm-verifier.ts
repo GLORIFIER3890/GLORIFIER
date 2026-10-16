@@ -76,7 +76,17 @@ export async function verifyEvmGLRTransfer<N extends EvmGLRNetwork>(
     throw new Error(`${config.chainName} GLR payment recipient is not configured; verification is disabled`);
   }
 
-  const rpcUrl = String(env[config.rpcUrlEnv] || config.defaultRpcUrl).trim();
+  const configuredRpcUrl = String(env[config.rpcUrlEnv] || config.defaultRpcUrl).trim();
+  let parsedRpcUrl: URL;
+  try {
+    parsedRpcUrl = new URL(configuredRpcUrl);
+  } catch {
+    throw new Error(`${config.chainName} RPC URL is invalid`);
+  }
+  if (parsedRpcUrl.protocol !== 'https:' || !parsedRpcUrl.hostname || parsedRpcUrl.username || parsedRpcUrl.password) {
+    throw new Error(`${config.chainName} RPC URL must use HTTPS and must not contain credentials`);
+  }
+  const rpcUrl = parsedRpcUrl.href;
   const minimumConfirmations = Math.max(
     12,
     Math.min(1000, Math.floor(Number(env[config.minimumConfirmationsEnv]) || 12)),
@@ -159,7 +169,7 @@ export async function verifyEvmGLRTransfer<N extends EvmGLRNetwork>(
     tokenContract: config.contractAddress,
     recipient,
     amountGLR: input.expectedAmount,
-    verifier: rpcUrl,
+    verifier: parsedRpcUrl.origin,
     evidenceRef: `${config.evidencePrefix}:${txHash.toLowerCase()}:block:${receipt.blockNumber}:confirmations:${confirmations}`,
   };
 }
