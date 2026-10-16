@@ -126,10 +126,14 @@ const resolveRequestUrl = (input: RequestInfo | URL): URL | null => {
 };
 
 const isTrustedApiUrl = (requestUrl: URL): boolean => {
-  const isApiPath = requestUrl.pathname.startsWith('/api/') ||
-    (configuredApiPathPrefix !== '' && requestUrl.pathname.startsWith(`${configuredApiPathPrefix}/api/`));
   const isSameOrigin = requestUrl.origin === window.location.origin;
   const isConfiguredOrigin = configuredApiOrigin !== null && requestUrl.origin === configuredApiOrigin;
+  const isApiPath = isSameOrigin
+    ? requestUrl.pathname === '/api' || requestUrl.pathname.startsWith('/api/')
+    : configuredApiPathPrefix
+      ? requestUrl.pathname === `${configuredApiPathPrefix}/api` ||
+        requestUrl.pathname.startsWith(`${configuredApiPathPrefix}/api/`)
+      : requestUrl.pathname === '/api' || requestUrl.pathname.startsWith('/api/');
   return isApiPath && (isSameOrigin || isConfiguredOrigin);
 };
 
