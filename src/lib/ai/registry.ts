@@ -380,11 +380,17 @@ export const executeThroughProviderRegistry = async (
   'GLORIFIER Provider Registry',
   {
     messageCount: Array.isArray(request.messages) ? request.messages.length : 0,
-    messageRoles: Array.isArray(request.messages) ? [...new Set(request.messages.map((message) => message.role))] : [],
-    requestedModel: request.model || null,
-    preferredProvider: request.preferredProvider || null,
-    capability: request.capability || null,
-    maxTokens: request.maxTokens ?? null,
+    messageRoles: Array.isArray(request.messages)
+      ? [...new Set(request.messages.map((message) =>
+          typeof message?.role === 'string' && ['system', 'developer', 'user', 'assistant', 'tool'].includes(message.role)
+            ? message.role
+            : 'unknown'))]
+      : [],
+    // Do not send caller-controlled model or capability strings to telemetry.
+    hasRequestedModel: Boolean(request.model),
+    hasPreferredProvider: Boolean(request.preferredProvider),
+    hasCapability: Boolean(request.capability),
+    maxTokens: typeof request.maxTokens === 'number' && Number.isFinite(request.maxTokens) ? request.maxTokens : null,
   },
   async () => {
     const policy = resolveExecutionPolicy(request);
