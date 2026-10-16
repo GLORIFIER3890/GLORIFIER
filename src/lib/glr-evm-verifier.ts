@@ -105,6 +105,8 @@ function createRpcClient(rpcUrl: string, chainName: string, fetchImpl: typeof fe
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ jsonrpc: '2.0', id: ++requestId, method, params }),
+      // Never forward JSON-RPC payloads to a redirect target, including HTTP downgrade URLs.
+      redirect: 'error',
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) throw new Error(`${chainName} RPC request failed`);
