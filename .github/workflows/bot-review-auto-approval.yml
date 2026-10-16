@@ -49,20 +49,29 @@ jobs:
                 check_suite_id: context.payload.check_suite.id,
                 per_page: 100
               });
-              if (ownWorkflowRuns.length > 1) {
-                core.notice('A prior run of this workflow already handled this check suite; skipping duplicate.');
+              // The API can include the current run in this list. Ignore only a
+              // different run for the same suite; never suppress the first evaluation.
+              const priorRunExists = ownWorkflowRuns.some(run => String(run.id) !== String(context.runId));
+              if (priorRunExists) {
+                core.notice('A different run of this workflow already handled this check suite; skipping duplicate.');
                 return;
               }
             }
 
             let pr = context.payload.pull_request || context.payload.review?.pull_request || null;
-            const requestedNumber = Number(context.payload.inputs?.pull_request_number || 0);
+            // GitHub dispatch inputs are exposed on context.inputs in current
+            // actions/github-script versions; keep the raw payload as a fallback.
+            const requestedNumber = Number(
+              context.inputs?.pull_request_number ??
+              context.payload.inputs?.pull_request_number ??
+              0
+            );
 
             if (!pr && requestedNumber > 0) {
               pr = (await github.rest.pulls.get({ owner, repo, pull_number: requestedNumber })).data;
             }
 
-            if (!pr && ['check_suite', 'check_run'].includes(context.eventName)) {
+            if (!pr && context.eventName === 'check_suite') {
               const associated = await github.rest.repos.listPullRequestsAssociatedWithCommit({
                 owner, repo, commit_sha: context.payload.check_suite.head_sha
               });
