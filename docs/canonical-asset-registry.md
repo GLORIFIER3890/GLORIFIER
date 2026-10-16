@@ -36,11 +36,11 @@ No registry state may claim verification without evidence from the corresponding
 |---|---:|---|---|---|
 | Ethereum Mainnet | 1 | `0x9db6f9afe2f4ada50060d32d7c7c0bebbccf89eb` | `0x8b92e5b669ea3188fe55052ed68d3eae0cc7715a0cf8c96e71ee7e95d846f81a` | FULLY VERIFIED |
 | BNB Smart Chain Mainnet | 56 | `0x5e0B0A449232FDA7cA6Ea3419A50873b08F64804` | `0xf5698f6bbde7ff173be1cbd0bb83da53f03389842c68ca2f6e4e287b89d9bbc0` | FULLY VERIFIED |
-| Solana Mainnet Beta | `solana:mainnet-beta` | `7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9` (Token-2022 mint) | `Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa` | FULLY VERIFIED |
+| Solana Mainnet Beta | `solana:mainnet-beta` | `7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9` (Token-2022 mint) | `Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa` (canonical signature not yet reconciled) | PARTIALLY VERIFIED |
 
 The BNB record is based on an existing-deployment reconciliation; the verification mode is `verify-existing` and does not broadcast a new blockchain transaction.
 
-The Solana Mainnet Beta record is a Token-2022 mint (not an EVM contract). Its independent finalized read-only reconciliation is recorded in [`solana/canonical-mainnet-identity.json`](../solana/canonical-mainnet-identity.json) and [GitHub Actions run #37886411021](https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021). The registry records the mint authority as revoked on-chain and the freeze authority as absent at initialization; the empty freeze-authority revocation transaction is intentional. `FULLY VERIFIED` is a technical identity/evidence status, not a market-liquidity, security-audit, price, or legal claim.
+The Solana Mainnet Beta mint's finalized on-chain identity reconciliation is recorded in [`solana/canonical-mainnet-identity.json`](../solana/canonical-mainnet-identity.json) and [GitHub Actions run #37886411021](https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021). However, `docs/solana-signature-provenance-review.md` records a mismatch between the mint transaction signature in the canonical identity and the signature in `src/lib/asset-registry.ts` (`HChmY7` versus `HChyV7`). Repository text cannot establish which is correct. Therefore the runtime registry reports `partially_verified` until an independent finalized RPC check reconciles the signatures. The mint authority is recorded as revoked and the freeze authority as absent at initialization; the empty freeze-authority revocation transaction is intentional. On-chain identity reconciliation and repository provenance consistency are separate claims.
 
 ## API
 
