@@ -86,7 +86,8 @@ if (!isRecord(parsed)) {
   }
 }
 
-// Keep the machine-readable registry and executable scanner catalog in sync.
+if (isRecord(parsed)) {
+  // Keep the machine-readable registry and executable scanner catalog in sync.
 // The scanner catalog is deliberately bounded to the SOURCES declaration so pattern IDs
 // elsewhere in the file cannot be mistaken for source IDs.
 const scannerText = readFileSync(scannerPath, 'utf8');
@@ -111,6 +112,7 @@ if (!sourceSection) {
       failures.push(`registry source ${source.id} is marked discovery-only but present in scanner catalog`);
     }
   }
+}
 }
 
 if (failures.length > 0) {
