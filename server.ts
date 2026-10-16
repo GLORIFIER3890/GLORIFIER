@@ -13,6 +13,7 @@ import { verifyBnbGLRTransfer } from './src/lib/glr-bnb-verifier';
 import { verifySolanaGLRTransfer } from './src/lib/glr-solana-verifier';
 import { aiOrchestrator, runSpecialistCouncil, specialistRoles } from './src/lib/ai';
 import { executeThroughProviderRegistry } from './src/lib/ai/registry';
+import { getLlamaCloudStatus, listLlamaCloudIndexes, retrieveLlamaCloudContext, LlamaCloudIntegrationError } from './src/lib/llama-cloud';
 import { discoverGlobalProviders, getGlobalProviderDiscoverySnapshot, getGlobalProviderDiscoveryPolicy } from './src/lib/ai/provider-discovery';
 import { executeComputeTask, getComputeSnapshot } from './src/lib/compute';
 import { generateIntelligenceReport, getLatestIntelligenceReport } from './src/lib/intelligence';
@@ -215,6 +216,7 @@ app.use('/api', (req: Request, res: Response, next) => {
     '/payouts',
     '/monetization/subscription',
     '/connections',
+    '/llama-cloud',
     '/agents',
     '/governance',
     '/control-plane',
@@ -1119,6 +1121,42 @@ app.post('/api/ai/council', async (req: Request, res: Response) => {
       details: error instanceof Error ? error.message : String(error),
       syntheticOutput: false
     });
+  }
+});
+
+// LlamaCloud document retrieval — server-side credential, owner/internal-service authorization.
+const llamaCloudRouteError = (res: Response, error: unknown) => {
+  if (error instanceof LlamaCloudIntegrationError) {
+    return res.status(error.statusCode).json({ ok: false, code: error.code, error: error.message, verified: false });
+  }
+  return res.status(502).json({ ok: false, code: 'llama_cloud_error', error: 'LlamaCloud request failed.', verified: false });
+};
+
+app.get('/api/llama-cloud/status', requireOwnerOrInternalService, async (_req: Request, res: Response) => {
+  try {
+    const status = await getLlamaCloudStatus();
+    return res.status(status.connected || !status.configured ? 200 : 503).json({ ok: status.connected, ...status, verified: status.connected });
+  } catch (error) {
+    return llamaCloudRouteError(res, error);
+  }
+});
+
+app.get('/api/llama-cloud/indexes', requireOwnerOrInternalService, async (_req: Request, res: Response) => {
+  try {
+    const indexes = await listLlamaCloudIndexes();
+    return res.json({ ok: true, projectId: process.env.LLAMA_CLOUD_PROJECT_ID || '220520f6-c208-4b55-87fb-796881b3fc97', indexes, verified: true });
+  } catch (error) {
+    return llamaCloudRouteError(res, error);
+  }
+});
+
+app.post('/api/llama-cloud/retrieve', requireOwnerOrInternalService, async (req: Request, res: Response) => {
+  try {
+    const { indexId, query, topK } = req.body || {};
+    const result = await retrieveLlamaCloudContext({ indexId, query, topK });
+    return res.json({ ok: true, ...result, verified: true });
+  } catch (error) {
+    return llamaCloudRouteError(res, error);
   }
 });
 
