@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const server = readFileSync('server.ts', 'utf8');
+const creationRouteStart = server.indexOf("app.post('/api/economy/glr/intents',");
+const creationRouteEnd = server.indexOf("app.post('/api/economy/glr/intents/:id/authorize',", creationRouteStart);
+assert.ok(creationRouteStart >= 0 && creationRouteEnd > creationRouteStart, 'GLR intent creation route must remain explicitly defined');
+const creationRoute = server.slice(creationRouteStart, creationRouteEnd);
 
-// Guard the route wiring itself, not only the standalone identity helper. These
-// contract assertions fail if a future edit removes middleware or the final
-// authenticated-payer override from the actual Express routes.
+// Scope payer-binding assertions to the actual create route, so matching code
+// elsewhere cannot make the regression test pass accidentally.
 assert.match(
   server,
   /app\.get\('\/api\/economy\/glr\/intents',\s*requireOwnerOrInternalService,/,
