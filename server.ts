@@ -53,7 +53,7 @@ import { initializeGeasArchitectureScientist, runGeasArchitectureScan, getLatest
 import { getPermanentGlorifierStack, validatePermanentStack } from './src/lib/governance/permanent-stack';
 import { getGeasArchitectureManifest, validateGeasArchitectureManifest, evaluateAuthorityChain, attenuateAuthority, createTelemetryEnvelope, getGeasDegradedModeContracts, reconcileGeasArchitecture, persistGeasManifest, persistGeasAuthorityEnvelope, persistGeasTelemetryEnvelope, persistGeasReconciliation, persistGeasFinOpsRecord, initializeGeasReconciliation } from './src/lib/governance/geas-reconciliation';
 import { requireAuthentication, requireOwner, requireOwnerOrInternalService, authenticationStatus, isOwner, isInternalServiceRequest, type AuthenticatedRequest } from './src/lib/auth/backend-auth';
-import { resolveAuthenticatedPayer } from './src/lib/auth/payer-identity';
+import { createAuthenticatedPayerIntent } from './src/lib/auth/payer-identity';
 import { startAutonomousAuthenticationVerificationDaemon, getAutonomousAuthenticationVerificationSnapshot, runAutonomousAuthenticationVerification } from './src/lib/autonomous-auth-verification';
 import { startGlobalVerificationFabric, getGlobalVerificationFabricSnapshot, runGlobalVerificationFabricNow } from './src/lib/global-verification-fabric';
 import { reconcileIntegrationControlPlane, getIntegrationControlSnapshot } from './src/lib/integration-control-plane';
@@ -2235,14 +2235,15 @@ app.get('/api/economy/glr/intents/:id', requireOwnerOrInternalService, async (re
 app.post('/api/economy/glr/intents', requireAuthentication, async (req: Request, res: Response) => {
   try {
     const auth = (req as AuthenticatedRequest).auth;
-    const payer = resolveAuthenticatedPayer(auth?.uid, req.body?.payerAgentId);
-    if (!payer.ok) {
-      return res.status(payer.status).json({ ok: false, error: payer.error });
+    const created = await createAuthenticatedPayerIntent(
+      auth?.uid,
+      req.body,
+      (input) => createGLRPaymentIntent(input as Parameters<typeof createGLRPaymentIntent>[0]),
+    );
+    if (!created.ok) {
+      return res.status(created.status).json({ ok: false, error: created.error });
     }
-    const intent = await createGLRPaymentIntent({
-      ...(req.body || {}),
-      payerAgentId: payer.payerAgentId,
-    });
+    const intent = created.intent;
     return res.status(201).json({ ok: true, intent, truth: intent.truthStatus });
   } catch (error) { return apiError(res, 400, 'Invalid GLR payment intent', error); }
 });
