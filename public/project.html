@@ -8,6 +8,8 @@
   <meta property="og:title" content="GLORIFIER — Governed intelligence for business">
   <meta property="og:description" content="Provider-neutral AI orchestration, accountable workflows, and evidence-first governance.">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="https://1.gravatar.com/avatar/2debdba15d0c08ab78691048092e465dc74c530e3447e3f584a23e7165272c33?size=512&amp;d=initials">
+  <meta property="og:url" content="https://github.com/GLORIFIER7/GLORIFIER">
   <title>GLORIFIER — Governed intelligence for business</title>
   <style>
     :root{color-scheme:dark;--bg:#07110f;--panel:#0d1c19;--line:#213b33;--text:#f1f7f3;--muted:#a9beb4;--green:#a6f4c5;--lime:#d7ff7f;--max:1120px}
@@ -23,7 +25,7 @@
     .mark{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#06130c;background:linear-gradient(135deg,var(--green),var(--lime));font-weight:900;letter-spacing:0}
     .navlinks{display:flex;gap:22px;align-items:center;font-size:.92rem;color:var(--muted)}
     .navlinks a{text-decoration:none}.navlinks a:hover{color:var(--text)}
-    .button{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 17px;border-radius:12px;background:var(--green);color:#07150e;text-decoration:none;font-weight:750;border:1px solid transparent}
+    .button{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 17px;border-radius:12px;background:var(--green);color:#07150e;text-decoration:none;font-weight:700;border:1px solid transparent}
     .button:hover{background:var(--lime)}
     .button.secondary{background:transparent;color:var(--text);border-color:var(--line)}
     .hero{padding:90px 0 72px;display:grid;grid-template-columns:1.15fr .85fr;gap:55px;align-items:center}
@@ -39,7 +41,7 @@
     .visual:after{width:210px;height:210px;right:-55px;top:-75px}
     .visual-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase}
     .core{position:relative;z-index:1;margin:45px auto 28px;width:142px;height:142px;border-radius:50%;display:grid;place-items:center;text-align:center;background:radial-gradient(circle at 35% 25%,#d8ffe6,#5fbf8a 42%,#174b34 76%);color:#062012;font-weight:900;font-size:1.15rem;box-shadow:0 0 70px #65d89a35}
-    .orbit{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+    .orbit{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.orbit div{min-width:0;overflow-wrap:anywhere}
     .orbit div{padding:12px 8px;border:1px solid #355544;border-radius:12px;text-align:center;color:#d2e5d8;font-size:.78rem;background:#0b1b15}
     .orbit strong{display:block;color:var(--green);font-size:.85rem;margin-bottom:3px}
     section{padding:70px 0}
@@ -64,11 +66,12 @@
     footer{padding:28px 0 40px;border-top:1px solid #ffffff16;color:#8fa99b;font-size:.85rem}
     .foot{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
     .footlinks{display:flex;gap:18px;flex-wrap:wrap}.footlinks a{color:#c7d9ce;text-decoration:none}
+    @media(max-width:420px){.visual{padding:16px}.orbit{grid-template-columns:1fr}.orbit div{display:flex;align-items:center;gap:10px;text-align:left}.orbit strong{margin:0;min-width:24px}}
     @media(max-width:800px){.hero{grid-template-columns:1fr;padding:62px 0 50px;gap:34px}.visual{min-height:330px}.grid{grid-template-columns:1fr}.principles{grid-template-columns:1fr}.navlinks a:not(.button){display:none}.cta{align-items:flex-start;flex-direction:column}section{padding:54px 0}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
   </style>
 </head>
-<body>
+<body id="top">
   <header>
     <nav class="wrap" aria-label="Main navigation">
       <a class="brand" href="#top" aria-label="GLORIFIER home"><span class="mark" aria-hidden="true">G</span><span>GLORIFIER</span></a>
@@ -78,7 +81,7 @@
       </div>
     </nav>
   </header>
-  <main id="top">
+  <main>
     <div class="wrap hero">
       <div>
         <div class="eyebrow"><span class="dot" aria-hidden="true"></span> Project overview</div>
@@ -142,7 +145,7 @@
     </section>
   </main>
   <footer>
-    <div class="wrap foot"><div><strong style="color:#e5f3e9">GLORIFIER</strong><br>Purpose • Stewardship • Service • Integrity</div><div class="footlinks"><a href="https://github.com/GLORIFIER7/GLORIFIER" target="_blank" rel="noopener noreferrer">Source repository</a><a href="https://github.com/GLORIFIER7/GLORIFIER/issues" target="_blank" rel="noopener noreferrer">Issues & discussion</a></div><div>© GLORIFIER Services Advertising Company</div></div>
+    <div class="wrap foot"><div><strong style="color:#e5f3e9">GLORIFIER</strong><br>Purpose • Stewardship • Service • Integrity</div><div class="footlinks"><a href="https://github.com/GLORIFIER7/GLORIFIER" target="_blank" rel="noopener noreferrer">Source repository</a><a href="https://github.com/GLORIFIER7/GLORIFIER/issues" target="_blank" rel="noopener noreferrer">Issues & discussion</a></div><div>© GLORIFIER</div></div>
   </footer>
 </body>
 </html>
