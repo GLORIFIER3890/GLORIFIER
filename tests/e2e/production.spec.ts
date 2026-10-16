@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const testCredentials = () => ({ email: process.env.E2E_TEST_EMAIL, password: process.env.E2E_TEST_PASSWORD });
+const frontendUrl = process.env.FRONTEND_URL || 'https://glorifier.glorifier.workers.dev';
 
 test.describe('GLORIFIER production end-to-end', () => {
     test('authenticated session, API bridge, persistence, and major modules', async ({ page }) => {
@@ -8,7 +9,6 @@ test.describe('GLORIFIER production end-to-end', () => {
     const { email, password } = testCredentials();
     await page.goto('/');
     await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
-    await page.getByRole('button', { name: /sign in/i }).click();
     await page.getByRole('button', { name: /create a new account/i }).click();
     await page.locator('input[autocomplete="name"]').fill('GLORIFIER E2E');
     await page.locator('input[autocomplete="email"]').fill(email!);
@@ -31,7 +31,6 @@ test.describe('GLORIFIER production end-to-end', () => {
     expect(state.status).toBe(200);
     expect(state.body.ok).toBe(true);
 
-    // Keep the smoke test aligned with the supported navigation IDs in App.tsx.
     const tabs = ['overview','geas_architecture','ai_ceo','integrations','agent_network','discovery','sentinel','connections','mobile','scientists','agent_miner','compliance','control','footprints','broker'];
     const primaryTabs = new Set(['overview','ai_ceo','integrations','discovery','sentinel']);
     for (const tab of tabs) {
@@ -48,7 +47,6 @@ test.describe('GLORIFIER production end-to-end', () => {
     await page.reload({ waitUntil: 'networkidle' });
     await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible();
 
-    // Prove the persisted Firebase session still authenticates the protected API after reload.
     const refreshedSession = await page.evaluate(async () => {
       const r = await fetch('/api/auth/session', { cache: 'no-store' });
       return { status: r.status, body: await r.json() };
@@ -56,7 +54,6 @@ test.describe('GLORIFIER production end-to-end', () => {
     expect(refreshedSession.status).toBe(200);
     expect(refreshedSession.body.authenticated).toBe(true);
 
-    // Prove logout clears Firebase state and the protected API rejects the next request.
     await page.getByRole('button', { name: /sign out/i }).click();
     await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
     const postLogout = await page.evaluate(async () => {
@@ -85,7 +82,7 @@ test.describe('GLORIFIER production end-to-end', () => {
   });
 
   test('unauthenticated API routes remain protected', async ({ browser }) => {
-    const context = await browser.newContext({ baseURL: process.env.FRONTEND_URL || 'https://glorifier-glorifier.vercel.app' });
+    const context = await browser.newContext({ baseURL: frontendUrl });
     const response = await context.request.get('/api/app-state');
     expect([401, 403]).toContain(response.status());
     await context.close();
