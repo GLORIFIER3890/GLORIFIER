@@ -8,12 +8,19 @@ test -n "${GH_TOKEN:-}"
 jq -e '.status=="VERIFIED_ON_CHAIN" and .network=="solana-mainnet" and .programId=="TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb" and .name=="GLORIFIER" and .symbol=="GLR" and .decimals==9 and .totalSupply=="1000000000" and .mintAuthority==null and .freezeAuthority==null and .metadataUriInDisplay==true and .commitment=="finalized" and .finalized==true and .transactionSemanticsVerified==true and .metadataPointerAuthority==null and .metadataUpdateAuthority==null and (.metadataPointerAuthorityRevocationTransaction or .metadataPointerAuthorityInitiallyNone==true)' solana/reconciliation-mainnet-evidence.json >/dev/null
 MINT="$(jq -r '.mint' solana/reconciliation-mainnet-evidence.json)"
 
-# Never overwrite a partial canonical status until the repository transaction
-# signature has been independently reconciled against finalized RPC evidence.
-jq -e '.cross_file_provenance_status=="VERIFIED"' solana/canonical-mainnet-identity.json >/dev/null || {
+# Never overwrite a partial canonical status until all repository records agree
+# on a transaction independently reconciled against finalized RPC evidence.
+jq -e '.cross_file_provenance_status=="VERIFIED" and .mint_transaction != null' solana/canonical-mainnet-identity.json >/dev/null || {
   echo "::error::Cross-file mint transaction provenance is not VERIFIED; refusing to publish FULLY_VERIFIED status."
   exit 1
 }
+CANONICAL_MINT_TX="$(jq -r '.mint_transaction // empty' solana/canonical-mainnet-identity.json)"
+PROVENANCE_MINT_TX="$(jq -r '.mintTransaction // empty' solana/deployment-mainnet-provenance.json)"
+RUNTIME_MINT_TX="$(grep -A 15 "deploymentId: 'glr-solana-mainnet-beta'" src/lib/asset-registry.ts | sed -n "s/.*deploymentTransaction: '\\([^']*\\)'.*/\\1/p" | head -n 1)"
+if [[ -z "$CANONICAL_MINT_TX" || "$CANONICAL_MINT_TX" != "$PROVENANCE_MINT_TX" || "$CANONICAL_MINT_TX" != "$RUNTIME_MINT_TX" ]]; then
+  echo "::error::Canonical identity, deployment provenance, and runtime registry mint signatures do not match; refusing FULLY_VERIFIED publication."
+  exit 1
+fi
 
 SOURCE_RUN_ID="$(jq -er '.deploymentRunId' solana/deployment-mainnet-provenance.json)"
 ARTIFACT_ID="$(jq -er '.deploymentArtifactId' solana/deployment-mainnet-provenance.json)"
