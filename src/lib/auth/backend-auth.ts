@@ -48,7 +48,12 @@ export async function verifyBearerToken(req: Request): Promise<DecodedIdToken | 
   if (!token) return null;
   try {
     return await getAdminAuth().verifyIdToken(token, true);
-  export function isInternalServiceRequest(req: Request): boolean {
+  } catch {
+    return null;
+  }
+}
+
+export function isInternalServiceRequest(req: Request): boolean {
   // Network location, Host, forwarded headers, and marker headers are not credentials.
   // Trust internal callers only when they present the configured high-entropy token.
   const configured = process.env.GLORIFIER_INTERNAL_SERVICE_TOKEN?.trim();
@@ -58,7 +63,6 @@ export async function verifyBearerToken(req: Request): Promise<DecodedIdToken | 
   const suppliedBytes = Buffer.from(supplied, 'utf8');
   return expectedBytes.length === suppliedBytes.length &&
     crypto.timingSafeEqual(expectedBytes, suppliedBytes);
-}ateIpv6 || internalRailwayHost);
 }
 
 export function requireAuthentication(req: AuthenticatedRequest, res: Response, next: NextFunction) {
