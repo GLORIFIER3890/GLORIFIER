@@ -2217,14 +2217,14 @@ app.get('/api/economy/glr/snapshot', async (_req: Request, res: Response) => {
   catch (error) { return apiError(res, 503, 'GLR economic snapshot unavailable', error); }
 });
 
-app.get('/api/economy/glr/intents', async (req: Request, res: Response) => {
+app.get('/api/economy/glr/intents', requireOwnerOrInternalService, async (req: Request, res: Response) => {
   try {
     const limit = Math.min(500, Math.max(1, Number(req.query.limit) || 100));
     res.json({ ok: true, intents: await listGLRPaymentIntents(limit), truth: 'Per-intent truthStatus is authoritative.' });
   } catch (error) { return apiError(res, 503, 'GLR economic layer unavailable', error); }
 });
 
-app.get('/api/economy/glr/intents/:id', async (req: Request, res: Response) => {
+app.get('/api/economy/glr/intents/:id', requireOwnerOrInternalService, async (req: Request, res: Response) => {
   try {
     const intent = await getGLRPaymentIntent(String(req.params.id));
     if (!intent) return res.status(404).json({ ok: false, error: 'GLR payment intent not found' });
