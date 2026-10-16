@@ -8,7 +8,11 @@
   "creation_transaction": "32rz6kyEhRjYNLNjbg1JMh7Z7PHoZHeaYdzkuPtYthUJZfM6SFMpwhopgJamKLnxu693emkHAjJDE6n5kMdK2AoH",
   "metadata_transaction": "3sCZecnupchvhw5XzTFH8LVstrSuNCNSjqqoAZqiSn2fPhrS9cBnmzvmiEmJyjgXQsTcwr7PWKX4aaigvouuLPvo",
   "token_account_creation_transaction": "4D9zRf8AmQreWoF8RQsz7PpdVB1LgYYqifVHG3KRWGYB5ziDdsuQeqkUkX7E1oBWgh6ppLdLMdo6RcQMgDjjFbCw",
-  "mint_transaction": "Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa",
+  "mint_transaction": null,
+  "reported_mint_transaction_signatures": [
+    "Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa",
+    "Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa"
+  ],
   "authority_revocation_transaction": "3fHZ6HMQnZ5jMXvTn7GQEtwceZ3p8WpVeQpPsjVUuZuqXyBz438kpkpmj9aKYm3dvi6jEpPyG7cvRAn1QtJtHAKb",
   "freeze_authority_revocation_transaction": "",
   "mint_authority_status": "REVOKED_ON_CHAIN",
@@ -23,7 +27,7 @@
   "cross_file_provenance_note": "The canonical identity and asset-registry seed contain different mint transaction signatures (HChmY7 versus HChyV7). Do not choose either signature until independently checked against finalized Solana RPC transaction data.",
   "mainnet_status": "PARTIALLY_VERIFIED",
   "verification_boundary": "Mainnet identity is verified from finalized read-only reconciliation, immutable deployment provenance, and transaction confirmation. Repository presentation metadata is supplemental and does not override the immutable on-chain URI.",
-  "next_action": "No further on-chain metadata action is possible: metadata pointer and metadata update authorities are disabled. Keep the immutable on-chain URI and clearly label the newer repository metadata/logo as supplemental.",
+  "next_action": "Independently reconcile the conflicting mint transaction signatures using finalized Solana RPC data; do not infer a canonical signature or redeploy. Metadata pointer and update authorities are disabled, so the immutable on-chain URI cannot be changed.",
   "verification_run_id": "37886411021",
   "verification_run_url": "https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021",
   "verified_at": "2026-10-09T05:03:36Z",
