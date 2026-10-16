@@ -84,8 +84,9 @@ async function main() {
     assert.deepEqual(registrySummary.attemptedProviders, ['unknown', 'openai']);
 
     // Exercise the real registry-to-trace boundary with no provider attempts.
-    // Any future addition of raw prompts, outputs, errors, or arbitrary IDs to
-    // the actual registry trace payload must fail this test.
+    // Clear the earlier test payload so stale data cannot make these assertions pass.
+    capturedBody = undefined;
+    const callsBeforeRegistry = calls;
     await executeThroughProviderRegistry({
       messages: [{ role: 'user', content: privateMarker }],
       model: privateMarker,
@@ -93,12 +94,14 @@ async function main() {
       preferredProvider: 'openai',
       policy: { maxAttempts: 0, maxDiscoveryRefreshes: 0, refreshDiscoveryBeforeExhaustion: true },
     });
+    assert.ok(calls > callsBeforeRegistry, 'registry execution must submit a new trace request');
+    assert.ok(capturedBody, 'registry execution must capture its own trace payload');
     const realRegistryTrace = JSON.stringify(capturedBody);
     assert.equal(realRegistryTrace.includes(privateMarker), false,
       'actual registry telemetry must never include prompt/model/capability markers');
-    assert.ok(capturedBody && capturedBody.inputs.messageCount === 1,
+    assert.ok(capturedBody.inputs.messageCount === 1,
       'actual registry telemetry should contain only the safe message count');
-    assert.ok(capturedBody && !JSON.stringify(capturedBody.outputs || {}).includes(privateMarker),
+    assert.ok(!JSON.stringify(capturedBody.outputs || {}).includes(privateMarker),
       'actual registry output summary must not expose private response/error markers');
 
     const summarizedResult = await withLangSmithTrace(
