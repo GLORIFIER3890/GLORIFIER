@@ -28,3 +28,8 @@ These strings differ (`HChmY7` versus `HChyV7`). Repository text alone cannot de
 ## Scope and safety
 
 This finding concerns **repository provenance consistency**, not a claim that the mint itself is invalid. The existing reconciliation record and reported on-chain status are not superseded by this review. Until the acceptance gate passes, cross-file signature consistency remains `NOT VERIFIED`. No signing, transfer, redeployment, authority change, or other on-chain operation is authorized or needed for this review.
+
+
+## Follow-up status update — 2026-10-16
+
+The canonical identity file, runtime asset-registry seed, current registry documentation, and repository presentation metadata are being aligned to report `PARTIALLY_VERIFIED` while the two signatures remain unreconciled. The on-chain reconciliation evidence is preserved; no transaction signature is selected by inference, and no on-chain operation is needed for this status correction.
