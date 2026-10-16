@@ -6,6 +6,7 @@ const oldProject = process.env.LLAMA_CLOUD_PROJECT_ID;
 const oldBase = process.env.LLAMA_CLOUD_BASE_URL;
 try {
   process.env.LLAMA_CLOUD_PROJECT_ID = '220520f6-c208-4b55-87fb-796881b3fc97';
+  delete process.env.LLAMA_CLOUD_BASE_URL;
   delete process.env.LLAMA_CLOUD_API_KEY;
   let calls = 0;
   const noFetch = (async () => { calls++; throw new Error('unexpected network call'); }) as typeof fetch;
@@ -77,20 +78,44 @@ try {
   await assert.rejects(() => retrieveLlamaCloudContext({ indexId: 'index-a', query: 'test' }, malformedRetrievalFetch),
     (error: unknown) => error instanceof LlamaCloudIntegrationError && error.code === 'invalid_upstream_response');
 
-  for (const badInput of [
-    { indexId: 123, query: 'test' },
-    { indexId: ['index-a'], query: 'test' },
-    { indexId: {}, query: 'test' },
-    { indexId: 'index-a', query: 123 },
-    { indexId: 'index-a', query: ['test'] },
-    { indexId: 'index-a', query: {} },
-  ]) {
+  const invalidInputs: Array<{ input: any; code: string }> = [
+    { input: { indexId: 123, query: 'test' }, code: 'invalid_index_id' },
+    { input: { indexId: ['index-a'], query: 'test' }, code: 'invalid_index_id' },
+    { input: { indexId: {}, query: 'test' }, code: 'invalid_index_id' },
+    { input: { indexId: 'index-a', query: 123 }, code: 'invalid_query' },
+    { input: { indexId: 'index-a', query: ['test'] }, code: 'invalid_query' },
+    { input: { indexId: 'index-a', query: {} }, code: 'invalid_query' },
+  ];
+  for (const { input, code } of invalidInputs) {
     await assert.rejects(
-      () => retrieveLlamaCloudContext(badInput as any, mockFetch),
-      (error: unknown) => error instanceof LlamaCloudIntegrationError &&
-        (error.code === 'invalid_index_id' || error.code === 'invalid_query'),
+      () => retrieveLlamaCloudContext(input, mockFetch),
+      (error: unknown) => error instanceof LlamaCloudIntegrationError && error.code === code,
     );
   }
+
+  const unscopedIndexFetch = (async () => new Response(JSON.stringify({
+    items: [{ id: 'unscoped-index', name: 'Unscoped index' }],
+  }), { status: 200, headers: { 'content-type': 'application/json' } })) as typeof fetch;
+  await assert.rejects(() => listLlamaCloudIndexes(unscopedIndexFetch),
+    (error: unknown) => error instanceof LlamaCloudIntegrationError && error.code === 'invalid_upstream_response');
+
+  const malformedIndexEntryFetch = (async () => new Response(JSON.stringify({ items: [{}] }), {
+    status: 200, headers: { 'content-type': 'application/json' },
+  })) as typeof fetch;
+  await assert.rejects(() => listLlamaCloudIndexes(malformedIndexEntryFetch),
+    (error: unknown) => error instanceof LlamaCloudIntegrationError && error.code === 'invalid_upstream_response');
+
+  for (const unsafeBase of [
+    'https://user:password@api.cloud.llamaindex.ai',
+    'https://api.cloud.llamaindex.ai/?token=secret',
+    'https://api.cloud.llamaindex.ai/#fragment',
+    'https://api.cloud.llamaindex.ai:8443',
+  ]) {
+    process.env.LLAMA_CLOUD_BASE_URL = unsafeBase;
+    await assert.rejects(() => listLlamaCloudIndexes(mockFetch),
+      (error: unknown) => error instanceof LlamaCloudIntegrationError && error.code === 'invalid_base_url');
+  }
+  delete process.env.LLAMA_CLOUD_BASE_URL;
 
   const unauthorizedFetch = (async () => new Response('unauthorized', { status: 401 })) as typeof fetch;
   await assert.rejects(() => getLlamaCloudStatus(unauthorizedFetch),
