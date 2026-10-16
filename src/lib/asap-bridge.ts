@@ -45,6 +45,9 @@ export interface AsapHandoffDecision {
   intent?: AsapHandoffIntent;
 }
 
+// Only capabilities explicitly reviewed as low-risk can bypass human approval.
+// Unknown capabilities are treated as sensitive (fail closed).
+const LOW_RISK_CAPABILITIES = new Set(['research']);
 const SENSITIVE_CAPABILITIES = new Set([
   'repository-merge',
   'production-deploy',
@@ -91,13 +94,17 @@ export function prepareAsapHandoff(
   }
 
   const capability = normalize(candidate.capability);
+  const risk = candidate.risk;
+  const explicitlyLowRisk = risk === 'low' && LOW_RISK_CAPABILITIES.has(capability);
   const requiresHumanApproval =
-    candidate.risk === 'high' ||
-    candidate.risk === 'irreversible' ||
+    !explicitlyLowRisk ||
+    risk === 'medium' ||
+    risk === 'high' ||
+    risk === 'irreversible' ||
     SENSITIVE_CAPABILITIES.has(capability);
 
   if (requiresHumanApproval && authorization.humanApproved !== true) {
-    return { allowed: false, status: 'BLOCKED', reason: 'Explicit human approval is required for this capability.' };
+    return { allowed: false, status: 'BLOCKED', reason: 'Explicit human approval is required for high-risk, unknown, or non-allowlisted capabilities.' };
   }
 
   return {
