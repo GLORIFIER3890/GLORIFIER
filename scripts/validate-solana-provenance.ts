@@ -17,16 +17,23 @@ const runtimeMatch = registrySource.match(
 );
 assert.ok(runtimeMatch, 'Solana runtime registry seed must declare its deployment transaction');
 const runtimeMintTransaction = runtimeMatch[1] ?? null;
+const runtimeStatusMatch = registrySource.match(
+  /deploymentId:\\s*'glr-solana-mainnet-beta'[\\s\\S]*?status:\\s*'([^']+)'/,
+);
+assert.ok(runtimeStatusMatch, 'Solana runtime registry seed must declare a deployment status');
+const runtimeStatus = runtimeStatusMatch[1];
 
 if (identity.cross_file_provenance_status === 'VERIFIED') {
   assert.ok(identity.mint_transaction, 'verified provenance requires a canonical mint transaction');
   assert.equal(identity.status, 'VERIFIED_ON_CHAIN');
   assert.equal(identity.mainnet_status, 'FULLY_VERIFIED');
+  assert.equal(runtimeStatus, 'fully_verified', 'runtime status must match verified canonical provenance');
   assert.equal(identity.mint_transaction, provenance.mintTransaction, 'identity and deployment provenance must match');
   assert.equal(identity.mint_transaction, runtimeMintTransaction, 'identity and runtime registry must match');
 } else {
   assert.equal(identity.status, 'PARTIALLY_VERIFIED', 'unreconciled provenance must not claim full verification');
   assert.equal(identity.mainnet_status, 'PARTIALLY_VERIFIED');
+  assert.equal(runtimeStatus, 'partially_verified', 'runtime status must remain partial until provenance is reconciled');
   assert.equal(identity.mint_transaction, null, 'do not select a canonical signature before reconciliation');
   assert.equal(runtimeMintTransaction, null, 'runtime registry must not select a conflicting signature');
   assert.ok(
@@ -35,4 +42,4 @@ if (identity.cross_file_provenance_status === 'VERIFIED') {
   );
 }
 
-console.log('Solana GLR cross-file provenance gate passed');
+process.stdout.write('Solana GLR cross-file provenance gate passed\\n');
