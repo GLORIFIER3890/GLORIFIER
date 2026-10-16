@@ -59,8 +59,11 @@ jobs:
             if (pr.base?.ref !== 'main') return stop('base branch is not main.');
             if (pr.mergeable === false || pr.mergeable_state === 'dirty') return stop('merge conflicts are present.');
             if (pr.head.repo?.full_name !== `${owner}/${repo}`) return stop('fork-origin PRs require human review.');
-            if (pr.user?.login === owner || pr.user?.login === context.actor) {
-              return stop('PRs authored by the repository owner or dispatching actor require independent human review.');
+            const triggeringActor = process.env.GITHUB_TRIGGERING_ACTOR;
+            if (pr.user?.login === owner ||
+                pr.user?.login === context.actor ||
+                pr.user?.login === triggeringActor) {
+              return stop('PRs authored by the repository owner, original actor, or rerun initiator require independent human review.');
             }
 
             const files = await github.paginate(github.rest.pulls.listFiles, {
