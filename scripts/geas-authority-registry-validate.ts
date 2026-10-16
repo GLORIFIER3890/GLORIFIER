@@ -8,6 +8,7 @@ type Source = {
   claimsAllowed: string[];
   reviewCadenceDays: number;
   implementationStatus: string;
+  scannerStatus: 'active' | 'discovery-only';
 };
 
 type Registry = {
@@ -79,6 +80,9 @@ if (!isRecord(parsed)) {
     if (source.implementationStatus !== 'not-assessed') {
       failures.push(`source ${source.id ?? index}: sources must default to not-assessed`);
     }
+    if (source.scannerStatus !== 'active' && source.scannerStatus !== 'discovery-only') {
+      failures.push(`source ${source.id ?? index}: scannerStatus must be active or discovery-only`);
+    }
   }
 }
 
@@ -96,6 +100,16 @@ if (!sourceSection) {
   if (scannerIdSet.size !== scannerIds.length) failures.push('scanner source catalog contains duplicate IDs');
   for (const id of scannerIdSet) {
     if (!ids.has(id)) failures.push(`scanner source missing from authoritative registry: ${id}`);
+    const source = (parsed as Registry).sources.find((item) => item.id === id);
+    if (source && source.scannerStatus !== 'active') failures.push(`scanner source ${id} must be marked active in registry`);
+  }
+  for (const source of (parsed as Registry).sources) {
+    if (source.scannerStatus === 'active' && !scannerIdSet.has(source.id)) {
+      failures.push(`registry source ${source.id} is marked active but missing from scanner catalog`);
+    }
+    if (source.scannerStatus === 'discovery-only' && scannerIdSet.has(source.id)) {
+      failures.push(`registry source ${source.id} is marked discovery-only but present in scanner catalog`);
+    }
   }
 }
 
