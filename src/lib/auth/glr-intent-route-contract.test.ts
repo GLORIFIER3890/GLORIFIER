@@ -25,13 +25,13 @@ const creationRoute = server.slice(creationRouteStart, authorizeRouteMatch.index
 
 assert.match(
   creationRoute,
-  /resolveAuthenticatedPayer\(\s*auth\?\.uid\s*,\s*req\.body\?\.payerAgentId\s*\)/,
-  'creation must resolve the payer from the authenticated identity',
+  /createAuthenticatedPayerIntent\(\s*auth\?\.uid\s*,\s*req\.body\s*,/,
+  'creation must route through the tested authenticated-payer boundary',
 );
 assert.match(
   creationRoute,
-  /createGLRPaymentIntent\(\s*\{[\s\S]*?payerAgentId\s*:\s*payer\.payerAgentId\s*,\s*\}\s*\)/,
-  'the actual creation payload must override caller payer with authenticated payer',
+  /input\s*=>\s*createGLRPaymentIntent\(input as Parameters<typeof createGLRPaymentIntent>\[0\]\)/,
+  'the authenticated-payer result must be the input to GLR intent persistence',
 );
 
 console.log('GLR payment-intent route authorization contract tests passed');
