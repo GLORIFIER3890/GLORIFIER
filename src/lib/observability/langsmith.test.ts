@@ -1,0 +1,82 @@
+import assert from 'node:assert/strict';
+import { withLangSmithTrace } from './langsmith';
+
+async function main() {
+  const originalEnv = {
+    tracing: process.env.LANGSMITH_TRACING,
+    key: process.env.LANGSMITH_API_KEY,
+    endpoint: process.env.LANGSMITH_ENDPOINT,
+    project: process.env.LANGSMITH_PROJECT,
+    workspace: process.env.LANGSMITH_WORKSPACE_ID,
+  };
+  const originalFetch = globalThis.fetch;
+  const restore = () => {
+    for (const [key, value] of Object.entries({
+      LANGSMITH_TRACING: originalEnv.tracing,
+      LANGSMITH_API_KEY: originalEnv.key,
+      LANGSMITH_ENDPOINT: originalEnv.endpoint,
+      LANGSMITH_PROJECT: originalEnv.project,
+      LANGSMITH_WORKSPACE_ID: originalEnv.workspace,
+    })) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+    globalThis.fetch = originalFetch;
+  };
+
+  try {
+    let calls = 0;
+    process.env.LANGSMITH_TRACING = 'false';
+    process.env.LANGSMITH_API_KEY = 'test-key';
+    globalThis.fetch = (async () => { calls++; return new Response(null, { status: 202 }); }) as typeof fetch;
+    assert.equal(await withLangSmithTrace('disabled', {}, async () => 'ok'), 'ok');
+    assert.equal(calls, 0, 'disabled tracing must not send a request');
+
+    process.env.LANGSMITH_TRACING = 'true';
+    delete process.env.LANGSMITH_ENDPOINT;
+    process.env.LANGSMITH_PROJECT = 'GLORIFIER-test';
+    process.env.LANGSMITH_WORKSPACE_ID = 'workspace-test';
+    let capturedUrl = '';
+    let capturedHeaders: HeadersInit | undefined;
+    let capturedBody: Record<string, any> | undefined;
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      calls++;
+      capturedUrl = String(input);
+      capturedHeaders = init?.headers;
+      capturedBody = JSON.parse(String(init?.body));
+      return new Response(null, { status: 202 });
+    }) as typeof fetch;
+
+    const result = await withLangSmithTrace(
+      'provider-registry',
+      { messageCount: 1, roles: ['user'] },
+      async () => ({ provider: 'mock', text: 'PRIVATE MODEL OUTPUT', errors: ['PRIVATE ERROR'] }),
+      (value) => ({ provider: value.provider, success: true }),
+    );
+    assert.equal(result.provider, 'mock');
+    assert.equal(capturedUrl, 'https://api.smith.langchain.com/runs');
+    assert.equal(new Headers(capturedHeaders).get('x-api-key'), 'test-key');
+    assert.equal(new Headers(capturedHeaders).get('x-tenant-id'), 'workspace-test');
+    assert.equal(capturedBody.session_name, 'GLORIFIER-test');
+    assert.equal(capturedBody.inputs.messageCount, 1);
+    assert.equal(JSON.stringify(capturedBody).includes('PRIVATE MODEL OUTPUT'), false);
+    assert.equal(JSON.stringify(capturedBody).includes('PRIVATE ERROR'), false);
+
+    process.env.LANGSMITH_ENDPOINT = 'https://attacker.example';
+    const beforeInvalidEndpoint = calls;
+    await withLangSmithTrace('invalid-endpoint', {}, async () => 'still works');
+    assert.equal(calls, beforeInvalidEndpoint, 'unapproved endpoints must not receive credentials');
+
+    process.env.LANGSMITH_ENDPOINT = 'https://api.smith.langchain.com';
+    globalThis.fetch = (async () => { throw new Error('network failure'); }) as typeof fetch;
+    assert.equal(await withLangSmithTrace('best-effort', {}, async () => 'inference-ok'), 'inference-ok');
+  } finally {
+    restore();
+  }
+  console.log('LangSmith metadata-only tracing tests passed.');
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
