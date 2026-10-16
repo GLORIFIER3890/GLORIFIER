@@ -34,6 +34,16 @@ try {
   });
   if (missingTaskId.allowed) throw new Error('missing required task fields must deny handoff');
 
+  const unsafeIdentifier = prepareAsapHandoff({ ...base, targetAgentId: 'agent\\nforged' }, {
+    featureEnabled: true, authenticated: true, geasAuthorized: true, humanApproved: true,
+  });
+  if (unsafeIdentifier.allowed) throw new Error('control characters in identifiers must deny handoff');
+
+  const oversizedObjective = prepareAsapHandoff({ ...base, objective: 'x'.repeat(4_001) }, {
+    featureEnabled: true, authenticated: true, geasAuthorized: true, humanApproved: true,
+  });
+  if (oversizedObjective.allowed) throw new Error('oversized objectives must deny handoff');
+
   const missingRisk = prepareAsapHandoff({ ...base, risk: undefined }, {
     featureEnabled: true, authenticated: true, geasAuthorized: true,
   });
@@ -62,7 +72,7 @@ try {
   if (!allowed.allowed || allowed.intent?.conformance !== 'NOT_VERIFIED') throw new Error('safe intent must preserve unverified status');
   if (allowed.intent?.status !== 'READY_FOR_TRANSPORT') throw new Error('unexpected intent status');
 
-  console.log('ASAP_BRIDGE_TEST_OK', JSON.stringify({ cases: 9, liveTransport: false, conformance: 'NOT_VERIFIED' }));
+  console.log('ASAP_BRIDGE_TEST_OK', JSON.stringify({ cases: 11, liveTransport: false, conformance: 'NOT_VERIFIED' }));
 } finally {
   if (envEnabled === undefined) delete process.env.GLORIFIER_ASAP_ENABLED;
   else process.env.GLORIFIER_ASAP_ENABLED = envEnabled;
