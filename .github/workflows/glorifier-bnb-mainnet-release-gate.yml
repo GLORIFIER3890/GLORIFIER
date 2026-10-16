@@ -34,6 +34,8 @@ jobs:
     env:
       INITIAL_HOLDER_INPUT: ${{ inputs.initial_holder }}
       CONFIRM_INPUT: ${{ inputs.confirm }}
+      EXPECTED_DEPLOYER_NONCE_INPUT: ${{ inputs.expected_deployer_nonce }}
+      EXPECTED_CONTRACT_ADDRESS_INPUT: ${{ inputs.expected_contract_address }}
 
     steps:
       - name: Require production branch
@@ -199,8 +201,8 @@ jobs:
             exit 1
           }
 
-          EXPECTED_DEPLOYER_NONCE="$(printf '%s' "${{ inputs.expected_deployer_nonce }}" | tr -d '[:space:]')"
-          AUTHORIZED_CONTRACT_INPUT="$(printf '%s' "${{ inputs.expected_contract_address }}" | tr -d '[:space:]')"
+          EXPECTED_DEPLOYER_NONCE="$(printf '%s' "${{ EXPECTED_DEPLOYER_NONCE_INPUT }}" | tr -d '[:space:]')"
+          AUTHORIZED_CONTRACT_INPUT="$(printf '%s' "${{ EXPECTED_CONTRACT_ADDRESS_INPUT }}" | tr -d '[:space:]')"
           [[ "$EXPECTED_DEPLOYER_NONCE" =~ ^[0-9]+$ ]] || {
             echo "ERROR: expected_deployer_nonce must be a decimal integer."
             exit 1
