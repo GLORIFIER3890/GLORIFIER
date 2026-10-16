@@ -648,9 +648,11 @@ jobs:
           echo "$RECEIPT" | jq -e '(.status == "0x1") or (.status == "1") or (.status == 1)' >/dev/null
           BLOCK_NUMBER="$(echo "$RECEIPT" | jq -r '.blockNumber // empty')"
           test -n "$BLOCK_NUMBER"
-          echo "CONTRACT_ADDRESS=$CONTRACT_ADDRESS" >> "$GITHUB_ENV"
-          echo "DEPLOYMENT_TX_HASH=$TX_HASH" >> "$GITHUB_ENV"
-          echo "GLORIFIER_EVIDENCE_HOLDER=$INITIAL_HOLDER" >> "$GITHUB_ENV"
+          {
+            echo "CONTRACT_ADDRESS=$CONTRACT_ADDRESS"
+            echo "DEPLOYMENT_TX_HASH=$TX_HASH"
+            echo "GLORIFIER_EVIDENCE_HOLDER=$INITIAL_HOLDER"
+          } >> "$GITHUB_ENV"
           jq -n --arg network "Ethereum Sepolia" --arg contract "$CONTRACT_ADDRESS" --arg tx "$TX_HASH" --arg holder "$INITIAL_HOLDER" --arg block "$BLOCK_NUMBER" --arg deployer "$DEPLOYER_ADDRESS"             '{evidence_type:"GLORIFIER ERC-20 deployment",network:$network,chain_id:11155111,contract_address:$contract,transaction_hash:$tx,block_number_hex:$block,transaction_status:1,deployer_address:$deployer,initial_holder:$holder,on_chain_assertions:{name:"GLORIFIER",symbol:"GLR",decimals:18,total_supply_wei:"1000000000000000000000000000"}}' > deployment-evidence.json
 
       - name: Verify contract on Etherscan
