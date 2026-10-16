@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { glrAmountToBaseUnits, verifyEthereumGLRTransfer, ETHEREUM_GLR_CONTRACT } from './glr-ethereum-verifier';
 
 function expect(condition: unknown, message: string) {
@@ -42,7 +43,7 @@ const verified = await verifyEthereumGLRTransfer({
   env: { GLR_ETHEREUM_PAYMENT_RECIPIENT: recipient, GLR_ETHEREUM_MIN_CONFIRMATIONS: '12', GLR_ETHEREUM_RPC_URL: 'https://rpc.example/v2/private-key?api_key=secret' }
 });
 expect(verified.verified && verified.confirmations === 13, 'valid mainnet receipt with exact GLR transfer and finality must verify');
-expect(verified.verifier === 'https://rpc.example', 'verification evidence must not expose RPC paths or query credentials');
+assert.equal(verified.verifier, 'https://rpc.example', 'verification evidence must not expose RPC paths or query credentials');
 
 let insecureRpcRejected = false;
 try {
@@ -53,7 +54,7 @@ try {
 } catch (error) {
   insecureRpcRejected = error instanceof Error && error.message.includes('HTTPS');
 }
-expect(insecureRpcRejected, 'non-HTTPS RPC URLs must be rejected before a request is made');
+assert.ok(insecureRpcRejected, 'non-HTTPS RPC URLs must be rejected before a request is made');
 let wrongPayerRejected = false;
 try {
   await verifyEthereumGLRTransfer({
