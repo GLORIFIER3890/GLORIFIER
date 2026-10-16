@@ -7,10 +7,15 @@ const identity = JSON.parse(readFileSync('solana/canonical-mainnet-identity.json
   cross_file_provenance_status: string;
   mint_transaction: string | null;
   reported_mint_transaction_signatures: string[];
+  canonical_mint: string;
 };
 const provenance = JSON.parse(readFileSync('solana/deployment-mainnet-provenance.json', 'utf8')) as {
   mintTransaction: string;
 };
+const disputedSignatures = [
+  'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa',
+  'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa',
+];
 const registrySource = readFileSync('src/lib/asset-registry.ts', 'utf8');
 const runtimeMatch = registrySource.match(
   /deploymentId:\s*'glr-solana-mainnet-beta'[\s\S]*?deploymentTransaction:\s*(?:'([^']+)'|(null))/,
@@ -45,6 +50,10 @@ if (identity.cross_file_provenance_status === 'VERIFIED') {
     identity.reported_mint_transaction_signatures.includes(provenance.mintTransaction),
     'the observed deployment-provenance signature must remain recorded for reconciliation',
   );
+  for (const signature of disputedSignatures) {
+    assert.ok(identity.reported_mint_transaction_signatures.includes(signature),
+      'both disputed signature candidates must remain recorded until finalized RPC reconciliation');
+  }
 }
 
 process.stdout.write('Solana GLR cross-file provenance gate passed\n');
