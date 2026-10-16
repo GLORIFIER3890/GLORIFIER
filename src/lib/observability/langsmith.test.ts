@@ -91,10 +91,18 @@ async function main() {
     );
     assert.equal(summarizedResult, 'inference-still-successful', 'telemetry summarizer failure must not break inference');
 
-    process.env.LANGSMITH_ENDPOINT = 'https://attacker.example';
     const beforeInvalidEndpoint = calls;
-    await withLangSmithTrace('invalid-endpoint', {}, async () => 'still works');
-    assert.equal(calls, beforeInvalidEndpoint, 'unapproved endpoints must not receive credentials');
+    for (const endpoint of [
+      'https://attacker.example',
+      'https://user:password@api.smith.langchain.com',
+      'https://api.smith.langchain.com/?tenant=untrusted',
+      'https://api.smith.langchain.com/#fragment',
+      'https://api.smith.langchain.com:8443',
+    ]) {
+      process.env.LANGSMITH_ENDPOINT = endpoint;
+      await withLangSmithTrace('invalid-endpoint', {}, async () => 'still works');
+    }
+    assert.equal(calls, beforeInvalidEndpoint, 'unapproved or credential-bearing endpoints must not receive credentials');
 
     process.env.LANGSMITH_ENDPOINT = 'https://api.smith.langchain.com';
     globalThis.fetch = (async () => { throw new Error('network failure'); }) as typeof fetch;
