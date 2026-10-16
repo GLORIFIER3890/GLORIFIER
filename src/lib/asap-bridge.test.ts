@@ -34,6 +34,16 @@ try {
   });
   if (missingTaskId.allowed) throw new Error('missing required task fields must deny handoff');
 
+  const missingRisk = prepareAsapHandoff({ ...base, risk: undefined }, {
+    featureEnabled: true, authenticated: true, geasAuthorized: true,
+  });
+  if (missingRisk.allowed) throw new Error('missing risk must require human approval');
+
+  const unknownCapability = prepareAsapHandoff({ ...base, capability: 'custom-admin-action' }, {
+    featureEnabled: true, authenticated: true, geasAuthorized: true,
+  });
+  if (unknownCapability.allowed) throw new Error('unknown capabilities must require human approval');
+
   const sensitive = prepareAsapHandoff({ ...base, capability: 'asset-transfer', risk: 'irreversible' }, {
     featureEnabled: true, authenticated: true, geasAuthorized: true,
   });
@@ -52,7 +62,7 @@ try {
   if (!allowed.allowed || allowed.intent?.conformance !== 'NOT_VERIFIED') throw new Error('safe intent must preserve unverified status');
   if (allowed.intent?.status !== 'READY_FOR_TRANSPORT') throw new Error('unexpected intent status');
 
-  console.log('ASAP_BRIDGE_TEST_OK', JSON.stringify({ cases: 7, liveTransport: false, conformance: 'NOT_VERIFIED' }));
+  console.log('ASAP_BRIDGE_TEST_OK', JSON.stringify({ cases: 9, liveTransport: false, conformance: 'NOT_VERIFIED' }));
 } finally {
   if (envEnabled === undefined) delete process.env.GLORIFIER_ASAP_ENABLED;
   else process.env.GLORIFIER_ASAP_ENABLED = envEnabled;
