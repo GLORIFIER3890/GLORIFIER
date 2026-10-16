@@ -24,7 +24,7 @@
   "status": "PARTIALLY_VERIFIED",
   "on_chain_identity_status": "VERIFIED_ON_CHAIN",
   "cross_file_provenance_status": "NOT_VERIFIED",
-  "cross_file_provenance_note": "The canonical identity and asset-registry seed contain different mint transaction signatures (HChmY7 versus HChyV7). Do not choose either signature until independently checked against finalized Solana RPC transaction data.",
+  "cross_file_provenance_note": "Historical identity and runtime registry records contained different mint transaction signatures (HChmY7 versus HChyV7). The current canonical identity and runtime registry leave the canonical transaction unset until both candidates are independently checked against finalized Solana RPC transaction data.",
   "mainnet_status": "PARTIALLY_VERIFIED",
   "verification_boundary": "Mainnet identity is verified from finalized read-only reconciliation, immutable deployment provenance, and transaction confirmation. Repository presentation metadata is supplemental and does not override the immutable on-chain URI.",
   "next_action": "Independently reconcile the conflicting mint transaction signatures using finalized Solana RPC data; do not infer a canonical signature or redeploy. Metadata pointer and update authorities are disabled, so the immutable on-chain URI cannot be changed.",
