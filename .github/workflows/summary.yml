@@ -10,7 +10,6 @@ jobs:
     permissions:
       issues: write
       models: read
-      copilot-requests: write
       contents: read
 
     steps:
@@ -33,7 +32,7 @@ jobs:
 
       - name: Comment with AI summary
         run: |
-          gh issue comment $ISSUE_NUMBER --body "$RESPONSE"
+          gh issue comment "$ISSUE_NUMBER" --body "$RESPONSE"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
