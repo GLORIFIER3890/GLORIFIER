@@ -18,7 +18,7 @@ const runtimeMatch = registrySource.match(
 assert.ok(runtimeMatch, 'Solana runtime registry seed must declare its deployment transaction');
 const runtimeMintTransaction = runtimeMatch[1] ?? null;
 const runtimeStatusMatch = registrySource.match(
-  /deploymentId:\\s*'glr-solana-mainnet-beta'[\\s\\S]*?status:\\s*'([^']+)'/,
+  /deploymentId:\s*'glr-solana-mainnet-beta'[\s\S]*?status:\s*'([^']+)'/,
 );
 assert.ok(runtimeStatusMatch, 'Solana runtime registry seed must declare a deployment status');
 const runtimeStatus = runtimeStatusMatch[1];
@@ -42,4 +42,4 @@ if (identity.cross_file_provenance_status === 'VERIFIED') {
   );
 }
 
-process.stdout.write('Solana GLR cross-file provenance gate passed\\n');
+process.stdout.write('Solana GLR cross-file provenance gate passed\n');
