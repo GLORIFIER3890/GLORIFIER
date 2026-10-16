@@ -38,6 +38,7 @@
     "test:glr-ethereum-verifier": "tsx src/lib/glr-ethereum-verifier.test.ts",
     "test:glr-bnb-verifier": "tsx src/lib/glr-bnb-verifier.test.ts",
     "test:glr-solana-verifier": "tsx src/lib/glr-solana-verifier.test.ts",
+    "test:solana-provenance": "tsx scripts/validate-solana-provenance.ts",
     "test:outcome-evidence-gates": "tsx src/lib/governance/outcome-evidence-gates.test.ts",
     "test:cloudflare-worker": "tsx src/worker.test.ts"
   },
