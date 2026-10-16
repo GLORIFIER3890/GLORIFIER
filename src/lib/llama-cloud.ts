@@ -26,13 +26,22 @@ function config() {
   try { parsed = new URL(baseUrl); } catch {
     throw new LlamaCloudIntegrationError('LlamaCloud API base URL is invalid.', 500, 'invalid_base_url');
   }
-  if (parsed.protocol !== 'https:' || !ALLOWED_API_HOSTS.has(parsed.hostname) || parsed.pathname !== '/') {
+  if (
+    parsed.protocol !== 'https:' ||
+    !ALLOWED_API_HOSTS.has(parsed.hostname) ||
+    parsed.pathname !== '/' ||
+    parsed.username !== '' ||
+    parsed.password !== '' ||
+    parsed.search !== '' ||
+    parsed.hash !== '' ||
+    (parsed.port !== '' && parsed.port !== '443')
+  ) {
     throw new LlamaCloudIntegrationError('Use an official HTTPS LlamaCloud API host.', 500, 'invalid_base_url');
   }
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectId)) {
     throw new LlamaCloudIntegrationError('LlamaCloud project ID is invalid.', 500, 'invalid_project_id');
   }
-  return { apiKey, projectId, baseUrl };
+  return { apiKey, projectId, baseUrl: parsed.origin };
 }
 
 async function request(path: string, init: RequestInit = {}, fetchImpl: typeof fetch = fetch): Promise<any> {
@@ -70,10 +79,19 @@ function getIndexItems(payload: any): any[] {
 }
 
 function normalizeIndexes(payload: any): LlamaCloudIndex[] {
-  return getIndexItems(payload).filter((item: any) => item && typeof item.id === 'string' && item.id)
-    .map((item: any) => ({ id: item.id, name: typeof item.name === 'string' && item.name.trim() ? item.name : item.id,
-      ...(typeof item.project_id === 'string' ? { project_id: item.project_id } : {}),
-      ...(typeof item.status === 'string' ? { status: item.status } : {}) }));
+  const items = getIndexItems(payload);
+  if (items.some((item: any) =>
+    !item || typeof item !== 'object' || typeof item.id !== 'string' || !item.id.trim() ||
+    typeof item.project_id !== 'string' || !item.project_id.trim()
+  )) {
+    throw new LlamaCloudIntegrationError('LlamaCloud returned an invalid or unscoped index entry.', 502, 'invalid_upstream_response');
+  }
+  return items.map((item: any) => ({
+    id: item.id,
+    name: typeof item.name === 'string' && item.name.trim() ? item.name : item.id,
+    project_id: item.project_id,
+    ...(typeof item.status === 'string' ? { status: item.status } : {}),
+  }));
 }
 
 export async function listLlamaCloudIndexes(fetchImpl: typeof fetch = fetch): Promise<LlamaCloudIndex[]> {
@@ -91,7 +109,7 @@ export async function listLlamaCloudIndexes(fetchImpl: typeof fetch = fetch): Pr
       ? payload.next_page_token.trim()
       : '';
     if (!nextToken) {
-      return allIndexes.filter((item) => !item.project_id || item.project_id === projectId);
+      return allIndexes.filter((item) => item.project_id === projectId);
     }
     if (seenTokens.has(nextToken)) {
       throw new LlamaCloudIntegrationError('LlamaCloud returned a repeated pagination token.', 502, 'invalid_upstream_response');
@@ -120,7 +138,9 @@ export async function retrieveLlamaCloudContext(input: { indexId: string; query:
   const indexes = await listLlamaCloudIndexes(fetchImpl);
   if (!indexes.some((item) => item.id === indexId)) throw new LlamaCloudIntegrationError('Index not found in configured LlamaCloud project.', 404, 'index_not_found');
   const payload = await request('/api/v1/retrieval/retrieve', { method: 'POST', body: JSON.stringify({ index_id: indexId, query, top_k: topK }) }, fetchImpl);
-  if (!Array.isArray(payload?.results)) {
+  if (!Array.isArray(payload?.results) || payload.results.some((item: any) =>
+    !item || typeof item !== 'object' || typeof item.content !== 'string'
+  )) {
     throw new LlamaCloudIntegrationError('LlamaCloud returned an unsupported retrieval response.', 502, 'invalid_upstream_response');
   }
   return { indexId, results: payload.results.map((item: any) => ({
