@@ -22,8 +22,9 @@ These strings differ (`HChmY7` versus `HChyV7`). Repository text alone cannot de
 2. Capture each signature's status, slot, transaction message, instructions, and relevant account/mint addresses. Record unavailable/not-found responses explicitly.
 3. Compare the observed transaction with the finalized reconciliation artifact and immutable deployment provenance for the canonical mint.
 4. Have a reviewer confirm which signature represents the mint transaction. If neither does, investigate the actual mint initialization history rather than inventing a replacement.
-5. Update the canonical identity and registry seed together in a dedicated change, add a regression test asserting equality, and preserve the evidence URLs/artifact hashes.
-6. Rerun the Solana verifier tests, asset-registry tests, TypeScript lint, and required CI/security checks.
+5. Reconcile `solana/canonical-mainnet-identity.json`, `solana/deployment-mainnet-provenance.json`, and `src/lib/asset-registry.ts` together in a dedicated reviewed change; keep the canonical transaction unset until evidence supports one value.
+6. Add a regression test asserting all three values match before `FULLY_VERIFIED` publication; keep the release publication script fail-closed until that test and the independent evidence pass.
+7. Rerun the Solana verifier tests, asset-registry tests, TypeScript lint, shell syntax checks, and required CI/security checks.
 
 ## Scope and safety
 
