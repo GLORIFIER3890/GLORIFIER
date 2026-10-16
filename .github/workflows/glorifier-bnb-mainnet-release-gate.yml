@@ -268,14 +268,16 @@ jobs:
             exit 1
           }
 
-          echo "GLORIFIER_INITIAL_HOLDER=$INITIAL_HOLDER" >> "$GITHUB_ENV"
-          echo "DEPLOYER_ADDRESS=$DEPLOYER" >> "$GITHUB_ENV"
-          echo "DEPLOYER_NONCE=$EXPECTED_DEPLOYER_NONCE" >> "$GITHUB_ENV"
-          echo "EXPECTED_CONTRACT_ADDRESS=$EXPECTED_CONTRACT_ADDRESS" >> "$GITHUB_ENV"
-          echo "DEPLOYER_BALANCE_WEI=$BALANCE_WEI" >> "$GITHUB_ENV"
-          echo "BNB_MAINNET_CHAIN_ID=$CHAIN_ID" >> "$GITHUB_ENV"
-          echo "BNB_MAINNET_BLOCK=$BLOCK_NUMBER" >> "$GITHUB_ENV"
-          echo "GLORIFIER_RELEASE_ID=$DEPLOYER-$EXPECTED_DEPLOYER_NONCE" >> "$GITHUB_ENV"
+          {
+            echo "GLORIFIER_INITIAL_HOLDER=$INITIAL_HOLDER"
+            echo "DEPLOYER_ADDRESS=$DEPLOYER"
+            echo "DEPLOYER_NONCE=$EXPECTED_DEPLOYER_NONCE"
+            echo "EXPECTED_CONTRACT_ADDRESS=$EXPECTED_CONTRACT_ADDRESS"
+            echo "DEPLOYER_BALANCE_WEI=$BALANCE_WEI"
+            echo "BNB_MAINNET_CHAIN_ID=$CHAIN_ID"
+            echo "BNB_MAINNET_BLOCK=$BLOCK_NUMBER"
+            echo "GLORIFIER_RELEASE_ID=$DEPLOYER-$EXPECTED_DEPLOYER_NONCE"
+          } >> "$GITHUB_ENV"
           echo "BNB Mainnet RPC: healthy"
           echo "Chain ID: $CHAIN_ID"
           echo "Deployer: $DEPLOYER"
@@ -511,9 +513,11 @@ jobs:
             exit 1
           fi
 
-          echo "CONTRACT_ADDRESS=$CONTRACT_ADDRESS" >> "$GITHUB_ENV"
-          echo "DEPLOYMENT_TX_HASH=$TX_HASH" >> "$GITHUB_ENV"
-          echo "DEPLOYMENT_BLOCK=$BLOCK_NUMBER" >> "$GITHUB_ENV"
+          {
+            echo "CONTRACT_ADDRESS=$CONTRACT_ADDRESS"
+            echo "DEPLOYMENT_TX_HASH=$TX_HASH"
+            echo "DEPLOYMENT_BLOCK=$BLOCK_NUMBER"
+          } >> "$GITHUB_ENV"
 
           RUNTIME_CODE_HASH="$(cast keccak "$ONCHAIN_RUNTIME")"
           echo "RUNTIME_CODE_HASH=$RUNTIME_CODE_HASH" >> "$GITHUB_ENV"
@@ -609,9 +613,11 @@ jobs:
           }
 
           echo "BscScan source verification: CONFIRMED"
-          echo "BSC_MAINNET_SOURCE_VERIFIED=true" >> "$GITHUB_ENV"
-          echo "BSC_MAINNET_COMPILER_VERSION=$COMPILER_VERSION" >> "$GITHUB_ENV"
-          echo "BSC_MAINNET_OPTIMIZER_RUNS=$OPTIMIZATION_RUNS" >> "$GITHUB_ENV"
+          {
+            echo "BSC_MAINNET_SOURCE_VERIFIED=true"
+            echo "BSC_MAINNET_COMPILER_VERSION=$COMPILER_VERSION"
+            echo "BSC_MAINNET_OPTIMIZER_RUNS=$OPTIMIZATION_RUNS"
+          } >> "$GITHUB_ENV"
 
       - name: Publish FULLY VERIFIED evidence
         run: |
