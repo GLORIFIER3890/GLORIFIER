@@ -1,5 +1,6 @@
 const checks = [
   { name: 'frontend', url: process.env.FRONTEND_URL || 'https://glorifier.glorifier.workers.dev/' },
+  { name: 'frontend-api-json-bridge', url: new URL('/api/reports/summary', process.env.FRONTEND_URL || 'https://glorifier.glorifier.workers.dev/').toString(), expectJson: true },
   { name: 'railway-health', url: process.env.RAILWAY_URL + '/api/health' },
   { name: 'railway-ready', url: process.env.RAILWAY_URL + '/api/health/ready' },
   { name: 'railway-runtime-verification', url: process.env.RAILWAY_URL + '/api/runtime-verification' },
@@ -23,7 +24,9 @@ for (const check of checks) {
     }
     const ok = check.expectAuth
       ? response.status === 401 || response.status === 403
-      : response.ok;
+      : check.expectJson
+        ? response.ok && contentType.includes('application/json') && body !== null
+        : response.ok;
     results.push({ ...check, status: response.status, ok, latencyMs: Date.now() - started, body: body ?? text.slice(0, 300) });
   } catch (error) {
     results.push({ ...check, status: 0, ok: false, latencyMs: Date.now() - started, error: error instanceof Error ? error.message : String(error) });
