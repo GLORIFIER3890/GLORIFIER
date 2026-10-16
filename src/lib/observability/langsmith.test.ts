@@ -57,6 +57,7 @@ async function main() {
     assert.equal(capturedUrl, 'https://api.smith.langchain.com/runs');
     assert.equal(new Headers(capturedHeaders).get('x-api-key'), 'test-key');
     assert.equal(new Headers(capturedHeaders).get('x-tenant-id'), 'workspace-test');
+    assert.ok(capturedBody, 'trace payload should be captured');
     assert.equal(capturedBody.session_name, 'GLORIFIER-test');
     assert.equal(capturedBody.inputs.messageCount, 1);
     assert.equal(JSON.stringify(capturedBody).includes('PRIVATE MODEL OUTPUT'), false);
