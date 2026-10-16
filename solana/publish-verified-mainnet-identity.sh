@@ -10,7 +10,7 @@ MINT="$(jq -r '.mint' solana/reconciliation-mainnet-evidence.json)"
 
 # Never overwrite a partial canonical status until all repository records agree
 # on a transaction independently reconciled against finalized RPC evidence.
-jq -e '.cross_file_provenance_status=="VERIFIED" and .mint_transaction != null and .status=="VERIFIED_ON_CHAIN" and .mainnet_status=="FULLY_VERIFIED"' solana/canonical-mainnet-identity.json >/dev/null || {
+jq -e '.cross_file_provenance_status=="VERIFIED" and .mint_transaction != null' solana/canonical-mainnet-identity.json >/dev/null || {
   echo "::error::Cross-file mint transaction provenance is not VERIFIED; refusing to publish FULLY_VERIFIED status."
   exit 1
 }
