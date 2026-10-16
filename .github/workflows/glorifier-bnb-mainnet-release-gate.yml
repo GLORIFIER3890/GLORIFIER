@@ -201,8 +201,8 @@ jobs:
             exit 1
           }
 
-          EXPECTED_DEPLOYER_NONCE="$(printf '%s' "${{ EXPECTED_DEPLOYER_NONCE_INPUT }}" | tr -d '[:space:]')"
-          AUTHORIZED_CONTRACT_INPUT="$(printf '%s' "${{ EXPECTED_CONTRACT_ADDRESS_INPUT }}" | tr -d '[:space:]')"
+          EXPECTED_DEPLOYER_NONCE="$(printf '%s' "$EXPECTED_DEPLOYER_NONCE_INPUT" | tr -d '[:space:]')"
+          AUTHORIZED_CONTRACT_INPUT="$(printf '%s' "$EXPECTED_CONTRACT_ADDRESS_INPUT" | tr -d '[:space:]')"
           [[ "$EXPECTED_DEPLOYER_NONCE" =~ ^[0-9]+$ ]] || {
             echo "ERROR: expected_deployer_nonce must be a decimal integer."
             exit 1
