@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { isProtectedApiReadPath } from './protected-api-paths';
 
 const protectedPaths = [
@@ -30,3 +31,20 @@ for (const path of [
 }
 
 console.log('protected API path case-insensitivity regression tests passed');
+
+const server = readFileSync('server.ts', 'utf8');
+assert.match(
+  server,
+  /const protectedRead = isProtectedApiReadPath\(req\.path \|\| ''\)/,
+  'the Express API middleware must use the tested protected-path matcher',
+);
+assert.match(
+  server,
+  /\(req\.method === 'GET' \|\| req\.method === 'HEAD'\) && !protectedRead/,
+  'both GET and HEAD must enforce the protected-path classification',
+);
+assert.match(
+  server,
+  /return requireAuthentication\(req as any, res, next\)/,
+  'protected reads and state-changing requests must continue through authentication',
+);
