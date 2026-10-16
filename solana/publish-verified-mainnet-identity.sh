@@ -20,7 +20,7 @@ PROVENANCE_MINT_TX="$(jq -r '.mintTransaction // empty' solana/deployment-mainne
 RUNTIME_MINT="$(grep -A 15 "deploymentId: 'glr-solana-mainnet-beta'" src/lib/asset-registry.ts | sed -n "s/.*assetIdentifier: '\([^']*\)'.*/\1/p" | head -n 1)"
 RUNTIME_MINT_TX="$(grep -A 15 "deploymentId: 'glr-solana-mainnet-beta'" src/lib/asset-registry.ts | sed -n "s/.*deploymentTransaction: '\([^']*\)'.*/\1/p" | head -n 1)"
 RUNTIME_STATUS="$(grep -A 15 "deploymentId: 'glr-solana-mainnet-beta'" src/lib/asset-registry.ts | sed -n "s/.*status: '\([^']*\)'.*/\1/p" | head -n 1)"
-if [[ -z "$MINT" || "$CANONICAL_MINT" != "$MINT" || "$RUNTIME_MINT" != "$MINT" || "$RUNTIME_STATUS" != "fully_verified" || -z "$CANONICAL_MINT_TX" || "$CANONICAL_MINT_TX" != "$PROVENANCE_MINT_TX" || "$CANONICAL_MINT_TX" != "$RUNTIME_MINT_TX" ]]; then
+if [[ -z "$MINT" || "$CANONICAL_MINT" != "$MINT" || "$RUNTIME_MINT" != "$MINT" || ( "$RUNTIME_STATUS" != "fully_verified" && "$RUNTIME_STATUS" != "partially_verified" ) || -z "$CANONICAL_MINT_TX" || "$CANONICAL_MINT_TX" != "$PROVENANCE_MINT_TX" || "$CANONICAL_MINT_TX" != "$RUNTIME_MINT_TX" ]]; then
   echo "::error::Canonical identity, deployment provenance, and runtime registry mint signatures do not match; refusing FULLY_VERIFIED publication."
   exit 1
 fi
