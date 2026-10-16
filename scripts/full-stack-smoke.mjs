@@ -1,6 +1,5 @@
 const checks = [
-  { name: 'frontend', url: process.env.FRONTEND_URL || 'https://glorifier-glorifier.vercel.app/' },
-  { name: 'frontend-health-rewrite', url: process.env.FRONTEND_HEALTH_URL || 'https://glorifier-glorifier.vercel.app/api/health/ready' },
+  { name: 'frontend', url: process.env.FRONTEND_URL || 'https://glorifier.glorifier.workers.dev/' },
   { name: 'railway-health', url: process.env.RAILWAY_URL + '/api/health' },
   { name: 'railway-ready', url: process.env.RAILWAY_URL + '/api/health/ready' },
   { name: 'railway-runtime-verification', url: process.env.RAILWAY_URL + '/api/runtime-verification' },
