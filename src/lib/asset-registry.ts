@@ -426,7 +426,7 @@ async function seedCanonicalGLRRegistry() {
     identifierType: 'mint',
     assetIdentifier: '7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9',
     programId: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
-    deploymentTransaction: 'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa',
+    deploymentTransaction: null,
     status: 'partially_verified',
     explorer: 'Solscan',
     sourceVerificationStatus: 'verified',
@@ -463,7 +463,7 @@ type CanonicalDeploymentUpsertInput = {
   contractAddress?: string | null;
   assetIdentifier?: string;
   programId?: string | null;
-  deploymentTransaction: string;
+  deploymentTransaction: string | null;
   deploymentBlock?: number;
   status: CanonicalDeploymentStatus;
   explorer: string;
