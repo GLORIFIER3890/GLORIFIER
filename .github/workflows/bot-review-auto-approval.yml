@@ -23,6 +23,8 @@ jobs:
   evaluate:
     name: Validate bot review and CI before approval
     runs-on: ubuntu-latest
+    env:
+      PULL_REQUEST_NUMBER: ${{ inputs.pull_request_number }}
     steps:
       - name: Evaluate trusted bot review, open threads, risk paths, and checks
         uses: actions/github-script@v8
@@ -37,17 +39,14 @@ jobs:
             });
             const ownCheckRunIds = new Set(currentJobs.map(job => job.id));
 
-            let pr = context.payload.pull_request || context.payload.review?.pull_request || null;
-            const requestedNumber = Number(context.payload.inputs?.pull_request_number || 0);
-
-            if (!pr && requestedNumber > 0) {
-              pr = (await github.rest.pulls.get({ owner, repo, pull_number: requestedNumber })).data;
-            }
-
-            if (!pr) {
-              core.notice('No associated open pull request; nothing to approve.');
+            const requestedNumber = Number(process.env.PULL_REQUEST_NUMBER || 0);
+            if (!Number.isSafeInteger(requestedNumber) || requestedNumber < 1) {
+              core.setFailed('Manual approval evaluation requires a valid pull_request_number input.');
               return;
             }
+            const pr = (await github.rest.pulls.get({
+              owner, repo, pull_number: requestedNumber
+            })).data;
 
             const number = pr.number;
             const headSha = pr.head.sha;
@@ -60,7 +59,9 @@ jobs:
             if (pr.base?.ref !== 'main') return stop('base branch is not main.');
             if (pr.mergeable === false || pr.mergeable_state === 'dirty') return stop('merge conflicts are present.');
             if (pr.head.repo?.full_name !== `${owner}/${repo}`) return stop('fork-origin PRs require human review.');
-            if (pr.user?.login === owner) return stop('self-authored PRs cannot be approved by this workflow.');
+            if (pr.user?.login === owner || pr.user?.login === context.actor) {
+              return stop('PRs authored by the repository owner or dispatching actor require independent human review.');
+            }
 
             const files = await github.paginate(github.rest.pulls.listFiles, {
               owner, repo, pull_number: number, per_page: 100
