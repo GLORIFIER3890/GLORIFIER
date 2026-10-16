@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PULL_REQUEST_NUMBER: ${{ inputs.pull_request_number }}
+      GITHUB_TRIGGERING_ACTOR: ${{ github.triggering_actor }}
     steps:
       - name: Evaluate trusted bot review, open threads, risk paths, and checks
         uses: actions/github-script@v8
