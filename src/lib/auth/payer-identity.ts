@@ -2,10 +2,10 @@ export type PayerIdentityResolution =
   | { ok: true; payerAgentId: string }
   | { ok: false; status: 401 | 403; error: string };
 
-export function resolveAuthenticatedPayer(
+export const resolveAuthenticatedPayer = (
   authenticatedUid: string | null | undefined,
-  requestedPayer: unknown,
-): PayerIdentityResolution {
+  requestedPayer?: unknown,
+): PayerIdentityResolution => {
   if (!authenticatedUid) {
     return { ok: false, status: 401, error: 'Authenticated payer identity required' };
   }
@@ -16,4 +16,4 @@ export function resolveAuthenticatedPayer(
   }
 
   return { ok: true, payerAgentId: authenticatedUid };
-}
+};
