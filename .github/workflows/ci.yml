@@ -91,6 +91,9 @@ jobs:
       - name: Backend internal-service authentication regression tests
         run: npm run test:backend-auth
 
+      - name: GLR payment-intent route authorization contract tests
+        run: npm run test:glr-intent-route-contract
+
       - name: Currency intelligence arithmetic and fail-closed quote tests
         run: npm run test:currency-intelligence
 
