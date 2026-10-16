@@ -117,6 +117,19 @@ try {
   }
   delete process.env.LLAMA_CLOUD_BASE_URL;
 
+  const malformedContentFetch = (async (input: RequestInfo | URL) => {
+    if (String(input).includes('/api/v1/indexes')) {
+      return new Response(JSON.stringify({ items: [{ id: 'index-a', project_id: '220520f6-c208-4b55-87fb-796881b3fc97' }] }), {
+        status: 200, headers: { 'content-type': 'application/json' },
+      });
+    }
+    return new Response(JSON.stringify({ results: [{ score: 0.91 }] }), {
+      status: 200, headers: { 'content-type': 'application/json' },
+    });
+  }) as typeof fetch;
+  await assert.rejects(() => retrieveLlamaCloudContext({ indexId: 'index-a', query: 'test' }, malformedContentFetch),
+    (error: unknown) => error instanceof LlamaCloudIntegrationError && error.code === 'invalid_upstream_response');
+
   const unauthorizedFetch = (async () => new Response('unauthorized', { status: 401 })) as typeof fetch;
   await assert.rejects(() => getLlamaCloudStatus(unauthorizedFetch),
     (error: unknown) => error instanceof LlamaCloudIntegrationError && error.code === 'upstream_auth_failure');
