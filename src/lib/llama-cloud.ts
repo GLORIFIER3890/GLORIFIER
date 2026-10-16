@@ -62,9 +62,15 @@ async function request(path: string, init: RequestInit = {}, fetchImpl: typeof f
   }
 }
 
+function getIndexItems(payload: any): any[] {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.data)) return payload.data;
+  throw new LlamaCloudIntegrationError('LlamaCloud returned an unsupported index-list response.', 502, 'invalid_upstream_response');
+}
+
 function normalizeIndexes(payload: any): LlamaCloudIndex[] {
-  const items = Array.isArray(payload?.items) ? payload.items : Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
-  return items.filter((item: any) => item && typeof item.id === 'string' && item.id)
+  return getIndexItems(payload).filter((item: any) => item && typeof item.id === 'string' && item.id)
     .map((item: any) => ({ id: item.id, name: typeof item.name === 'string' && item.name.trim() ? item.name : item.id,
       ...(typeof item.project_id === 'string' ? { project_id: item.project_id } : {}),
       ...(typeof item.status === 'string' ? { status: item.status } : {}) }));
@@ -72,8 +78,28 @@ function normalizeIndexes(payload: any): LlamaCloudIndex[] {
 
 export async function listLlamaCloudIndexes(fetchImpl: typeof fetch = fetch): Promise<LlamaCloudIndex[]> {
   const { projectId } = config();
-  const payload = await request('/api/v1/indexes?page_size=100', {}, fetchImpl);
-  return normalizeIndexes(payload).filter((item) => !item.project_id || item.project_id === projectId);
+  const allIndexes: LlamaCloudIndex[] = [];
+  const seenTokens = new Set<string>();
+  let pageToken: string | undefined;
+  // Bound pagination defensively: a malformed upstream token loop must not hang the backend.
+  for (let page = 0; page < 1000; page += 1) {
+    const query = new URLSearchParams({ page_size: '100' });
+    if (pageToken) query.set('page_token', pageToken);
+    const payload = await request(`/api/v1/indexes?${query.toString()}`, {}, fetchImpl);
+    allIndexes.push(...normalizeIndexes(payload));
+    const nextToken = typeof payload?.next_page_token === 'string' && payload.next_page_token.trim()
+      ? payload.next_page_token.trim()
+      : '';
+    if (!nextToken) {
+      return allIndexes.filter((item) => !item.project_id || item.project_id === projectId);
+    }
+    if (seenTokens.has(nextToken)) {
+      throw new LlamaCloudIntegrationError('LlamaCloud returned a repeated pagination token.', 502, 'invalid_upstream_response');
+    }
+    seenTokens.add(nextToken);
+    pageToken = nextToken;
+  }
+  throw new LlamaCloudIntegrationError('LlamaCloud index pagination exceeded the safety limit.', 502, 'invalid_upstream_response');
 }
 
 export async function getLlamaCloudStatus(fetchImpl: typeof fetch = fetch) {
