@@ -83,7 +83,10 @@ jobs:
           bash -n solana/reconcile-token2022-devnet.sh
           bash -n solana/publish-verified-devnet-identity.sh
           bash -n solana/recover-deployment-provenance.sh
-          ! grep -Fq 'git push origin HEAD:main' solana/publish-verified-devnet-identity.sh
+          if grep -Fq 'git push origin HEAD:main' solana/publish-verified-devnet-identity.sh; then
+            echo "::error::Publication script must not push directly to main."
+            exit 1
+          fi
           grep -Fq 'gh pr create' solana/publish-verified-devnet-identity.sh
 
       - name: Resolve canonical or replacement mint
