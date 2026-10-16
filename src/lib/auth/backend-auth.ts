@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import { getApps, initializeApp, cert, applicationDefault } from 'firebase-admin/app';
 import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
 import type { NextFunction, Request, Response } from 'express';
@@ -57,7 +58,10 @@ export function isInternalServiceRequest(req: Request): boolean {
   // marker, Host, forwarded-host, and network-address values are not authentication.
   const configured = process.env.GLORIFIER_INTERNAL_SERVICE_TOKEN?.trim();
   const supplied = req.get('x-glorifier-internal-token')?.trim();
-  return Boolean(configured && supplied && supplied === configured);
+  if (!configured || !supplied) return false;
+  const expectedBytes = Buffer.from(configured, 'utf8');
+  const suppliedBytes = Buffer.from(supplied, 'utf8');
+  return expectedBytes.length === suppliedBytes.length && timingSafeEqual(expectedBytes, suppliedBytes);
 }
 
 export function requireAuthentication(req: AuthenticatedRequest, res: Response, next: NextFunction) {
