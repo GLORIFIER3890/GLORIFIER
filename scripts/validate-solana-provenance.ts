@@ -31,6 +31,11 @@ if (identity.cross_file_provenance_status === 'VERIFIED') {
   assert.equal(identity.mint_transaction, provenance.mintTransaction, 'identity and deployment provenance must match');
   assert.equal(identity.mint_transaction, runtimeMintTransaction, 'identity and runtime registry must match');
 } else {
+  assert.equal(
+    identity.cross_file_provenance_status,
+    'NOT_VERIFIED',
+    'unknown or missing cross-file provenance status must not be treated as a valid partial state',
+  );
   assert.equal(identity.status, 'PARTIALLY_VERIFIED', 'unreconciled provenance must not claim full verification');
   assert.equal(identity.mainnet_status, 'PARTIALLY_VERIFIED');
   assert.equal(runtimeStatus, 'partially_verified', 'runtime status must remain partial until provenance is reconciled');
