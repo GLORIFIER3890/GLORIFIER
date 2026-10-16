@@ -8,7 +8,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  resolveAuthenticatedPayer('firebase-uid-a', undefined),
+  resolveAuthenticatedPayer('firebase-uid-a'),
   { ok: true, payerAgentId: 'firebase-uid-a' },
   'payer must default to the authenticated principal',
 );
