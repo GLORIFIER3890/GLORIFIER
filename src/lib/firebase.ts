@@ -90,7 +90,8 @@ export const getIdToken = async (): Promise<string | null> => {
 // The configured API origin is explicit; never forward credentials to arbitrary external URLs.
 const nativeFetch = typeof window !== 'undefined' ? window.fetch.bind(window) : null;
 const configuredApiBase = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
-let configuredApiOrigin: string | null = null;\nlet configuredApiPathPrefix = '';
+let configuredApiOrigin: string | null = null;
+let configuredApiPathPrefix = '';
 try {
   if (configuredApiBase) {
     const configuredUrl = new URL(configuredApiBase);
