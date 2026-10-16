@@ -20,6 +20,8 @@ Do not expose the production Neon database directly to Datasette. Do not export 
 
 - Keep the explorer disabled until an owner explicitly enables a deployment.
 - Require authentication at the hosting/proxy layer before any non-public evidence is accessible.
+- Enable and configure Datasette's own application-layer authentication/authorization (including its supported authentication plugin or equivalent access-control mechanism); proxy authentication is defense in depth, not the sole control.
+- Test direct service access and proxy-bypass scenarios. If the deployment platform exposes the application port or direct origin, application-layer authentication must still deny unauthorized access.
 - Bind local development to loopback only; do not expose an unauthenticated port on a public interface.
 - Mount the generated SQLite snapshot read-only and keep write/edit plugins disabled.
 - Use a verified, pinned Datasette version/image; review its release notes and image provenance before upgrading.
@@ -40,7 +42,8 @@ This documentation-only integration establishes the architecture and safety gate
 - [ ] Automated test proves secrets and disallowed fields are excluded
 - [ ] SQLite snapshot opens read-only and cannot mutate the source system
 - [ ] Datasette version/image is pinned and provenance reviewed
-- [ ] Authentication and authorization tested from an unauthenticated client
+- [ ] Authentication and authorization tested from an unauthenticated client at both the hosting/proxy layer and the Datasette application layer; confirm Datasette's own auth mechanism is active and enforced
+- [ ] Direct-origin and proxy-bypass access denied for unauthenticated clients
 - [ ] Public network exposure checked and denied by default
 - [ ] CI, dependency, container, and security checks pass on the exact commit
 - [ ] Operator verifies the deployed URL and health independently
