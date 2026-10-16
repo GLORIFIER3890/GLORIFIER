@@ -2,11 +2,9 @@ import assert from 'node:assert/strict';
 import type { Request } from 'express';
 import { isInternalServiceRequest } from './backend-auth';
 
-function request(headers: Record<string, string>): Request {
-  return {
-    get(name: string) { return headers[name.toLowerCase()]; },
-  } as unknown as Request;
-}
+const request = (headers: Record<string, string>): Request => ({
+  get(name: string) { return headers[name.toLowerCase()]; },
+} as unknown as Request);
 
 const previous = process.env.GLORIFIER_INTERNAL_SERVICE_TOKEN;
 try {
