@@ -40,7 +40,8 @@
     "test:glr-solana-verifier": "tsx src/lib/glr-solana-verifier.test.ts",
     "test:outcome-evidence-gates": "tsx src/lib/governance/outcome-evidence-gates.test.ts",
     "test:cloudflare-worker": "tsx src/worker.test.ts",
-    "test:llama-cloud": "tsx src/lib/llama-cloud.test.ts"
+    "test:llama-cloud": "tsx src/lib/llama-cloud.test.ts",
+    "test:backend-auth": "tsx src/lib/auth/backend-auth.test.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
