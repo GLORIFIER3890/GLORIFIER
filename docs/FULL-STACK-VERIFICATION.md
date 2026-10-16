@@ -14,26 +14,26 @@ Status meanings: Use the canonical vocabulary in [docs/CI-STATUS-CHECK-CONVENTIO
 
 | Component | Status | Evidence / remaining proof |
 |---|---|---|
-| Frontend build | VERIFIED | Historical 2026-10-01 report: Vercel deployment was recorded READY; not current evidence. |
-| Railway backend | VERIFIED | Historical 2026-10-01 report: backend deployment was recorded SUCCESS and health returned 200; not current evidence. |
-| Permanent orchestrator | VERIFIED | Historical 2026-10-01 report: orchestrator deployment was recorded SUCCESS; not current evidence. |
-| Vercel deployment | VERIFIED | Historical 2026-10-01 report: deployment was recorded READY; not current evidence. |
-| Browser -> Railway API rewrites | VERIFIED | Historical 2026-10-01 report: Vercel /api/health reached Railway; not current evidence. |
-| Firebase authentication configuration | VERIFIED | Historical 2026-10-01 report: /api/auth/status reported Firebase ID-token + revocation-check configuration; not current evidence. |
+| Frontend build | NOT VERIFIED | Historical 2026-10-01 report: Vercel deployment was recorded READY; not current evidence. |
+| Railway backend | NOT VERIFIED | Historical 2026-10-01 report: backend deployment was recorded SUCCESS and health returned 200; not current evidence. |
+| Permanent orchestrator | NOT VERIFIED | Historical 2026-10-01 report: orchestrator deployment was recorded SUCCESS; not current evidence. |
+| Vercel deployment | NOT VERIFIED | Historical 2026-10-01 report: deployment was recorded READY; not current evidence. |
+| Browser -> Railway API rewrites | NOT VERIFIED | Historical 2026-10-01 report: Vercel /api/health reached Railway; not current evidence. |
+| Firebase authentication configuration | NOT VERIFIED | Historical 2026-10-01 report: /api/auth/status reported Firebase ID-token + revocation-check configuration; not current evidence. |
 | Firebase authenticated browser E2E | PARTIALLY VERIFIED | Production authenticated browser traversal still requires the disposable-account Chromium workflow to complete successfully. |
-| Neon persistence | VERIFIED | Historical 2026-10-01 report: runtime verification reported database=ok and app-state/evidence initialization; not current evidence. |
+| Neon persistence | NOT VERIFIED | Historical 2026-10-01 report: runtime verification reported database=ok and app-state/evidence initialization; not current evidence. |
 | Binance authenticated read-only | PARTIALLY VERIFIED | Server-side signed verification and read-only guard exist; a qualifying live private-account response is still required. |
 | Binance safety | VERIFIED | Read-only guard and server-side secret handling are implemented. |
-| AI provider registry / AI CEO | VERIFIED | Historical 2026-10-01 report: production runtime probe executed through the provider registry; not current evidence. |
-| Gemini | VERIFIED | Historical 2026-10-01 report: Gemini inference probe returned the expected response; not current evidence. |
+| AI provider registry / AI CEO | NOT VERIFIED | Historical 2026-10-01 report: production runtime probe executed through the provider registry; not current evidence. |
+| Gemini | NOT VERIFIED | Historical 2026-10-01 report: Gemini inference probe returned the expected response; not current evidence. |
 | OpenAI | PARTIALLY VERIFIED | Credential is configured, but this run did not execute an OpenAI-specific inference probe. |
 | Revenue / monetization | PARTIALLY VERIFIED | Evidence-first settlement rules are implemented; real external payment/settlement evidence is still required before verified revenue can be recorded. |
 | Error/loading/empty states | PARTIALLY VERIFIED | Core API/runtime paths verified; broad authenticated browser traversal remains. |
 | Mobile navigation / responsive UI | PARTIALLY VERIFIED | Responsive components exist; device/browser traversal remains. |
-| Persistent state after refresh | PARTIALLY VERIFIED | Database persistence is live; authenticated user refresh/re-login remains an E2E proof requirement. |
-| CI/CD | VERIFIED | Historical 2026-10-01 description of CI/CD paths; not evidence of current deployment health. |
+| Persistent state after refresh | PARTIALLY VERIFIED | Historical database persistence evidence is insufficient to establish current production behavior; authenticated user refresh/re-login remains an E2E proof requirement. |
+| CI/CD | NOT VERIFIED | Historical 2026-10-01 description of CI/CD paths; not evidence of current deployment health. |
 | Full major-module browser traversal | PARTIALLY VERIFIED | Chromium workflow exists and covers major modules; successful production authenticated E2E evidence is still required. |
-| Overall full-stack | PARTIALLY VERIFIED | Infrastructure and real provider inference are now live-verified; authenticated E2E, Binance private-account evidence, and external settlement evidence remain. |
+| Overall full-stack | PARTIALLY VERIFIED | Current infrastructure and real provider inference have not been freshly re-verified by this historical matrix; authenticated E2E, Binance private-account evidence, and external settlement evidence remain. |
 
 ## FULLY VERIFIED gate
 
