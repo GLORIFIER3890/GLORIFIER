@@ -1135,7 +1135,9 @@ const llamaCloudRouteError = (res: Response, error: unknown) => {
 app.get('/api/llama-cloud/status', geasRateLimit, requireOwnerOrInternalService, async (_req: Request, res: Response) => {
   try {
     const status = await getLlamaCloudStatus();
-    return res.status(status.connected || !status.configured ? 200 : 503).json({ ok: status.connected, ...status, verified: status.connected });
+    // Missing configuration is a valid, explicit not-configured status (HTTP 200);
+    // configured upstream failures throw and are mapped by llamaCloudRouteError.
+    return res.json({ ok: status.connected, ...status, verified: status.connected });
   } catch (error) {
     return llamaCloudRouteError(res, error);
   }
