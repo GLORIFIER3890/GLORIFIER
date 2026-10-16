@@ -39,6 +39,11 @@ jobs:
             const ownCheckRunIds = new Set(currentJobs.map(job => job.id));
 
             if (context.eventName === 'check_suite') {
+              const suiteApp = context.payload.check_suite?.app?.slug;
+              if (suiteApp !== 'github-actions') {
+                core.notice(`Ignoring check suite from non-GitHub-Actions app: ${suiteApp || 'unknown'}.`);
+                return;
+              }
               const ownWorkflowRuns = await github.paginate(github.rest.actions.listWorkflowRunsForWorkflow, {
                 owner,
                 repo,
