@@ -77,6 +77,21 @@ try {
   await assert.rejects(() => retrieveLlamaCloudContext({ indexId: 'index-a', query: 'test' }, malformedRetrievalFetch),
     (error: unknown) => error instanceof LlamaCloudIntegrationError && error.code === 'invalid_upstream_response');
 
+  for (const badInput of [
+    { indexId: 123, query: 'test' },
+    { indexId: ['index-a'], query: 'test' },
+    { indexId: {}, query: 'test' },
+    { indexId: 'index-a', query: 123 },
+    { indexId: 'index-a', query: ['test'] },
+    { indexId: 'index-a', query: {} },
+  ]) {
+    await assert.rejects(
+      () => retrieveLlamaCloudContext(badInput as any, mockFetch),
+      (error: unknown) => error instanceof LlamaCloudIntegrationError &&
+        (error.code === 'invalid_index_id' || error.code === 'invalid_query'),
+    );
+  }
+
   const unauthorizedFetch = (async () => new Response('unauthorized', { status: 401 })) as typeof fetch;
   await assert.rejects(() => getLlamaCloudStatus(unauthorizedFetch),
     (error: unknown) => error instanceof LlamaCloudIntegrationError && error.code === 'upstream_auth_failure');
