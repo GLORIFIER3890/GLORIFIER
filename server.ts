@@ -2231,7 +2231,7 @@ app.get('/api/economy/glr/intents/:id', async (req: Request, res: Response) => {
   } catch (error) { return apiError(res, 503, 'GLR payment intent unavailable', error); }
 });
 
-app.post('/api/economy/glr/intents', async (req: Request, res: Response) => {
+app.post('/api/economy/glr/intents', requireAuthentication, async (req: Request, res: Response) => {
   try {
     const auth = (req as any).auth as { uid?: string } | undefined;
     if (!auth?.uid) {
