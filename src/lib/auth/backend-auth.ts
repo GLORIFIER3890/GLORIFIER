@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import { timingSafeEqual } from 'node:crypto';
 import { getApps, initializeApp, cert, applicationDefault } from 'firebase-admin/app';
 import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
@@ -54,9 +53,6 @@ export async function verifyBearerToken(req: Request): Promise<DecodedIdToken | 
   }
 }
 
-export const isInternalServiceRequest = (req: Request): boolean => {
-  // Network location, Host, forwarded headers, and marker headers are not credentials.
-  // Trust internal callers only when they present the configured high-entropy token.
 export function isInternalServiceRequest(req: Request): boolean {
   // Internal identity must be proven by the configured shared secret. Caller-controlled
   // marker, Host, forwarded-host, and network-address values are not authentication.
@@ -66,9 +62,7 @@ export function isInternalServiceRequest(req: Request): boolean {
   const expectedBytes = Buffer.from(configured, 'utf8');
   const suppliedBytes = Buffer.from(supplied, 'utf8');
   return expectedBytes.length === suppliedBytes.length &&
-    crypto.timingSafeEqual(expectedBytes, suppliedBytes);
-};
-  return expectedBytes.length === suppliedBytes.length && timingSafeEqual(expectedBytes, suppliedBytes);
+    timingSafeEqual(expectedBytes, suppliedBytes);
 }
 
 export type TokenVerifier = (req: Request) => Promise<DecodedIdToken | null>;
