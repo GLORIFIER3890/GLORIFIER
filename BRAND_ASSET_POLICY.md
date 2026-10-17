@@ -39,4 +39,4 @@ AI agents may inspect references, prepare technical derivatives, and record revi
 
 Material changes to the source asset, wordmark, public brand claim, or approved derivative require Human Owner review. Record the asset path, source hash, derivative hash (if applicable), review date, reviewer, purpose, and approval status. Keep assets separate from secrets and runtime configuration.
 
-See [Brand Governance Review](docs/brand-governance-review.md) for the current acceptance register and unresolved evidence.
+See [Brand Governance Review](docs/brand-governance-review.md) for the current acceptance register and unresolved evidence. See [GLORIFIER Logo Governance Record](docs/glorifier-logo-governance-record.md) for the cross-functional review matrix across provenance, trademark/IP, AI-agent permissions, platform restrictions, publication controls, evidence/audit, and human approval gates.
