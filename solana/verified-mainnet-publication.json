@@ -1,8 +1,8 @@
 {
-  "status": "VERIFIED_ON_CHAIN",
+  "status": "PARTIALLY_VERIFIED",
   "mainnetStatus": "PARTIALLY_VERIFIED",
   "crossFileProvenanceStatus": "NOT_VERIFIED",
-  "provenanceNote": "The historical on-chain reconciliation remains recorded, but the canonical mint transaction signature is unset until conflicting repository values are independently reconciled.",
+  "provenanceNote": "On-chain identity evidence is recorded, but conflicting mint-transaction signatures have not yet been independently reconciled with finalized Solana RPC data. Do not claim full verification or select a canonical mint transaction until that evidence is confirmed.",
   "mint": "7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9",
   "verificationRunId": "37886411021",
   "verificationRunUrl": "https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021",
