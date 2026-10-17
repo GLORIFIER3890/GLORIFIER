@@ -87,6 +87,8 @@ try {
 } finally {
   if (previous === undefined) delete process.env.GLORIFIER_INTERNAL_SERVICE_TOKEN;
   else process.env.GLORIFIER_INTERNAL_SERVICE_TOKEN = previous;
+}
+
 import { strict as assert } from 'node:assert';
 import type { Request } from 'express';
 import { isInternalServiceRequest } from './backend-auth.ts';
