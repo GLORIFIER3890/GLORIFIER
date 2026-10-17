@@ -1,4 +1,5 @@
 import { getCapabilityPolicy, listCapabilityPolicies } from './capability-authorization';
+import { newId } from './new-id';
 
 export type AgentCard = {
   id: string;
@@ -110,7 +111,7 @@ export function evaluateAgentCapability(capability: string, humanApproved = fals
 
 export function createAgentTask(input: Pick<AgentTask, 'capability'|'objective'|'input'|'requester'|'connectionId'|'approvalRequired'>) {
   const task: AgentTask = {
-    id: `task-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
+    id: newId('task'),
     ...input,
     createdAt: new Date().toISOString(),
     status: 'queued'
