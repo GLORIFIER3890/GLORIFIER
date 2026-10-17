@@ -108,15 +108,3 @@ export function buildFinanceScientistReport(input: {
   };
 }
 
-export function compareCapitalScenarios(scenarios: CapitalScenario[]) {
-  return scenarios.map((scenario) => ({
-    name: scenario.name,
-    capital: scenario.capital,
-    expectedValue: scenario.expectedReturn === undefined ? null : scenario.capital * (1 + scenario.expectedReturn),
-    expectedValueStatus: 'NOT VERIFIED',
-    riskScore: scenario.riskScore ?? null,
-    liquidityScore: scenario.liquidityScore ?? null,
-    strategicScore: scenario.strategicScore ?? null,
-    noAutomaticWinner: true,
-  }));
-}

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { newId } from '../lib/new-id';
 import { 
   Sparkles, 
   Send, 
@@ -70,7 +71,7 @@ Choose an action to request a backend response. Any returned claim must be check
     onUpdatePolicy(optimizedPolicy);
 
     const optimizerMsg: AiBrokerChatMessage = {
-      id: `optimizer-${Date.now()}`,
+      id: newId('optimizer'),
       sender: 'ai_broker',
       content: `Local policy preferences updated from the selected optimizer proposal.\n\nProposal rationale: ${rationale}\n\n• Configured privacy target ε: ${optimizedPolicy.globalEpsilon ?? 'unchanged'}\n• Configured monthly floor: ${optimizedPolicy.minimumMonthlyFloorUsd ?? 'unchanged'}\n• Local mode setting: ${optimizedPolicy.brokerMode ?? 'unchanged'}\n• Runtime privacy enforcement, proof attestation, provider execution, and revenue impact: NOT VERIFIED.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -85,7 +86,7 @@ Choose an action to request a backend response. Any returned claim must be check
     onUpdatePolicy(directives);
 
     const councilMsg: AiBrokerChatMessage = {
-      id: `council-${Date.now()}`,
+      id: newId('council'),
       sender: 'ai_broker',
       content: `**POLICY PROPOSAL APPLIED LOCALLY — NOT VERIFIED**\n\n${summary}\n\n• Configured privacy target ε: ${directives.globalEpsilon ?? 'unchanged'}\n• Configured monthly floor: ${directives.minimumMonthlyFloorUsd ?? 'unchanged'}\n• Local auto-negotiation setting: ${directives.autoNegotiateHighBids ?? 'unchanged'}\n• Multi-model consensus, signatures, privacy enforcement, tracker quarantine, and external execution: NOT VERIFIED.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -120,7 +121,7 @@ Choose an action to request a backend response. Any returned claim must be check
     }
 
     const userMsg: AiBrokerChatMessage = {
-      id: `user-${Date.now()}`,
+      id: newId('user'),
       sender: 'user',
       content: textToSend,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -148,7 +149,7 @@ Choose an action to request a backend response. Any returned claim must be check
         throw new Error(data?.error || `Broker API unavailable (HTTP ${res.status})`);
       }
       const brokerMsg: AiBrokerChatMessage = {
-        id: `broker-${Date.now()}`,
+        id: newId('broker'),
         sender: 'ai_broker',
         content: data.reply || 'The broker API returned no reply text. No audit, privacy enforcement, or revenue outcome is verified.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -163,7 +164,7 @@ Choose an action to request a backend response. Any returned claim must be check
       setMessages(prev => [
         ...prev,
         {
-          id: `broker-err-${Date.now()}`,
+          id: newId('broker-err'),
           sender: 'ai_broker',
           content: 'Broker unavailable. No audit, privacy enforcement, or licensing revenue was verified. Please retry when the API is reachable.',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),

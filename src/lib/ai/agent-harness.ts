@@ -176,11 +176,6 @@ export function filterDeferredTools(
   return includeDeferred ? tools : tools.filter((tool) => !tool.deferred);
 }
 
-export function boundSubagentCount(requested: number, maximum = 4): number {
-  if (!Number.isFinite(requested) || requested <= 0) return 0;
-  return Math.min(Math.floor(requested), Math.max(1, Math.floor(maximum)));
-}
-
 export function sandboxRequired(
   tools: AgentToolRequest[],
   sandboxCapabilities = new Set(['sandbox', 'code-execution', 'filesystem']),

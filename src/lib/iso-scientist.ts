@@ -1,4 +1,5 @@
 import { getPostgresPool } from './db/postgres';
+import { newId } from './new-id';
 import { aiOrchestrator } from './ai/orchestrator';
 import { getGlorifierAiTrustControls } from './ai/trust-standard';
 import { getIso42001AlignmentTargets } from './iso-integration';
@@ -102,7 +103,7 @@ export async function runIsoScientistResearch(input: {
   const allowed = ['observed','gap-identified','needs-evidence','human-review'];
   const status = allowed.includes(String(p.status)) ? String(p.status) as IsoScientistStatus : 'human-review';
   const record: IsoResearchRun = {
-    id: `isr-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
+    id: newId('isr'),
     standard: 'ISO/IEC 42001:2023',
     status,
     scope,

@@ -1,4 +1,5 @@
 import { getPostgresPool } from './db/postgres';
+import { newId } from './new-id';
 import { aiOrchestrator } from './ai/orchestrator';
 import { listInventions } from './invention-registry';
 
@@ -121,7 +122,7 @@ export async function runIpResearch(input: {
     ? String(parsed.disposition) as IpResearchDisposition
     : 'needs-human-counsel';
 
-  const runId = `ipr-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  const runId = newId('ipr');
   const record = {
     id: runId,
     inventionId: invention.id,
