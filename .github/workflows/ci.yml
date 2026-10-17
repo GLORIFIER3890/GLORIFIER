@@ -52,8 +52,11 @@ jobs:
       - name: Type-check
         run: npm run lint
 
-      - name: Protected API path case-insensitivity regression tests
-        run: npm run test:protected-api-paths
+      - name: LlamaCloud integration tests
+        run: npm run test:llama-cloud
+
+      - name: Internal-service authentication regression tests
+        run: npm run test:backend-auth
 
       - name: Agent harness approval tests
         run: npm run test:harness

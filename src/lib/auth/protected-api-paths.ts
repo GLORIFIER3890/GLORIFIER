@@ -2,6 +2,7 @@ const PROTECTED_READ_PREFIXES = [
   '/payouts',
   '/monetization/subscription',
   '/connections',
+  '/llama-cloud',
   '/agents',
   '/governance',
   '/control-plane',

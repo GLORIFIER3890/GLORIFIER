@@ -41,6 +41,8 @@
     "test:alpaca-oauth-url": "tsx src/lib/alpaca-oauth-url.test.ts",
     "test:outcome-evidence-gates": "tsx src/lib/governance/outcome-evidence-gates.test.ts",
     "test:cloudflare-worker": "tsx src/worker.test.ts",
+    "test:llama-cloud": "tsx src/lib/llama-cloud.test.ts",
+    "test:backend-auth": "tsx src/lib/auth/backend-auth.test.ts",
     "test:protected-api-paths": "tsx src/lib/auth/protected-api-paths.test.ts"
   },
   "dependencies": {
