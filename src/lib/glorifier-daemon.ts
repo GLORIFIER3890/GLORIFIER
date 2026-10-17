@@ -2,7 +2,6 @@ import { discoverGlobalProviders } from './ai/provider-discovery';
 import { reconcileIntegrationControlPlane } from './integration-control-plane';
 import { runAutonomousAuthenticationVerification } from './autonomous-auth-verification';
 import { runGlobalVerificationFabricNow } from './global-verification-fabric';
-import { runGeasArchitectureScan } from './governance/geas-architecture-scientist';
 import { runAgentMinerCycle } from './agent-miner';
 import { runInternetDiscoveryFabricCycle } from './internet-discovery-fabric';
 import { runModelNetworkDiscovery } from './model-network';
@@ -48,7 +47,6 @@ export async function runGlorifierDaemonCycle(reason = 'scheduled') {
       ['provider-discovery', () => discoverGlobalProviders('glorifier-daemon')],
       ['authentication-verification', () => runAutonomousAuthenticationVerification('glorifier-daemon')],
       ['global-verification', () => runGlobalVerificationFabricNow('glorifier-daemon')],
-      ['architecture-scientist', () => runGeasArchitectureScan()],
       ['agent-miner-observation', () => runAgentMinerCycle()],
       ['internet-discovery-world-graph', () => runInternetDiscoveryFabricCycle('glorifier-daemon')],
       ['model-network-discovery', () => runModelNetworkDiscovery('glorifier-daemon')],
