@@ -3,16 +3,18 @@ import react from '@vitejs/plugin-react';
 import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
-  const githubPagesBuild = process.env.GITHUB_ACTIONS === 'true';
+  const githubPagesBuild = process.env.GITHUB_PAGES_BUILD === 'true';
 
   return {
-    // Railway serves GLORIFIER from the domain root.
-    // GitHub Pages project-site builds use this repository's project subpath.
+    // Railway and Cloudflare serve GLORIFIER from the domain root.
+    // GitHub Pages project-site builds opt in to this repository's subpath.
     base: process.env.CAPACITOR_BUILD === 'true'
       ? './'
-      : githubPagesBuild
-        ? '/GLORIFIER/'
-        : '/',
+      : process.env.CLOUDFLARE_BUILD === 'true'
+        ? '/'
+        : githubPagesBuild
+          ? '/GLORIFIER/'
+          : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
