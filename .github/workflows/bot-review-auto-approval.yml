@@ -1,8 +1,7 @@
 name: Bot Review Auto-Approval Gate
 
 on:
-  check_suite:
-    types: [completed]
+  # Manual only: check_suite fan-out can trigger premature/duplicate approvals.
   workflow_dispatch:
     inputs:
       pull_request_number:
@@ -17,7 +16,7 @@ permissions:
   checks: read
 
 concurrency:
-  group: bot-review-auto-approval-${{ github.event.pull_request.number || inputs.pull_request_number || github.event.check_suite.head_sha || github.run_id }}
+  group: bot-review-auto-approval-${{ inputs.pull_request_number || github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -26,50 +25,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Evaluate trusted bot review, open threads, risk paths, and checks
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            // Identify this workflow's own checks by run/check-run identity, not by a reusable display name.
+            // Exclude this workflow's own check run, but retain every other check
+            // with the same display name or app identity.
             const currentJobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
               owner, repo, run_id: context.runId, per_page: 100
             });
-            const ownCheckRunIds = new Set(currentJobs.map(job => job.id));
+            const ownCheckRunIds = new Set(currentJobs
+              .map(job => Number(String(job.check_run_url || '').split('/').pop()))
+              .filter(id => Number.isSafeInteger(id) && id > 0));
 
-            if (context.eventName === 'check_suite') {
-              const ownWorkflowRuns = await github.paginate(github.rest.actions.listWorkflowRunsForWorkflow, {
-                owner,
-                repo,
-                workflow_id: 'bot-review-auto-approval.yml',
-                check_suite_id: context.payload.check_suite.id,
-                per_page: 100
-              });
-              if (ownWorkflowRuns.length > 0) {
-                core.notice('Ignoring this workflow’s own check suite.');
-                return;
-              }
-            }
-
-            let pr = context.payload.pull_request || context.payload.review?.pull_request || null;
-            const requestedNumber = Number(context.payload.inputs?.pull_request_number || 0);
-
-            if (!pr && requestedNumber > 0) {
-              pr = (await github.rest.pulls.get({ owner, repo, pull_number: requestedNumber })).data;
-            }
-
-            if (!pr && context.eventName === 'check_suite') {
-              const associated = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-                owner, repo, commit_sha: context.payload.check_suite.head_sha
-              });
-              pr = associated.data.find(item => item.state === 'open') || null;
-            }
-
-            if (!pr) {
-              core.notice('No associated open pull request; nothing to approve.');
+            const requestedNumber = Number(context.payload.inputs?.pull_request_number ?? 0);
+            if (!Number.isSafeInteger(requestedNumber) || requestedNumber < 1) {
+              core.setFailed('Manual approval evaluation requires a valid pull_request_number input.');
               return;
             }
+            const pr = (await github.rest.pulls.get({
+              owner, repo, pull_number: requestedNumber
+            })).data;
 
             const number = pr.number;
             const headSha = pr.head.sha;
@@ -82,7 +60,12 @@ jobs:
             if (pr.base?.ref !== 'main') return stop('base branch is not main.');
             if (pr.mergeable === false || pr.mergeable_state === 'dirty') return stop('merge conflicts are present.');
             if (pr.head.repo?.full_name !== `${owner}/${repo}`) return stop('fork-origin PRs require human review.');
-            if (pr.user?.login === owner) return stop('self-authored PRs cannot be approved by this workflow.');
+            const triggeringActor = process.env.GITHUB_TRIGGERING_ACTOR;
+            if (pr.user?.login === owner ||
+                pr.user?.login === context.actor ||
+                pr.user?.login === triggeringActor) {
+              return stop('PRs authored by the repository owner, original actor, or rerun initiator require independent human review.');
+            }
 
             const files = await github.paginate(github.rest.pulls.listFiles, {
               owner, repo, pull_number: number, per_page: 100
@@ -160,7 +143,6 @@ jobs:
             const allRuns = await github.paginate(github.rest.checks.listForRef, {
               owner, repo, ref: headSha, per_page: 100
             });
-            // Exclude only this workflow run's own checks; other checks with the same display name still count.
             const runs = allRuns.filter(run => !ownCheckRunIds.has(run.id));
             const combinedStatus = await github.rest.repos.getCombinedStatusForRef({ owner, repo, ref: headSha });
             if (combinedStatus.data.state !== 'success') {

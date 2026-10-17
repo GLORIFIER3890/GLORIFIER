@@ -1,0 +1,90 @@
+import assert from 'node:assert/strict';
+import type { Request } from 'express';
+import {
+  createRequireAuthentication,
+  createRequireOwnerOrInternalService,
+  isInternalServiceRequest,
+  type TokenVerifier,
+} from './backend-auth';
+
+const request = (headers: Record<string, string>): Request => ({
+  get(name: string) { return headers[name.toLowerCase()]; },
+} as unknown as Request);
+
+const runMiddleware = async (
+  middleware: (req: any, res: any, next: () => void) => unknown,
+  headers: Record<string, string>,
+) => {
+  const req = request(headers) as any;
+  let nextCalled = false;
+  let statusCode = 200;
+  let body: unknown;
+  const res = {
+    status(code: number) { statusCode = code; return this; },
+    json(value: unknown) { body = value; return this; },
+  };
+  middleware(req, res, () => { nextCalled = true; });
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  return { req, nextCalled, statusCode, body };
+};
+
+const fakeVerifier: TokenVerifier = async (req) => {
+  const header = req.get('authorization');
+  if (header === 'Bearer user-token') return { uid: 'user-123' } as any;
+  if (header === 'Bearer owner-token') return { uid: 'owner-123', owner: true } as any;
+  return null;
+};
+
+const previous = process.env.GLORIFIER_INTERNAL_SERVICE_TOKEN;
+try {
+  process.env.GLORIFIER_INTERNAL_SERVICE_TOKEN = 'test-secret-token';
+  assert.equal(isInternalServiceRequest(request({
+    'x-glorifier-internal-service': 'permanent-orchestrator',
+    host: 'glorifier-artificial-intelligence.railway.internal',
+  })), false, 'marker and private address alone must not authenticate');
+  assert.equal(isInternalServiceRequest(request({
+    'x-glorifier-internal-service': 'permanent-orchestrator',
+    'x-forwarded-host': 'glorifier-artificial-intelligence.railway.internal',
+  })), false, 'forwarded host must not authenticate');
+  assert.equal(isInternalServiceRequest(request({
+    'x-glorifier-internal-token': 'wrong-token',
+  })), false, 'wrong token must fail');
+  assert.equal(isInternalServiceRequest(request({
+    'x-glorifier-internal-token': 'test-secret-token',
+  })), true, 'configured service token should authenticate');
+
+  const unauthenticatedCreate = await runMiddleware(createRequireAuthentication(fakeVerifier), {});
+  assert.equal(unauthenticatedCreate.statusCode, 401, 'payment-intent creation must reject unauthenticated requests');
+  assert.equal(unauthenticatedCreate.nextCalled, false);
+
+  const verifiedUserCreate = await runMiddleware(createRequireAuthentication(fakeVerifier), {
+    authorization: 'Bearer user-token',
+  });
+  assert.equal(verifiedUserCreate.nextCalled, true, 'a verified user may reach the payer-binding handler');
+  assert.equal(verifiedUserCreate.req.auth.uid, 'user-123');
+
+  const nonOwnerRead = await runMiddleware(createRequireOwnerOrInternalService(fakeVerifier), {
+    authorization: 'Bearer user-token',
+  });
+  assert.equal(nonOwnerRead.statusCode, 403, 'non-owners must not read private payment intents');
+  assert.equal(nonOwnerRead.nextCalled, false);
+
+  const ownerRead = await runMiddleware(createRequireOwnerOrInternalService(fakeVerifier), {
+    authorization: 'Bearer owner-token',
+  });
+  assert.equal(ownerRead.nextCalled, true, 'owner identity should pass the owner guard');
+
+  const internalRead = await runMiddleware(createRequireOwnerOrInternalService(fakeVerifier), {
+    'x-glorifier-internal-token': 'test-secret-token',
+  });
+  assert.equal(internalRead.nextCalled, true, 'configured internal-service identity should pass the service guard');
+
+  delete process.env.GLORIFIER_INTERNAL_SERVICE_TOKEN;
+  assert.equal(isInternalServiceRequest(request({
+    'x-glorifier-internal-token': 'test-secret-token',
+  })), false, 'missing configured token must fail closed');
+  console.log('backend-auth internal service regression tests passed');
+} finally {
+  if (previous === undefined) delete process.env.GLORIFIER_INTERNAL_SERVICE_TOKEN;
+  else process.env.GLORIFIER_INTERNAL_SERVICE_TOKEN = previous;
+}

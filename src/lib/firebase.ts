@@ -91,6 +91,7 @@ export const getIdToken = async (): Promise<string | null> => {
 const nativeFetch = typeof window !== 'undefined' ? window.fetch.bind(window) : null;
 const configuredApiBase = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
 let configuredApiOrigin: string | null = null;
+let configuredApiPathPrefix = '';
 try {
   if (configuredApiBase) {
     const configuredUrl = new URL(configuredApiBase);
@@ -98,7 +99,12 @@ try {
     const isLoopbackHttp = configuredUrl.protocol === 'http:' &&
       ['localhost', '127.0.0.1', '[::1]'].includes(configuredUrl.hostname);
     if (isHttps || isLoopbackHttp) {
-      configuredApiOrigin = configuredUrl.origin;
+      if (configuredUrl.username || configuredUrl.password || configuredUrl.search || configuredUrl.hash) {
+        console.error('VITE_API_BASE_URL must not include credentials, a query string, or a fragment; automatic Firebase auth is disabled for that origin.');
+      } else {
+        configuredApiOrigin = configuredUrl.origin;
+        configuredApiPathPrefix = configuredUrl.pathname.replace(/\/$/, '');
+      }
     } else {
       console.error('VITE_API_BASE_URL must use HTTPS except for loopback development; automatic Firebase auth is disabled for that origin.');
     }
@@ -119,11 +125,18 @@ const resolveRequestUrl = (input: RequestInfo | URL): URL | null => {
   }
 };
 
+const matchesApiPath = (pathname: string, prefix = ''): boolean => {
+  const apiRoot = prefix ? `${prefix}/api` : '/api';
+  return pathname === apiRoot || pathname.startsWith(`${apiRoot}/`);
+};
+
 const isTrustedApiUrl = (requestUrl: URL): boolean => {
-  const isApiPath = requestUrl.pathname.startsWith('/api/');
-  const isSameOrigin = requestUrl.origin === window.location.origin;
-  const isConfiguredOrigin = configuredApiOrigin !== null && requestUrl.origin === configuredApiOrigin;
-  return isApiPath && (isSameOrigin || isConfiguredOrigin);
+  if (requestUrl.origin === window.location.origin) {
+    return matchesApiPath(requestUrl.pathname);
+  }
+  return configuredApiOrigin !== null &&
+    requestUrl.origin === configuredApiOrigin &&
+    matchesApiPath(requestUrl.pathname, configuredApiPathPrefix);
 };
 
 const createAuthenticatedHeaders = async (input: RequestInfo | URL, init: RequestInit): Promise<Headers> => {

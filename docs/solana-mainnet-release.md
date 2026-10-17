@@ -58,14 +58,14 @@ Never put the production keypair in repository files, frontend code, or ordinary
 
 ## Current status — reconciled record
 
-**Current canonical status: `FULLY_VERIFIED`.** The canonical identity record reports finalized read-only reconciliation, immutable deployment provenance, and transaction confirmation. Evidence is recorded in [canonical-mainnet-identity.json](../solana/canonical-mainnet-identity.json) and [verified-mainnet-publication.json](../solana/verified-mainnet-publication.json).
+**Current canonical status: `PARTIALLY_VERIFIED` for repository provenance consistency.** Finalized read-only reconciliation supports the mint's on-chain identity, but `docs/solana-signature-provenance-review.md` identifies conflicting mint transaction signatures in the canonical identity and runtime registry seed (`HChmY7` versus `HChyV7`). Keep the on-chain identity record separate from this unresolved cross-file provenance claim; do not infer the correct signature or redeploy.
 
 - Verification workflow run: [37886411021](https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021)
 - Reconciliation run number reported by the registry: 87
 - Verified at: 2026-10-09T05:03:36Z
 - Evidence artifact review: completed 2026-10-09
 
-The earlier statement that the identity must remain `NOT VERIFIED` until a future Mainnet workflow runs is stale and superseded by this published reconciliation record. Do not redeploy or create a second mint to resolve a documentation mismatch.
+The published reconciliation evidence remains relevant to on-chain identity, but it does not resolve the later-discovered cross-file signature discrepancy. Resolve the signature using independent finalized RPC transaction data and reviewer confirmation before restoring `FULLY_VERIFIED` provenance status. Do not redeploy or create a second mint to resolve this documentation mismatch.
 
 ### Authority evidence interpretation
 

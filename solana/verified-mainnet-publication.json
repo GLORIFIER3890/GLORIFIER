@@ -1,6 +1,8 @@
 {
-  "status": "VERIFIED_ON_CHAIN",
-  "mainnetStatus": "FULLY_VERIFIED",
+  "status": "PARTIALLY_VERIFIED",
+  "mainnetStatus": "PARTIALLY_VERIFIED",
+  "crossFileProvenanceStatus": "PARTIALLY_VERIFIED",
+  "provenanceNote": "Finalized Solana Mainnet RPC returned the HChmY7 candidate at slot 454519862 with meta.err=null and a Token-2022 mintToChecked instruction for the canonical mint, 1,000,000,000 GLR, decimals 9; the same RPC returned null for HChyV7. A second public RPC returned null for HChmY7. Canonical signature is recorded for review, but publication remains PARTIALLY_VERIFIED pending independent review and successful cross-file CI gate; do not claim full verification yet.",
   "mint": "7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9",
   "verificationRunId": "37886411021",
   "verificationRunUrl": "https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021",

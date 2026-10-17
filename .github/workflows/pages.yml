@@ -29,9 +29,11 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-fund
       - name: Build frontend only
         run: npm run build:frontend
+        env:
+          GITHUB_PAGES_BUILD: "true"
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
       - name: Upload Pages artifact

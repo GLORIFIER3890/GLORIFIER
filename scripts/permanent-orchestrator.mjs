@@ -13,9 +13,10 @@ const IMPROVEMENT_MS = Math.max(5 * 60_000, Number(process.env.ORCHESTRATOR_IMPR
 const MAX_FAILURES = Math.max(1, Number(process.env.ORCHESTRATOR_MAX_HEALTH_FAILURES || 3));
 const REVENUE_MILESTONE_VERIFIED = process.env.GLORIFIER_REVENUE_MILESTONE_VERIFIED === 'true';
 const INTERNAL_SERVICE_TOKEN = process.env.GLORIFIER_INTERNAL_SERVICE_TOKEN || '';
+// Fail closed when the shared secret is not configured; never emit an identity-marker fallback.
 const INTERNAL_SERVICE_HEADERS = INTERNAL_SERVICE_TOKEN
   ? { 'x-glorifier-internal-token': INTERNAL_SERVICE_TOKEN }
-  : { 'x-glorifier-internal-service': 'permanent-orchestrator' };
+  : {};
 let running = false;
 let healthFailures = 0;
 let stopping = false;
