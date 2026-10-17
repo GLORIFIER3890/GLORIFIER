@@ -1315,7 +1315,8 @@ export function startGeasArchitectureScientistDaemon() {
   const enabled = String(process.env.GEAS_ARCHITECTURE_SCAN_ENABLED ?? 'true').toLowerCase() !== 'false';
   if (!enabled) return;
 
-  const hours = Math.max(1, Number(process.env.GEAS_ARCHITECTURE_SCAN_INTERVAL_HOURS ?? 24));
+  const configuredHours = Number(process.env.GEAS_ARCHITECTURE_SCAN_INTERVAL_HOURS ?? 24);
+  const hours = Number.isFinite(configuredHours) ? Math.max(1, configuredHours) : 24;
   void runGeasArchitectureScan().catch((error) => {
     console.warn('[GEAS] initial architecture scan deferred:', error instanceof Error ? error.message : error);
   });
