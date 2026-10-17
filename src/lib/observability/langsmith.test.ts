@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { withLangSmithTrace } from './langsmith';
 import { buildProviderRegistryTraceInputs, executeThroughProviderRegistry, summarizeProviderRegistryTrace } from '../ai/registry';
+import { discoverGlobalProviders } from '../ai/provider-discovery';
 
 async function main() {
   const originalEnv = {
@@ -10,7 +11,7 @@ async function main() {
     project: process.env.LANGSMITH_PROJECT,
     workspace: process.env.LANGSMITH_WORKSPACE_ID,
     providerEnv: Object.fromEntries([
-      'OPENAI_API_KEY', 'OPENAI_BASE_URL', 'OPENAI_MODEL',
+      'OPENAI_API_KEY', 'OPENAI_BASE_URL', 'OPENAI_MODEL', 'OPENAI_AUTHORIZED',
       'META_API_KEY', 'META_BASE_URL', 'META_MODEL',
       'XAI_API_KEY', 'XAI_BASE_URL', 'XAI_MODEL',
       'MISTRAL_API_KEY', 'MISTRAL_BASE_URL', 'MISTRAL_MODEL',
@@ -104,11 +105,17 @@ async function main() {
     for (const key of providerEnvKeys) delete process.env[key];
     process.env.OPENAI_API_KEY = 'test-openai-key';
     process.env.OPENAI_MODEL = 'gpt-4o';
+    process.env.OPENAI_AUTHORIZED = 'true';
     const providerCalls: string[] = [];
     const tracePayloads: Record<string, any>[] = [];
     globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
       calls++;
       const url = String(input);
+      if (url.endsWith('/models')) {
+        return new Response(JSON.stringify({ data: [{ id: 'gpt-4o' }] }), {
+          status: 200, headers: { 'content-type': 'application/json' },
+        });
+      }
       if (url.endsWith('/chat/completions')) {
         providerCalls.push(url);
         if (providerCalls.length === 1) {
@@ -127,6 +134,7 @@ async function main() {
       return new Response(null, { status: 202 });
     }) as typeof fetch;
 
+    await discoverGlobalProviders('langsmith-regression-test');
     const actualSuccess = await executeThroughProviderRegistry({
       messages: [{ role: 'user', content: privateMarker }],
       model: 'gpt-4o',
