@@ -270,7 +270,7 @@ const SOURCES: ArchitectureSource[] = [
     id: 'nist-ai-agents',
     authority: 'NIST',
     domain: 'ai',
-    url: 'https://www.nist.gov/programs-projects/ai-agent-standards-initiative',
+    url: 'https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative',
     patternIds: ['agent-identity-delegation'],
     cadenceHours: 168,
   },
