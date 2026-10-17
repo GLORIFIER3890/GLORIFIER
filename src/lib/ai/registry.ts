@@ -16,6 +16,7 @@ const compatibleProviders = [
   { id: 'together', name: 'Together AI', apiKeyEnv: 'TOGETHER_API_KEY', baseUrlEnv: 'TOGETHER_BASE_URL', modelEnv: 'TOGETHER_MODEL' },
   { id: 'fireworks', name: 'Fireworks AI', apiKeyEnv: 'FIREWORKS_API_KEY', baseUrlEnv: 'FIREWORKS_BASE_URL', modelEnv: 'FIREWORKS_MODEL' },
   { id: 'openrouter', name: 'OpenRouter', apiKeyEnv: 'OPENROUTER_API_KEY', baseUrlEnv: 'OPENROUTER_BASE_URL', modelEnv: 'OPENROUTER_MODEL', defaultBaseUrl: 'https://openrouter.ai/api/v1', defaultModel: 'openai/gpt-4o-mini' },
+  { id: 'huggingface', name: 'Hugging Face Inference Providers', apiKeyEnv: 'HF_TOKEN', baseUrlEnv: 'HF_BASE_URL', modelEnv: 'HF_MODEL', defaultBaseUrl: 'https://router.huggingface.co/v1' },
   { id: 'llmsrelay', name: 'LLMsRelay', apiKeyEnv: 'LLMSRELAY_API_KEY', baseUrlEnv: 'LLMSRELAY_BASE_URL', modelEnv: 'LLMSRELAY_MODEL', defaultBaseUrl: 'https://api.llmsrelay.com/v1', defaultModel: 'claude-sonnet-4.6' },
   { id: 'ollama', name: 'Ollama', apiKeyEnv: 'OLLAMA_AUTH_TOKEN', baseUrlEnv: 'OLLAMA_BASE_URL', modelEnv: 'OLLAMA_MODEL' },
 ];
