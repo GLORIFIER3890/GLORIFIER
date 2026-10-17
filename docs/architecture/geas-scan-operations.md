@@ -16,7 +16,7 @@ Keep the Enterprise Architecture Scientist read-only, reproducible, and economic
 
 - A cached observation is reusable only when the configured source URL exactly matches the URL recorded with the observation.
 - A URL change invalidates the cached observation immediately.
-- Failed source observations are retried after one hour; they must not be treated as successful evidence.
+- Failed source observations become eligible for refresh after one hour, but are fetched only when the next scanner invocation occurs. The default scanner schedule is daily; this is a retry eligibility threshold, not a one-hour retry SLA.
 - Source fetches remain HTTPS-only and same-host across redirects. Do not weaken redirect protections to accommodate a stale registry URL.
 - Source reachability and keyword matches are not claim verification. Missing or inaccessible evidence remains UNKNOWN / NOT OBSERVABLE.
 
