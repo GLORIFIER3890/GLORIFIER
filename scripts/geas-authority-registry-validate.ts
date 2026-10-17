@@ -113,8 +113,9 @@ if (!sourceSection) {
 } else {
   const scannerIds = [...sourceSection.matchAll(/\bid:\s*'([^']+)'/g)].map((match) => match[1]);
   const scannerIdSet = new Set(scannerIds);
-  const scannerSourceEntries = [...sourceSection.matchAll(/\{\s*id:\s*'([^']+)'[\s\S]*?url:\s*'([^']+)'[\s\S]*?\}/g)];
-  const scannerUrls = new Map(scannerSourceEntries.map((match) => [match[1], match[2]]));
+  const scannerSourceEntries = [...sourceSection.matchAll(/\{\s*id:\s*'([^']+)'([\s\S]*?)\n\s*\},/g)];
+  const scannerUrls = new Map(scannerSourceEntries.map((match) => [match[1], match[2].match(/\burl:\s*'([^']+)'/)?.[1] ?? '']));
+  if (scannerSourceEntries.length !== scannerIds.length) failures.push('unable to parse each scanner source URL within its source object');
   if (scannerIds.length === 0) failures.push('scanner source catalog is empty');
   if (scannerIdSet.size !== scannerIds.length) failures.push('scanner source catalog contains duplicate IDs');
   for (const id of scannerIdSet) {
