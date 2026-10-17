@@ -1,8 +1,0 @@
-name = "glorifier"
-main = "src/worker.ts"
-compatibility_date = "2026-10-17"
-
-[assets]
-directory = "./dist"
-binding = "ASSETS"
-run_worker_first = ["/api/*", "/auth/*"]
