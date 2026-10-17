@@ -253,7 +253,7 @@
       "id": "nist-ai-agents",
       "authority": "NIST",
       "domain": "ai",
-      "url": "https://www.nist.gov/programs-projects/ai-agent-standards-initiative",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
       "claimsAllowed": [
         "agent-identity-delegation"
       ],
@@ -309,7 +309,8 @@
       ],
       "reviewCadenceDays": 30,
       "implementationStatus": "not-assessed",
-      "scannerStatus": "discovery-only"
+      "scannerStatus": "discovery-only",
+      "aliasOf": "nist-csf"
     },
     {
       "id": "nist-iot",
@@ -334,7 +335,8 @@
       ],
       "reviewCadenceDays": 30,
       "implementationStatus": "not-assessed",
-      "scannerStatus": "discovery-only"
+      "scannerStatus": "discovery-only",
+      "aliasOf": "nist-iot"
     },
     {
       "id": "nist-ssdf",
@@ -481,7 +483,8 @@
       ],
       "reviewCadenceDays": 30,
       "implementationStatus": "not-assessed",
-      "scannerStatus": "discovery-only"
+      "scannerStatus": "discovery-only",
+      "aliasOf": "slsa-v1-2"
     },
     {
       "id": "slsa-v1-2",
