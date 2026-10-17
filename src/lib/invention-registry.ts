@@ -1,4 +1,5 @@
 import { getPostgresPool } from './db/postgres';
+import { newId } from './new-id';
 
 const query = (text: string, values?: unknown[]) => getPostgresPool().query(text, values);
 
@@ -45,7 +46,7 @@ export async function initializeInventionRegistry() {
 }
 
 export async function registerInvention(input: Omit<InventionRecord, 'id'|'createdAt'|'updatedAt'>) {
-  const id = `inv-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  const id = newId('inv');
   const result = await query(
     `INSERT INTO glorifier_invention_registry
       (id,title,summary,status,confidentiality,human_contributors,code_refs,evidence_refs,prior_art_status,metadata)
