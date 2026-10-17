@@ -426,8 +426,8 @@ async function seedCanonicalGLRRegistry() {
     identifierType: 'mint',
     assetIdentifier: '7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9',
     programId: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
-    deploymentTransaction: 'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa',
-    status: 'fully_verified',
+    deploymentTransaction: 'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa',
+    status: 'partially_verified',
     explorer: 'Solscan',
     sourceVerificationStatus: 'verified',
     verificationMode: 'finalized-read-only-reconciliation',
@@ -443,8 +443,13 @@ async function seedCanonicalGLRRegistry() {
       verificationRunId: '37886411021',
       verificationRunUrl: 'https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021',
       reconciliationEvidenceArtifactReview: 'REVIEWED_2026-10-09',
+      crossFileProvenanceStatus: 'PARTIALLY_VERIFIED',
+      conflictingMintTransactionSignatures: [
+        'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa',
+        'Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa'
+      ],
       source: 'github-actions-evidence',
-      note: 'Technical identity verification only; does not assert market liquidity, price, audit, or legal compliance.'
+      note: 'Direct finalized Solana Mainnet getTransaction returned the HChmY7 candidate at slot 454519862 with no transaction error and a Token-2022 mintToChecked instruction for the canonical mint and 1,000,000,000 GLR at 9 decimals; the same endpoint returned null for HChyV7. A second public RPC returned null for HChmY7, so retain PARTIALLY_VERIFIED pending independent review and CI provenance-gate confirmation. This status does not assert market liquidity, price, audit, or legal compliance.'
     }
   });
 }
@@ -458,7 +463,7 @@ type CanonicalDeploymentUpsertInput = {
   contractAddress?: string | null;
   assetIdentifier?: string;
   programId?: string | null;
-  deploymentTransaction: string;
+  deploymentTransaction: string | null;
   deploymentBlock?: number;
   status: CanonicalDeploymentStatus;
   explorer: string;

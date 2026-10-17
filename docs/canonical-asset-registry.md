@@ -36,11 +36,13 @@ No registry state may claim verification without evidence from the corresponding
 |---|---:|---|---|---|
 | Ethereum Mainnet | 1 | `0x9db6f9afe2f4ada50060d32d7c7c0bebbccf89eb` | `0x8b92e5b669ea3188fe55052ed68d3eae0cc7715a0cf8c96e71ee7e95d846f81a` | FULLY VERIFIED |
 | BNB Smart Chain Mainnet | 56 | `0x5e0B0A449232FDA7cA6Ea3419A50873b08F64804` | `0xf5698f6bbde7ff173be1cbd0bb83da53f03389842c68ca2f6e4e287b89d9bbc0` | FULLY VERIFIED |
-| Solana Mainnet Beta | `solana:mainnet-beta` | `7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9` (Token-2022 mint) | `Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa` | FULLY VERIFIED |
+| Solana Mainnet Beta | `solana:mainnet-beta` | `7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9` (Token-2022 mint) | Not selected — conflicting signatures are documented in the provenance review | PARTIALLY VERIFIED |
 
 The BNB record is based on an existing-deployment reconciliation; the verification mode is `verify-existing` and does not broadcast a new blockchain transaction.
 
-The Solana Mainnet Beta record is a Token-2022 mint (not an EVM contract). Its independent finalized read-only reconciliation is recorded in [`solana/canonical-mainnet-identity.json`](../solana/canonical-mainnet-identity.json) and [GitHub Actions run #37886411021](https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021). The registry records the mint authority as revoked on-chain and the freeze authority as absent at initialization; the empty freeze-authority revocation transaction is intentional. `FULLY VERIFIED` is a technical identity/evidence status, not a market-liquidity, security-audit, price, or legal claim.
+The Solana Mainnet Beta mint's on-chain identity reconciliation is recorded in [`solana/canonical-mainnet-identity.json`](../solana/canonical-mainnet-identity.json) and [GitHub Actions run #37886411021](https://github.com/GLORIFIER7/GLORIFIER/actions/runs/37886411021). Historical records contained different mint transaction signatures (`HChmY7` versus `HChyV7`). A public explorer finds `HChmY7` finalized and cannot locate `HChyV7`, but direct finalized RPC reconciliation remains pending. The current canonical identity and runtime seed therefore leave the canonical transaction unset and report `partially_verified`; no signature is chosen by inference. The mint authority is recorded as revoked and the freeze authority as absent at initialization; the empty freeze-authority revocation transaction is intentional.
+
+The immutable on-chain metadata URI points to `solana/token.json` at commit `d0d5c16fc4a74099c125c8aac594352d53675177`. That pinned JSON was fetched and contains name, symbol, description, external URL, and attributes, but no `image` or `mint` field. The current `main/solana/token.json` contains both as supplemental repository metadata; it does not change the immutable on-chain URI. Because the metadata pointer and update authorities are disabled, do not claim the on-chain metadata image was updated or attempt a redeployment to change it.
 
 ## API
 
