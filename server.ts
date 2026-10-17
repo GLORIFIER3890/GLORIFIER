@@ -53,6 +53,8 @@ import { getGeasPolicy, evaluateGeasPolicy, registerAgent, getAgent, listControl
 import { initializeGeasArchitectureScientist, runGeasArchitectureScan, getLatestGeasArchitectureScan, getGeasArchitectureModel, getGeasArchitectureSources, getGeasArchitecturePatterns, getGeasArchitectureControls, getGeasArchitectureReliabilityContract, getGeasSovereigntyDefaults, createAIImpactAssessment, createFinOpsArchitectureDecision, startGeasArchitectureScientistDaemon } from './src/lib/governance/geas-architecture-scientist';
 import { getPermanentGlorifierStack, validatePermanentStack } from './src/lib/governance/permanent-stack';
 import { getGeasArchitectureManifest, validateGeasArchitectureManifest, evaluateAuthorityChain, attenuateAuthority, createTelemetryEnvelope, getGeasDegradedModeContracts, reconcileGeasArchitecture, persistGeasManifest, persistGeasAuthorityEnvelope, persistGeasTelemetryEnvelope, persistGeasReconciliation, persistGeasFinOpsRecord, initializeGeasReconciliation } from './src/lib/governance/geas-reconciliation';
+import { requireAuthentication, requireOwner, requireOwnerOrInternalService, authenticationStatus, isOwner, isInternalServiceRequest, type AuthenticatedRequest } from './src/lib/auth/backend-auth';
+import { createAuthenticatedPayerIntent } from './src/lib/auth/payer-identity';
 import { requireAuthentication, requireOwner, requireOwnerOrInternalService, authenticationStatus, isOwner, isInternalServiceRequest } from './src/lib/auth/backend-auth';
 import { isProtectedApiReadPath } from './src/lib/auth/protected-api-paths';
 import { startAutonomousAuthenticationVerificationDaemon, getAutonomousAuthenticationVerificationSnapshot, runAutonomousAuthenticationVerification } from './src/lib/autonomous-auth-verification';
@@ -2247,14 +2249,14 @@ app.get('/api/economy/glr/snapshot', async (_req: Request, res: Response) => {
   catch (error) { return apiError(res, 503, 'GLR economic snapshot unavailable', error); }
 });
 
-app.get('/api/economy/glr/intents', async (req: Request, res: Response) => {
+app.get('/api/economy/glr/intents', requireOwnerOrInternalService, async (req: Request, res: Response) => {
   try {
     const limit = Math.min(500, Math.max(1, Number(req.query.limit) || 100));
     res.json({ ok: true, intents: await listGLRPaymentIntents(limit), truth: 'Per-intent truthStatus is authoritative.' });
   } catch (error) { return apiError(res, 503, 'GLR economic layer unavailable', error); }
 });
 
-app.get('/api/economy/glr/intents/:id', async (req: Request, res: Response) => {
+app.get('/api/economy/glr/intents/:id', requireOwnerOrInternalService, async (req: Request, res: Response) => {
   try {
     const intent = await getGLRPaymentIntent(String(req.params.id));
     if (!intent) return res.status(404).json({ ok: false, error: 'GLR payment intent not found' });
@@ -2262,10 +2264,19 @@ app.get('/api/economy/glr/intents/:id', async (req: Request, res: Response) => {
   } catch (error) { return apiError(res, 503, 'GLR payment intent unavailable', error); }
 });
 
-app.post('/api/economy/glr/intents', async (req: Request, res: Response) => {
+app.post('/api/economy/glr/intents', requireAuthentication, async (req: Request, res: Response) => {
   try {
-    const intent = await createGLRPaymentIntent(req.body || {});
-    res.status(201).json({ ok: true, intent, truth: intent.truthStatus });
+    const auth = (req as AuthenticatedRequest).auth;
+    const created = await createAuthenticatedPayerIntent(
+      auth?.uid,
+      req.body,
+      (input) => createGLRPaymentIntent(input as Parameters<typeof createGLRPaymentIntent>[0]),
+    );
+    if (!created.ok) {
+      return res.status(created.status).json({ ok: false, error: created.error });
+    }
+    const intent = created.intent;
+    return res.status(201).json({ ok: true, intent, truth: intent.truthStatus });
   } catch (error) { return apiError(res, 400, 'Invalid GLR payment intent', error); }
 });
 

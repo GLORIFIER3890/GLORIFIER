@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { timingSafeEqual } from 'node:crypto';
 import { getApps, initializeApp, cert, applicationDefault } from 'firebase-admin/app';
 import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
@@ -53,6 +54,9 @@ export async function verifyBearerToken(req: Request): Promise<DecodedIdToken | 
   }
 }
 
+export const isInternalServiceRequest = (req: Request): boolean => {
+  // Network location, Host, forwarded headers, and marker headers are not credentials.
+  // Trust internal callers only when they present the configured high-entropy token.
 export function isInternalServiceRequest(req: Request): boolean {
   // Internal identity must be proven by the configured shared secret. Caller-controlled
   // marker, Host, forwarded-host, and network-address values are not authentication.
@@ -61,20 +65,29 @@ export function isInternalServiceRequest(req: Request): boolean {
   if (!configured || !supplied) return false;
   const expectedBytes = Buffer.from(configured, 'utf8');
   const suppliedBytes = Buffer.from(supplied, 'utf8');
+  return expectedBytes.length === suppliedBytes.length &&
+    crypto.timingSafeEqual(expectedBytes, suppliedBytes);
+};
   return expectedBytes.length === suppliedBytes.length && timingSafeEqual(expectedBytes, suppliedBytes);
 }
 
-export function requireAuthentication(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  if (isInternalServiceRequest(req)) {
-    req.auth = undefined;
-    return next();
-  }
-  verifyBearerToken(req).then((decoded) => {
-    if (!decoded) return res.status(401).json({ ok: false, error: 'Authentication required' });
-    req.auth = decoded;
-    next();
-  }).catch(() => res.status(401).json({ ok: false, error: 'Authentication unavailable' }));
+export type TokenVerifier = (req: Request) => Promise<DecodedIdToken | null>;
+
+export function createRequireAuthentication(verify: TokenVerifier = verifyBearerToken) {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    if (isInternalServiceRequest(req)) {
+      req.auth = undefined;
+      return next();
+    }
+    verify(req).then((decoded) => {
+      if (!decoded) return res.status(401).json({ ok: false, error: 'Authentication required' });
+      req.auth = decoded;
+      next();
+    }).catch(() => res.status(401).json({ ok: false, error: 'Authentication unavailable' }));
+  };
 }
+
+export const requireAuthentication = createRequireAuthentication();
 
 export function isOwner(decoded: DecodedIdToken): boolean {
   const ownerUid = process.env.GLORIFIER_OWNER_UID?.trim();
@@ -89,32 +102,41 @@ export function isOwner(decoded: DecodedIdToken): boolean {
   );
 }
 
-export function requireOwnerOrInternalService(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  if (isInternalServiceRequest(req)) {
-    req.auth = undefined;
-    return next();
-  }
-  return requireOwner(req, res, next);
+export function createRequireOwner(verify: TokenVerifier = verifyBearerToken) {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    verify(req).then((decoded) => {
+      if (!decoded) return res.status(401).json({ ok: false, error: 'Authentication required' });
+      const ownerUid = process.env.GLORIFIER_OWNER_UID?.trim();
+      const ownerEmail = process.env.GLORIFIER_OWNER_EMAIL?.trim().toLowerCase();
+      const claims = decoded as DecodedIdToken & { owner?: boolean; admin?: boolean; role?: string };
+      const matchesOwner = Boolean(
+        claims.owner === true ||
+        claims.admin === true ||
+        claims.role === 'owner' ||
+        (ownerUid && decoded.uid === ownerUid) ||
+        (ownerEmail && decoded.email?.toLowerCase() === ownerEmail)
+      );
+      if (!matchesOwner) return res.status(403).json({ ok: false, error: 'Owner authorization required' });
+      req.auth = decoded;
+      next();
+    }).catch(() => res.status(401).json({ ok: false, error: 'Authentication unavailable' }));
+  };
 }
 
-export function requireOwner(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  verifyBearerToken(req).then((decoded) => {
-    if (!decoded) return res.status(401).json({ ok: false, error: 'Authentication required' });
-    const ownerUid = process.env.GLORIFIER_OWNER_UID?.trim();
-    const ownerEmail = process.env.GLORIFIER_OWNER_EMAIL?.trim().toLowerCase();
-    const claims = decoded as DecodedIdToken & { owner?: boolean; admin?: boolean; role?: string };
-    const matchesOwner = Boolean(
-      claims.owner === true ||
-      claims.admin === true ||
-      claims.role === 'owner' ||
-      (ownerUid && decoded.uid === ownerUid) ||
-      (ownerEmail && decoded.email?.toLowerCase() === ownerEmail)
-    );
-    if (!matchesOwner) return res.status(403).json({ ok: false, error: 'Owner authorization required' });
-    req.auth = decoded;
-    next();
-  }).catch(() => res.status(401).json({ ok: false, error: 'Authentication unavailable' }));
+export const requireOwner = createRequireOwner();
+
+export function createRequireOwnerOrInternalService(verify: TokenVerifier = verifyBearerToken) {
+  const requireVerifiedOwner = createRequireOwner(verify);
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    if (isInternalServiceRequest(req)) {
+      req.auth = undefined;
+      return next();
+    }
+    return requireVerifiedOwner(req, res, next);
+  };
 }
+
+export const requireOwnerOrInternalService = createRequireOwnerOrInternalService();
 
 export function authenticationStatus() {
   return {

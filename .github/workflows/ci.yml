@@ -93,6 +93,15 @@ jobs:
       - name: GLR governed commerce invariants
         run: npm run test:glr-economic-layer
 
+      - name: GLR payer identity binding regression tests
+        run: npm run test:payer-identity
+
+      - name: Backend internal-service authentication regression tests
+        run: npm run test:backend-auth
+
+      - name: GLR payment-intent route authorization contract tests
+        run: npm run test:glr-intent-route-contract
+
       - name: Currency intelligence arithmetic and fail-closed quote tests
         run: npm run test:currency-intelligence
 
