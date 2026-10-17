@@ -55,6 +55,9 @@ jobs:
       - name: LangSmith metadata-only tracing tests
         run: npx tsx src/lib/observability/langsmith.test.ts
 
+      - name: Protected API path case-insensitivity regression tests
+        run: npm run test:protected-api-paths
+
       - name: Agent harness approval tests
         run: npm run test:harness
 
@@ -102,6 +105,9 @@ jobs:
 
       - name: Solana Token-2022 GLR settlement verifier tests
         run: npm run test:glr-solana-verifier
+
+      - name: Trusted Alpaca OAuth redirect tests
+        run: npm run test:alpaca-oauth-url
 
       - name: Outcome evidence gate regression tests
         run: npm run test:outcome-evidence-gates
