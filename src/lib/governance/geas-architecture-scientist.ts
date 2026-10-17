@@ -591,6 +591,8 @@ export function isSourceObservationDue(cadenceHours: number, observedAt: string 
   return nowMs - observedMs >= cadenceHours * 60 * 60 * 1000;
 }
 
+const FAILED_SOURCE_RETRY_HOURS = 1;
+
 export function shouldReuseSourceObservation(input: {
   configuredUrl: string;
   cachedUrl: string | null | undefined;
@@ -602,7 +604,7 @@ export function shouldReuseSourceObservation(input: {
   // URL changes invalidate prior evidence immediately; failures retry hourly instead of waiting for the normal cadence.
   if (!input.cachedUrl || input.cachedUrl !== input.configuredUrl) return false;
   const nowMs = input.nowMs ?? Date.now();
-  if (!input.ok && isSourceObservationDue(1, input.observedAt, nowMs)) return false;
+  if (!input.ok && isSourceObservationDue(FAILED_SOURCE_RETRY_HOURS, input.observedAt, nowMs)) return false;
   return !isSourceObservationDue(input.cadenceHours, input.observedAt, nowMs);
 }
 
@@ -1315,8 +1317,8 @@ export function startGeasArchitectureScientistDaemon() {
   const enabled = String(process.env.GEAS_ARCHITECTURE_SCAN_ENABLED ?? 'true').toLowerCase() !== 'false';
   if (!enabled) return;
 
-  const configuredHours = Number(process.env.GEAS_ARCHITECTURE_SCAN_INTERVAL_HOURS ?? 24);
-  const hours = Number.isFinite(configuredHours) ? Math.max(1, configuredHours) : 24;
+  const configuredHours = Number(process.env.GEAS_ARCHITECTURE_SCAN_INTERVAL_HOURS ?? 1);
+  const hours = Number.isFinite(configuredHours) ? Math.max(1, configuredHours) : 1;
   void runGeasArchitectureScan().catch((error) => {
     console.warn('[GEAS] initial architecture scan deferred:', error instanceof Error ? error.message : error);
   });
