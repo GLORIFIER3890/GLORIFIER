@@ -33,7 +33,7 @@ This finding concerns **repository provenance consistency**, not a claim that th
 
 ## Follow-up status update — 2026-10-16
 
-The canonical identity file, runtime asset-registry seed, current registry documentation, and repository presentation metadata are being aligned to report `PARTIALLY_VERIFIED` while the two signatures remain unreconciled. The on-chain reconciliation evidence is preserved; no transaction signature is selected by inference, and no on-chain operation is needed for this status correction.
+The canonical identity file, runtime asset-registry seed, current registry documentation, and repository presentation metadata record `HChmY7` as the finalized-RPC-supported candidate while preserving the competing historical signature. Overall status remains `PARTIALLY_VERIFIED` because independent provider evidence and reviewer confirmation are incomplete. No on-chain operation is needed for this status correction.
 
 ## Explorer cross-check — 2026-10-16
 
