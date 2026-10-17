@@ -1,0 +1,88 @@
+name: Hugging Face Space deployment
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: huggingface-space-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy-space:
+    if: ${{ vars.HF_SPACE_ID != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Validate deployment credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${HF_TOKEN:-}" ]]; then
+            echo "::error::Repository secret HF_TOKEN is missing. Create a Hugging Face write token and store it as a GitHub Actions secret."
+            exit 1
+          fi
+          if [[ ! "$HF_SPACE_ID" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+            echo "::error::HF_SPACE_ID must be an existing Hugging Face Space ID in owner/name form."
+            exit 1
+          fi
+
+      - name: Prepare Docker Space source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -c http.extraheader="AUTHORIZATION: Basic $(printf 'user:%s' "$HF_TOKEN" | base64 -w0)" \
+            clone "https://huggingface.co/spaces/$HF_SPACE_ID" hf-space
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.env*' \
+            --exclude='node_modules/' \
+            --exclude='dist/' \
+            --exclude='coverage/' \
+            --exclude='android/' \
+            ./ hf-space/
+          cat > hf-space/README.md <<'SPACE_README'
+          ---
+          title: GLORIFIER
+          emoji: 🧠
+          colorFrom: blue
+          colorTo: purple
+          sdk: docker
+          app_port: 3000
+          pinned: false
+          ---
+          
+          # GLORIFIER
+          
+          Governed, provider-neutral AI orchestration. This Space builds the repository Dockerfile.
+          
+          Configure application-specific runtime credentials through the Hugging Face Space Settings → Variables and secrets. Never put credentials in repository files.
+          SPACE_README
+
+      - name: Publish source to Hugging Face Space
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd hf-space
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Hugging Face Space already matches the source commit."
+            exit 0
+          fi
+          git commit -m "Deploy GLORIFIER from GitHub ${GITHUB_SHA}"
+          git -c http.extraheader="AUTHORIZATION: Basic $(printf 'user:%s' "$HF_TOKEN" | base64 -w0)" push origin HEAD:main
