@@ -14,7 +14,7 @@ The canonical deployment seed in `src/lib/asset-registry.ts` reported a differen
 
 `Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa`
 
-These strings differ (`HChmY7` versus `HChyV7`). The current canonical identity now leaves `mint_transaction` unset and records both observed values; the runtime registry likewise leaves `deploymentTransaction` unset. Repository text alone cannot determine which value is correct. Do not silently choose one, infer a typo, or alter on-chain state.
+These strings differ (`HChmY7` versus `HChyV7`). A finalized mainnet-beta RPC response supports `HChmY7` as the successful mint transaction, while a second provider returned null for that candidate. The canonical identity and runtime registry record `HChmY7` as the evidence-supported candidate, while retaining both reported signatures and keeping overall provenance `PARTIALLY_VERIFIED` pending independent review. Do not upgrade the status to fully verified based on repository text alone or alter on-chain state.
 
 ## Acceptance gate
 
