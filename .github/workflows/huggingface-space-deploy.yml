@@ -54,23 +54,23 @@ jobs:
             --exclude='coverage/' \
             --exclude='android/' \
             ./ "$RUNNER_TEMP/hf-space/"
-          cat > "$RUNNER_TEMP/hf-space/README.md" <<'SPACE_README'
-          ---
-          title: GLORIFIER
-          emoji: 🧠
-          colorFrom: blue
-          colorTo: purple
-          sdk: docker
-          app_port: 3000
-          pinned: false
-          ---
-          
-          # GLORIFIER
-          
-          Governed, provider-neutral AI orchestration. This Space builds the repository Dockerfile.
-          
-          Configure application-specific runtime credentials through the Hugging Face Space Settings → Variables and secrets. Never put credentials in repository files.
-          SPACE_README
+          printf '%s\n' \
+            '---' \
+            'title: GLORIFIER' \
+            'emoji: 🧠' \
+            'colorFrom: blue' \
+            'colorTo: purple' \
+            'sdk: docker' \
+            'app_port: 3000' \
+            'pinned: false' \
+            '---' \
+            '' \
+            '# GLORIFIER' \
+            '' \
+            'Governed, provider-neutral AI orchestration. This Space builds the repository Dockerfile.' \
+            '' \
+            'Configure application-specific runtime credentials through the Hugging Face Space Settings → Variables and secrets. Never put credentials in repository files.' \
+            > "$RUNNER_TEMP/hf-space/README.md"
 
       - name: Publish source to Hugging Face Space
         shell: bash
