@@ -39,7 +39,7 @@ The canonical identity file, runtime asset-registry seed, current registry docum
 
 A public Solscan lookup now returns the `HChmY7` signature as a successful, finalized transaction minting 1,000,000,000 GLR to the canonical mint account: [Solscan transaction](https://solscan.io/tx/Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa). The `HChyV7` candidate returns “unable to locate this tx hash”: [Solscan lookup](https://solscan.io/tx/Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa).
 
-This is useful corroborating explorer evidence, but it is not yet the direct finalized Solana RPC reconciliation required by the acceptance gate. Keep the canonical signature unset and the overall status `PARTIALLY_VERIFIED` until `getTransaction` / signature-status data from a trusted mainnet RPC confirms the successful finalized transaction and the registry files are reconciled in one reviewed change.
+This is useful corroborating explorer evidence, but it is not yet the direct finalized Solana RPC reconciliation required by the acceptance gate. Keep overall status `PARTIALLY_VERIFIED` until an independent reviewer confirms the finalized-RPC evidence and the registry files are reconciled. The current files record `HChmY7` as the evidence-supported candidate; do not claim full verification yet.
 
 
 ## Direct finalized RPC reconciliation — 2026-10-17
