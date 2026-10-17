@@ -45,7 +45,7 @@
     "test:outcome-evidence-gates": "tsx src/lib/governance/outcome-evidence-gates.test.ts",
     "test:cloudflare-worker": "tsx src/worker.test.ts",
     "test:protected-api-paths": "tsx src/lib/auth/protected-api-paths.test.ts",
-    "test:asap-bridge": "tsx src/lib/asap-bridge.test.ts"
+    "test:asap-bridge": "tsx src/lib/asap-bridge.test.ts",
     "test:solana-provenance": "tsx scripts/validate-solana-provenance.ts",
     "test:llama-cloud": "tsx src/lib/llama-cloud.test.ts",
     "test:nvidia-provider": "tsx src/lib/ai/providers/nvidia-provider.test.ts"
