@@ -32,7 +32,8 @@ The workflow at .github/workflows/vercel-production-deploy.yml performs local de
 
 ## Production target and independent checks
 
-- Default public frontend checks to https://glorifier.glorifier.workers.dev unless an explicit GLORIFIER_FRONTEND_URL repository variable overrides it.
+- Cloudflare Workers is the intended public frontend target: `https://glorifier.glorifier.workers.dev` unless an explicit `GLORIFIER_FRONTEND_URL` repository variable overrides it. Vercel is not the production-hosting authority. The Vercel-named GitHub Actions workflow is a local build/type-check gate and must not be removed just because an external Vercel status fails.
+- A Vercel external status is non-blocking only after an authorized repository admin confirms it is absent from all required-check rulesets/branch-protection rules. Preserve all GLORIFIER-owned CI, security, architecture, container, review, and runtime checks.
 - Keep direct Railway health/readiness/runtime checks and unauthenticated API authorization checks.
 - Do not mark Cloudflare API routing verified based only on the frontend returning HTTP 200. Test API routes for the expected JSON content type and response contract.
 - A known audit from 2026-10-15 found the Cloudflare Worker returned SPA HTML for at least one API path while direct Railway returned JSON. This remains an acceptance test until a fresh live check proves otherwise.
