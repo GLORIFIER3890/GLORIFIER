@@ -109,12 +109,15 @@ if (!sourceSection) {
 } else {
   const scannerIds = [...sourceSection.matchAll(/\bid:\s*'([^']+)'/g)].map((match) => match[1]);
   const scannerIdSet = new Set(scannerIds);
+  const scannerSourceEntries = [...sourceSection.matchAll(/\{\s*id:\s*'([^']+)'[\s\S]*?url:\s*'([^']+)'[\s\S]*?\}/g)];
+  const scannerUrls = new Map(scannerSourceEntries.map((match) => [match[1], match[2]]));
   if (scannerIds.length === 0) failures.push('scanner source catalog is empty');
   if (scannerIdSet.size !== scannerIds.length) failures.push('scanner source catalog contains duplicate IDs');
   for (const id of scannerIdSet) {
     if (!ids.has(id)) failures.push(`scanner source missing from authoritative registry: ${id}`);
     const source = (parsed as Registry).sources.find((item) => item.id === id);
     if (source && source.scannerStatus !== 'active') failures.push(`scanner source ${id} must be marked active in registry`);
+    if (source && scannerUrls.get(id) !== source.url) failures.push(`scanner source ${id} URL does not match authoritative registry`);
   }
   for (const source of (parsed as Registry).sources) {
     if (source.aliasOf) {
