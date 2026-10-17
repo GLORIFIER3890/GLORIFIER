@@ -117,6 +117,11 @@ if (!sourceSection) {
     if (source && source.scannerStatus !== 'active') failures.push(`scanner source ${id} must be marked active in registry`);
   }
   for (const source of (parsed as Registry).sources) {
+    if (source.aliasOf) {
+      const target = (parsed as Registry).sources.find((candidate) => candidate.id === source.aliasOf);
+      if (!target) failures.push(`source ${source.id}: aliasOf target ${source.aliasOf} does not exist`);
+      else if (target.url !== source.url || target.id === source.id) failures.push(`source ${source.id}: aliasOf target must be a different source with the same URL`);
+    }
     if (source.scannerStatus === 'active' && !scannerIdSet.has(source.id)) {
       failures.push(`registry source ${source.id} is marked active but missing from scanner catalog`);
     }
