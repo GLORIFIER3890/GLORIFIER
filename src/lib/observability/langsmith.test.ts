@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { withLangSmithTrace } from './langsmith';
-import { buildProviderRegistryTraceInputs, executeThroughProviderRegistry, summarizeProviderRegistryTrace } from '../ai/registry';
+import { buildProviderRegistryTraceInputs, executeThroughProviderRegistry, summarizeProviderRegistryTrace, withProviderRegistryTrace } from '../ai/registry';
 
 async function main() {
   const originalEnv = {
@@ -83,26 +83,35 @@ async function main() {
     assert.equal(registrySummary.errorCount, 1);
     assert.deepEqual(registrySummary.attemptedProviders, ['unknown', 'openai']);
 
-    // Exercise the real registry-to-trace boundary with no provider attempts.
+    // Exercise the exact shared wrapper used by executeThroughProviderRegistry with
+    // a mocked registry result containing private prompt/output/error/provider markers.
     // Clear the earlier test payload so stale data cannot make these assertions pass.
     capturedBody = undefined;
     const callsBeforeRegistry = calls;
-    await executeThroughProviderRegistry({
+    const mockedRegistryResult = {
+      provider: privateMarker,
+      attemptedProviders: [privateMarker, 'openai'],
+      errors: [privateMarker],
+      providerStatuses: { [privateMarker]: 'error', openai: 'connected' },
+      response: { text: privateMarker },
+    } as unknown as Awaited<ReturnType<typeof executeThroughProviderRegistry>>;
+    const tracedRegistryResult = await withProviderRegistryTrace({
       messages: [{ role: 'user', content: privateMarker }],
       model: privateMarker,
       capability: privateMarker,
       preferredProvider: 'openai',
-      policy: { maxAttempts: 0, maxDiscoveryRefreshes: 0, refreshDiscoveryBeforeExhaustion: true },
-    });
-    assert.ok(calls > callsBeforeRegistry, 'registry execution must submit a new trace request');
-    assert.ok(capturedBody, 'registry execution must capture its own trace payload');
+    } as any, async () => mockedRegistryResult);
+    assert.equal(tracedRegistryResult, mockedRegistryResult);
+    assert.ok(calls > callsBeforeRegistry, 'registry trace wrapper must submit a new trace request');
+    assert.ok(capturedBody, 'registry trace wrapper must capture its own trace payload');
     const realRegistryTrace = JSON.stringify(capturedBody);
     assert.equal(realRegistryTrace.includes(privateMarker), false,
-      'actual registry telemetry must never include prompt/model/capability markers');
-    assert.ok(capturedBody.inputs.messageCount === 1,
-      'actual registry telemetry should contain only the safe message count');
-    assert.ok(!JSON.stringify(capturedBody.outputs || {}).includes(privateMarker),
-      'actual registry output summary must not expose private response/error markers');
+      'registry telemetry must exclude prompt, output, error, and arbitrary provider markers');
+    assert.equal(capturedBody.inputs.messageCount, 1,
+      'registry telemetry should contain only the safe message count');
+    assert.deepEqual(capturedBody.outputs.attemptedProviders, ['unknown', 'openai']);
+    assert.equal(capturedBody.outputs.errorCount, 1);
+    assert.equal(capturedBody.outputs.success, true);
 
     const summarizedResult = await withLangSmithTrace(
       'summarizer-failure',
