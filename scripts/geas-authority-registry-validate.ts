@@ -9,6 +9,7 @@ type Source = {
   reviewCadenceDays: number;
   implementationStatus: string;
   scannerStatus: 'active' | 'discovery-only';
+  aliasOf?: string;
 };
 
 type Registry = {
@@ -40,6 +41,7 @@ if (!isRecord(parsed)) {
   }
 
   const sources: unknown[] = Array.isArray(parsed.sources) ? parsed.sources : [];
+  const urlOwners = new Map<string, string>();
   for (const [index, item] of sources.entries()) {
     if (!isRecord(item)) {
       failures.push(`source at index ${index} must be an object`);
@@ -68,6 +70,16 @@ if (!isRecord(parsed)) {
       }
     }
     if (!validHttpsUrl) failures.push(`source ${source.id ?? index}: valid HTTPS URL required`);
+    if (validHttpsUrl && isNonEmptyString(source.url)) {
+      const priorOwner = urlOwners.get(source.url);
+      if (priorOwner) {
+        if (source.aliasOf !== priorOwner) failures.push(`source ${source.id ?? index}: duplicate URL must explicitly alias ${priorOwner}`);
+      } else {
+        urlOwners.set(source.url, source.id ?? String(index));
+        if (source.aliasOf) failures.push(`source ${source.id ?? index}: aliasOf must reference the first registry entry for its URL`);
+      }
+    }
+    if (source.aliasOf && !isNonEmptyString(source.aliasOf)) failures.push(`source ${source.id ?? index}: aliasOf must be a non-empty source ID`);
 
     if (!Array.isArray(source.claimsAllowed)
       || source.claimsAllowed.length === 0
