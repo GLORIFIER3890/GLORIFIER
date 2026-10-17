@@ -10,9 +10,11 @@ export default defineConfig(() => {
     // GitHub Pages project-site builds use this repository's project subpath.
     base: process.env.CAPACITOR_BUILD === 'true'
       ? './'
-      : githubPagesBuild
-        ? '/GLORIFIER/'
-        : '/',
+      : process.env.CLOUDFLARE_BUILD === 'true'
+        ? '/'
+        : githubPagesBuild
+          ? '/GLORIFIER/'
+          : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
