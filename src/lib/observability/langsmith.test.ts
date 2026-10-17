@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { withLangSmithTrace } from './langsmith';
-import { buildProviderRegistryTraceInputs, executeThroughProviderRegistry, summarizeProviderRegistryTrace, withProviderRegistryTrace } from '../ai/registry';
+import { buildProviderRegistryTraceInputs, executeThroughProviderRegistry, summarizeProviderRegistryTrace } from '../ai/registry';
 
 async function main() {
   const originalEnv = {
@@ -9,6 +9,19 @@ async function main() {
     endpoint: process.env.LANGSMITH_ENDPOINT,
     project: process.env.LANGSMITH_PROJECT,
     workspace: process.env.LANGSMITH_WORKSPACE_ID,
+    providerEnv: Object.fromEntries([
+      'OPENAI_API_KEY', 'OPENAI_BASE_URL', 'OPENAI_MODEL',
+      'META_API_KEY', 'META_BASE_URL', 'META_MODEL',
+      'XAI_API_KEY', 'XAI_BASE_URL', 'XAI_MODEL',
+      'MISTRAL_API_KEY', 'MISTRAL_BASE_URL', 'MISTRAL_MODEL',
+      'DEEPSEEK_API_KEY', 'DEEPSEEK_BASE_URL', 'DEEPSEEK_MODEL',
+      'QWEN_API_KEY', 'QWEN_BASE_URL', 'QWEN_MODEL',
+      'NVIDIA_API_KEY', 'NVIDIA_BASE_URL', 'NVIDIA_MODEL',
+      'GROQ_API_KEY', 'GROQ_BASE_URL', 'GROQ_MODEL',
+      'TOGETHER_API_KEY', 'TOGETHER_BASE_URL', 'TOGETHER_MODEL',
+      'OPENROUTER_API_KEY', 'OPENROUTER_BASE_URL', 'OPENROUTER_MODEL',
+      'FIREWORKS_API_KEY', 'FIREWORKS_BASE_URL', 'FIREWORKS_MODEL',
+    ].map((key) => [key, process.env[key]])),
   };
   const originalFetch = globalThis.fetch;
   const restore = () => {
@@ -18,6 +31,7 @@ async function main() {
       LANGSMITH_ENDPOINT: originalEnv.endpoint,
       LANGSMITH_PROJECT: originalEnv.project,
       LANGSMITH_WORKSPACE_ID: originalEnv.workspace,
+      ...originalEnv.providerEnv,
     })) {
       if (value === undefined) delete process.env[key];
       else process.env[key] = value;
@@ -83,35 +97,64 @@ async function main() {
     assert.equal(registrySummary.errorCount, 1);
     assert.deepEqual(registrySummary.attemptedProviders, ['unknown', 'openai']);
 
-    // Exercise the exact shared wrapper used by executeThroughProviderRegistry with
-    // a mocked registry result containing private prompt/output/error/provider markers.
-    // Clear the earlier test payload so stale data cannot make these assertions pass.
-    capturedBody = undefined;
-    const callsBeforeRegistry = calls;
-    const mockedRegistryResult = {
-      provider: privateMarker,
-      attemptedProviders: [privateMarker, 'openai'],
-      errors: [privateMarker],
-      providerStatuses: { [privateMarker]: 'error', openai: 'connected' },
-      response: { text: privateMarker },
-    } as unknown as Awaited<ReturnType<typeof executeThroughProviderRegistry>>;
-    const tracedRegistryResult = await withProviderRegistryTrace({
+    // Exercise the actual provider registry, not a mocked registry result.
+    // The mock returns a private output on the first provider call and a private
+    // provider error on the second; only LangSmith submission payloads are checked.
+    const providerEnvKeys = Object.keys(originalEnv.providerEnv);
+    for (const key of providerEnvKeys) delete process.env[key];
+    process.env.OPENAI_API_KEY = 'test-openai-key';
+    process.env.OPENAI_MODEL = 'gpt-4o';
+    const providerCalls: string[] = [];
+    const tracePayloads: Record<string, any>[] = [];
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      calls++;
+      const url = String(input);
+      if (url.endsWith('/chat/completions')) {
+        providerCalls.push(url);
+        if (providerCalls.length === 1) {
+          return new Response(JSON.stringify({
+            id: 'private-request-id',
+            choices: [{ message: { content: 'PRIVATE MODEL OUTPUT' } }],
+          }), { status: 200, headers: { 'content-type': 'application/json' } });
+        }
+        return new Response('PRIVATE ERROR RESPONSE', { status: 500 });
+      }
+      capturedUrl = url;
+      capturedHeaders = init?.headers;
+      const body = JSON.parse(String(init?.body));
+      capturedBody = body;
+      tracePayloads.push(body);
+      return new Response(null, { status: 202 });
+    }) as typeof fetch;
+
+    const actualSuccess = await executeThroughProviderRegistry({
       messages: [{ role: 'user', content: privateMarker }],
-      model: privateMarker,
-      capability: privateMarker,
+      model: 'gpt-4o',
       preferredProvider: 'openai',
-    } as any, async () => mockedRegistryResult);
-    assert.equal(tracedRegistryResult, mockedRegistryResult);
-    assert.ok(calls > callsBeforeRegistry, 'registry trace wrapper must submit a new trace request');
-    assert.ok(capturedBody, 'registry trace wrapper must capture its own trace payload');
-    const realRegistryTrace = JSON.stringify(capturedBody);
-    assert.equal(realRegistryTrace.includes(privateMarker), false,
-      'registry telemetry must exclude prompt, output, error, and arbitrary provider markers');
-    assert.equal(capturedBody.inputs.messageCount, 1,
-      'registry telemetry should contain only the safe message count');
-    assert.deepEqual(capturedBody.outputs.attemptedProviders, ['unknown', 'openai']);
-    assert.equal(capturedBody.outputs.errorCount, 1);
-    assert.equal(capturedBody.outputs.success, true);
+    } as any);
+    assert.equal(actualSuccess.provider, 'openai');
+    assert.equal(actualSuccess.response?.text, 'PRIVATE MODEL OUTPUT');
+    assert.ok(tracePayloads.length >= 1, 'successful real provider execution must submit metadata trace');
+
+    const tracesBeforeFailure = tracePayloads.length;
+    const actualFailure = await executeThroughProviderRegistry({
+      messages: [{ role: 'user', content: privateMarker }],
+      model: 'gpt-4o',
+      preferredProvider: 'openai',
+    } as any);
+    assert.equal(actualFailure.provider, 'provider-registry-exhausted');
+    assert.ok(actualFailure.errors.length > 0, 'failed real provider attempt should be recorded in execution result');
+    assert.ok(tracePayloads.length > tracesBeforeFailure, 'failed real provider execution must submit metadata trace');
+
+    for (const payload of tracePayloads) {
+      const outbound = JSON.stringify(payload);
+      assert.equal(outbound.includes(privateMarker), false, 'trace must not contain private prompts');
+      assert.equal(outbound.includes('PRIVATE MODEL OUTPUT'), false, 'trace must not contain private provider outputs');
+      assert.equal(outbound.includes('PRIVATE ERROR RESPONSE'), false, 'trace must not contain raw provider errors');
+      assert.equal(outbound.includes('test-openai-key'), false, 'trace must not contain provider credentials');
+      assert.equal(payload.inputs.messageCount, 1);
+      assert.deepEqual(payload.outputs.attemptedProviders, ['openai']);
+    }
 
     const summarizedResult = await withLangSmithTrace(
       'summarizer-failure',
