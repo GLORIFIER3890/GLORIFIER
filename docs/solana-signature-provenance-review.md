@@ -22,7 +22,7 @@ These strings differ (`HChmY7` versus `HChyV7`). A finalized mainnet-beta RPC re
 2. Capture each signature's status, slot, transaction message, instructions, and relevant account/mint addresses. Record unavailable/not-found responses explicitly.
 3. Compare the observed transaction with the finalized reconciliation artifact and immutable deployment provenance for the canonical mint.
 4. Have a reviewer confirm which signature represents the mint transaction. If neither does, investigate the actual mint initialization history rather than inventing a replacement.
-5. Reconcile `solana/canonical-mainnet-identity.json`, `solana/deployment-mainnet-provenance.json`, and `src/lib/asset-registry.ts` together in a dedicated reviewed change; keep the canonical transaction unset until evidence supports one value.
+5. Independently review the finalized-RPC evidence and verify that `solana/canonical-mainnet-identity.json`, `solana/deployment-mainnet-provenance.json`, and `src/lib/asset-registry.ts` consistently record the evidence-supported `HChmY7` candidate. Keep overall status `PARTIALLY_VERIFIED` until that review and the provenance CI gate pass.
 6. Add a regression test asserting all three values match before `FULLY_VERIFIED` publication; keep the release publication script fail-closed until that test and the independent evidence pass.
 7. Rerun the Solana verifier tests, asset-registry tests, TypeScript lint, shell syntax checks, and required CI/security checks.
 
