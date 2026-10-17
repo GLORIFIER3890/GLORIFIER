@@ -85,6 +85,7 @@ async function main() {
       model: privateMarker,
       capability: privateMarker,
       preferredProvider: 'openai',
+      policy: { refreshDiscoveryBeforeExhaustion: false, maxDiscoveryRefreshes: 0, retryTransientFailures: false, maxAttempts: 1 },
     } as any);
     const registrySummary = summarizeProviderRegistryTrace({
       provider: privateMarker,
@@ -134,11 +135,12 @@ async function main() {
       return new Response(null, { status: 202 });
     }) as typeof fetch;
 
-    await discoverGlobalProviders('langsmith-regression-test');
+    await discoverGlobalProviders('langsmith-regression-test', { persistConnections: false });
     const actualSuccess = await executeThroughProviderRegistry({
       messages: [{ role: 'user', content: privateMarker }],
       model: 'gpt-4o',
       preferredProvider: 'openai',
+      policy: { refreshDiscoveryBeforeExhaustion: false, maxDiscoveryRefreshes: 0, retryTransientFailures: false, maxAttempts: 1 },
     } as any);
     assert.equal(actualSuccess.provider, 'openai');
     assert.equal(actualSuccess.response?.text, 'PRIVATE MODEL OUTPUT');
@@ -149,6 +151,7 @@ async function main() {
       messages: [{ role: 'user', content: privateMarker }],
       model: 'gpt-4o',
       preferredProvider: 'openai',
+      policy: { refreshDiscoveryBeforeExhaustion: false, maxDiscoveryRefreshes: 0, retryTransientFailures: false, maxAttempts: 1 },
     } as any);
     assert.equal(actualFailure.provider, 'provider-registry-exhausted');
     assert.ok(actualFailure.errors.length > 0, 'failed real provider attempt should be recorded in execution result');
