@@ -1,3 +1,4 @@
+import { amountToBaseUnits, createRpcClient, parseSecureRpcUrl, type GLRTransferVerifierInput, type JsonRpcClient } from './glr-rpc-verifier-common';
 export type EvmGLRNetwork = 'eip155:1' | 'eip155:56';
 
 export interface EvmGLRVerification<N extends EvmGLRNetwork> {
@@ -13,13 +14,7 @@ export interface EvmGLRVerification<N extends EvmGLRNetwork> {
   evidenceRef: string;
 }
 
-export interface EvmGLRVerifierInput {
-  transactionHash: string;
-  expectedAmount: string;
-  expectedPayerWallet: string;
-  fetchImpl?: typeof fetch;
-  env?: Record<string, string | undefined>;
-}
+export interface EvmGLRVerifierInput extends GLRTransferVerifierInput {}
 
 export interface EvmGLRVerifierConfig<N extends EvmGLRNetwork> {
   contractAddress: string;
@@ -33,7 +28,7 @@ export interface EvmGLRVerifierConfig<N extends EvmGLRNetwork> {
   evidencePrefix: string;
 }
 
-type Rpc = (method: string, params: unknown[]) => Promise<unknown>;
+type Rpc = JsonRpcClient;
 type ConfirmedReceipt = {
   receipt: Record<string, unknown>;
   blockNumber: number;
@@ -48,11 +43,7 @@ const TRANSFER_TOPIC = [
 const asString = (value: unknown): string => typeof value === 'string' ? value : '';
 
 export function glrAmountToBaseUnits(amount: string): bigint {
-  if (!/^(?:0|[1-9]\d*)(?:\.\d{1,18})?$/.test(amount)) {
-    throw new Error('GLR amount must be a decimal string with at most 18 decimals');
-  }
-  const [whole, fraction = ''] = amount.split('.');
-  return BigInt(whole) * 10n ** 18n + BigInt((fraction + '0'.repeat(18)).slice(0, 18));
+  return amountToBaseUnits(amount, 18, 'GLR');
 }
 
 function addressTopic(address: string, chainName: string): string {
@@ -83,39 +74,6 @@ function validateTransferInput<N extends EvmGLRNetwork>(
     throw new Error(`${config.chainName} GLR payment recipient is not configured; verification is disabled`);
   }
   return { txHash: txHash.toLowerCase(), expectedUnits, expectedPayerWallet, recipient };
-}
-
-function parseSecureRpcUrl(value: string, chainName: string): URL {
-  let url: URL;
-  try {
-    url = new URL(value);
-  } catch {
-    throw new Error(`${chainName} RPC URL is invalid`);
-  }
-  if (url.protocol !== 'https:' || !url.hostname || url.username || url.password) {
-    throw new Error(`${chainName} RPC URL must use HTTPS and must not contain credentials`);
-  }
-  return url;
-}
-
-function createRpcClient(rpcUrl: string, chainName: string, fetchImpl: typeof fetch): Rpc {
-  let requestId = 0;
-  return async (method, params) => {
-    const response = await fetchImpl(rpcUrl, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: ++requestId, method, params }),
-      // Never forward JSON-RPC payloads to a redirect target, including HTTP downgrade URLs.
-      redirect: 'error',
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!response.ok) throw new Error(`${chainName} RPC request failed`);
-    const payload = await response.json() as { error?: unknown; result?: unknown } | null;
-    if (!payload || payload.error || !('result' in payload)) {
-      throw new Error(`${chainName} RPC returned an invalid response`);
-    }
-    return payload.result;
-  };
 }
 
 async function verifyConfiguredChain<N extends EvmGLRNetwork>(
