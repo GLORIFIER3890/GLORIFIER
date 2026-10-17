@@ -9,8 +9,8 @@ Keep the Enterprise Architecture Scientist read-only, reproducible, and economic
 - The dedicated GEAS scanner daemon is the sole scheduled owner of architecture scans.
 - The general GLORIFIER daemon must not run the architecture scanner on its five-minute orchestration cadence.
 - `GEAS_ARCHITECTURE_SCAN_ENABLED=false` disables the dedicated scanner.
-- `GEAS_ARCHITECTURE_SCAN_INTERVAL_HOURS` controls the dedicated schedule; default is 24 hours and values are bounded to at least one hour.
-- A PostgreSQL lease remains the cross-instance overlap guard. A lease conflict must fail visibly rather than start a second scan.
+- `GEAS_ARCHITECTURE_SCAN_INTERVAL_HOURS` controls the dedicated schedule; default is 24 hours, values are bounded to at least one hour, and non-finite values fall back to 24 hours.
+- With persistence enabled, a PostgreSQL lease is the cross-instance overlap guard; a lease conflict fails visibly rather than starting a second scan. `GEAS_SCAN_PERSIST=false` bypasses that database lease, so operators must ensure only one scanner process is active in that mode.
 
 ## Source cache correctness
 
@@ -28,7 +28,7 @@ Keep the Enterprise Architecture Scientist read-only, reproducible, and economic
 
 ## Scan history and storage
 
-Historical scan records are audit evidence. **This code does not automatically delete or rewrite historical scans.** Before enabling retention, a human owner must approve the retention period, archive destination, restore test, audit requirements, and rollback plan.
+Routine scans write/update current source observations and persist scan/evidence records when persistence is enabled. Historical scan records are audit evidence. **This refinement does not automatically delete or rewrite historical scan history.** Before enabling retention or purging historical rows, a human owner must approve the retention period, archive destination, restore test, audit requirements, and rollback plan.
 
 Recommended staged policy for a later, separately reviewed change:
 
