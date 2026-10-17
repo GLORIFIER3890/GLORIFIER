@@ -42,9 +42,24 @@ const mockFetch: typeof fetch = async (_input, init) => {
 };
 const verified = await verifySolanaGLRTransfer({
   transactionHash: signature, expectedAmount: '1', expectedPayerWallet: payer, fetchImpl: mockFetch,
-  env: { GLR_SOLANA_PAYMENT_RECIPIENT: recipient }
+  env: { GLR_SOLANA_PAYMENT_RECIPIENT: recipient, GLR_SOLANA_RPC_URL: 'https://rpc.example/path?api_key=do-not-persist' }
 });
 expect(verified.verified && verified.slot === 123456 && verified.decimals === 9, 'valid finalized Token-2022 GLR transfer must verify');
+expect(verified.verifier === 'https://rpc.example', 'persisted verifier evidence must omit RPC path and query credentials');
+
+for (const rpcUrl of [
+  'http://rpc.example',
+  'https://user:password@rpc.example',
+]) {
+  let rejected = false;
+  try {
+    await verifySolanaGLRTransfer({
+      transactionHash: signature, expectedAmount: '1', expectedPayerWallet: payer, fetchImpl: mockFetch,
+      env: { GLR_SOLANA_PAYMENT_RECIPIENT: recipient, GLR_SOLANA_RPC_URL: rpcUrl },
+    });
+  } catch { rejected = true; }
+  expect(rejected, `unsafe RPC URL must be rejected: ${rpcUrl.split('@').pop()}`);
+}
 
 let disabled = false;
 try {

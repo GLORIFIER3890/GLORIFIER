@@ -7,7 +7,7 @@ const sources = getGeasArchitectureSources();
 
 const failures: string[] = [];
 
-if (model.sourcePolicyVersion !== 'GEAS-AUTHORITY-1') failures.push('unexpected source policy version');
+if (model.sourcePolicyVersion !== 'GEAS-AUTHORITY-2') failures.push('source policy version must match the authoritative registry');
 if (JSON.stringify(model.architectureStateModel) !== JSON.stringify(['desired','declared','deployed','observed','verified'])) failures.push('five-state reconciliation model missing');
 if (!model.operatingRule.includes('must not autonomously apply irreversible production changes')) failures.push('irreversible-change safety rule missing');
 if (model.unknownPolicy !== 'Missing or unavailable evidence remains UNKNOWN; no compliance is inferred from absence of evidence.') failures.push('unknown-evidence policy changed');

@@ -13,6 +13,7 @@ import { verifyBnbGLRTransfer } from './src/lib/glr-bnb-verifier';
 import { verifySolanaGLRTransfer } from './src/lib/glr-solana-verifier';
 import { aiOrchestrator, runSpecialistCouncil, specialistRoles } from './src/lib/ai';
 import { executeThroughProviderRegistry } from './src/lib/ai/registry';
+import { getLlamaCloudStatus, listLlamaCloudIndexes, retrieveLlamaCloudContext, LlamaCloudIntegrationError } from './src/lib/llama-cloud';
 import { discoverGlobalProviders, getGlobalProviderDiscoverySnapshot, getGlobalProviderDiscoveryPolicy } from './src/lib/ai/provider-discovery';
 import { executeComputeTask, getComputeSnapshot } from './src/lib/compute';
 import { generateIntelligenceReport, getLatestIntelligenceReport } from './src/lib/intelligence';
@@ -54,6 +55,8 @@ import { getPermanentGlorifierStack, validatePermanentStack } from './src/lib/go
 import { getGeasArchitectureManifest, validateGeasArchitectureManifest, evaluateAuthorityChain, attenuateAuthority, createTelemetryEnvelope, getGeasDegradedModeContracts, reconcileGeasArchitecture, persistGeasManifest, persistGeasAuthorityEnvelope, persistGeasTelemetryEnvelope, persistGeasReconciliation, persistGeasFinOpsRecord, initializeGeasReconciliation } from './src/lib/governance/geas-reconciliation';
 import { requireAuthentication, requireOwner, requireOwnerOrInternalService, authenticationStatus, isOwner, isInternalServiceRequest, type AuthenticatedRequest } from './src/lib/auth/backend-auth';
 import { createAuthenticatedPayerIntent } from './src/lib/auth/payer-identity';
+import { requireAuthentication, requireOwner, requireOwnerOrInternalService, authenticationStatus, isOwner, isInternalServiceRequest } from './src/lib/auth/backend-auth';
+import { isProtectedApiReadPath } from './src/lib/auth/protected-api-paths';
 import { startAutonomousAuthenticationVerificationDaemon, getAutonomousAuthenticationVerificationSnapshot, runAutonomousAuthenticationVerification } from './src/lib/autonomous-auth-verification';
 import { startGlobalVerificationFabric, getGlobalVerificationFabricSnapshot, runGlobalVerificationFabricNow } from './src/lib/global-verification-fabric';
 import { reconcileIntegrationControlPlane, getIntegrationControlSnapshot } from './src/lib/integration-control-plane';
@@ -212,16 +215,7 @@ app.use((req: Request, res: Response, next) => {
 app.use('/api', (req: Request, res: Response, next) => {
   if (req.method === 'OPTIONS') return next();
   const pathName = req.path || '';
-  const protectedRead = [
-    '/payouts',
-    '/monetization/subscription',
-    '/connections',
-    '/agents',
-    '/governance',
-    '/control-plane',
-    '/app-state',
-    '/auth/session'
-  ].some(prefix => pathName === prefix || pathName.startsWith(prefix + '/'));
+  const protectedRead = isProtectedApiReadPath(req.path || '');
   if ((req.method === 'GET' || req.method === 'HEAD') && !protectedRead) return next();
   return requireAuthentication(req as any, res, next);
 });
@@ -1118,6 +1112,44 @@ app.post('/api/ai/council', async (req: Request, res: Response) => {
       details: error instanceof Error ? error.message : String(error),
       syntheticOutput: false
     });
+  }
+});
+
+// LlamaCloud document retrieval — server-side credential, owner/internal-service authorization.
+const llamaCloudRouteError = (res: Response, error: unknown) => {
+  if (error instanceof LlamaCloudIntegrationError) {
+    return res.status(error.statusCode).json({ ok: false, code: error.code, error: error.message, verified: false });
+  }
+  return res.status(502).json({ ok: false, code: 'llama_cloud_error', error: 'LlamaCloud request failed.', verified: false });
+};
+
+app.get('/api/llama-cloud/status', geasRateLimit, requireOwnerOrInternalService, async (_req: Request, res: Response) => {
+  try {
+    const status = await getLlamaCloudStatus();
+    // Missing configuration is a valid, explicit not-configured status (HTTP 200);
+    // configured upstream failures throw and are mapped by llamaCloudRouteError.
+    return res.json({ ok: status.connected, ...status, verified: status.connected });
+  } catch (error) {
+    return llamaCloudRouteError(res, error);
+  }
+});
+
+app.get('/api/llama-cloud/indexes', geasRateLimit, requireOwnerOrInternalService, async (_req: Request, res: Response) => {
+  try {
+    const indexes = await listLlamaCloudIndexes();
+    return res.json({ ok: true, projectId: process.env.LLAMA_CLOUD_PROJECT_ID?.trim() || '220520f6-c208-4b55-87fb-796881b3fc97', indexes, indexListSucceeded: true, verified: false });
+  } catch (error) {
+    return llamaCloudRouteError(res, error);
+  }
+});
+
+app.post('/api/llama-cloud/retrieve', geasRateLimit, requireOwnerOrInternalService, async (req: Request, res: Response) => {
+  try {
+    const { indexId, query, topK } = req.body || {};
+    const result = await retrieveLlamaCloudContext({ indexId, query, topK });
+    return res.json({ ok: true, ...result, retrievalSucceeded: true, verified: false });
+  } catch (error) {
+    return llamaCloudRouteError(res, error);
   }
 });
 

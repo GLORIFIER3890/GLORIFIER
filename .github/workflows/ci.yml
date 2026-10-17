@@ -52,6 +52,14 @@ jobs:
       - name: Type-check
         run: npm run lint
 
+      - name: Protected API path case-insensitivity regression tests
+        run: npm run test:protected-api-paths
+      - name: LlamaCloud integration tests
+        run: npm run test:llama-cloud
+
+      - name: Internal-service authentication regression tests
+        run: npm run test:backend-auth
+
       - name: Agent harness approval tests
         run: npm run test:harness
 
@@ -108,6 +116,12 @@ jobs:
 
       - name: Solana Token-2022 GLR settlement verifier tests
         run: npm run test:glr-solana-verifier
+
+      - name: Solana GLR cross-file provenance gate
+        run: npm run test:solana-provenance
+
+      - name: Trusted Alpaca OAuth redirect tests
+        run: npm run test:alpaca-oauth-url
 
       - name: Outcome evidence gate regression tests
         run: npm run test:outcome-evidence-gates

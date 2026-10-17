@@ -48,6 +48,9 @@ jobs:
       AGAVE_VERSION: v4.2.2
       CONFIRMATION: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm || 'VERIFY_GLORIFIER_SOLANA_DEVNET' }}
       MINT_ADDRESS_INPUT: ${{ github.event_name == 'workflow_dispatch' && inputs.mint_address || '' }}
+      WORKFLOW_RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch || '' }}
+      WORKFLOW_RUN_EVENT: ${{ github.event.workflow_run.event || '' }}
+      WORKFLOW_RUN_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name || '' }}
 
     steps:
       - name: Enforce authorization and main branch
@@ -59,7 +62,9 @@ jobs:
             test "${CONFIRMATION}" = "VERIFY_GLORIFIER_SOLANA_DEVNET"
           elif [[ "${GITHUB_EVENT_NAME}" == "workflow_run" ]]; then
             test "${{ github.event.workflow_run.conclusion }}" = "success"
-            test "${{ github.event.workflow_run.head_branch }}" = "main"
+            test "${WORKFLOW_RUN_EVENT}" = "workflow_dispatch"
+            test "${WORKFLOW_RUN_HEAD_BRANCH}" = "main"
+            test "${WORKFLOW_RUN_REPOSITORY}" = "${GITHUB_REPOSITORY}"
             test "${CONFIRMATION}" = "VERIFY_GLORIFIER_SOLANA_DEVNET"
           elif [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
             test "${GITHUB_REF}" = "refs/heads/main"
@@ -82,7 +87,10 @@ jobs:
           bash -n solana/reconcile-token2022-devnet.sh
           bash -n solana/publish-verified-devnet-identity.sh
           bash -n solana/recover-deployment-provenance.sh
-          ! grep -Fq 'git push origin HEAD:main' solana/publish-verified-devnet-identity.sh
+          if grep -Fq 'git push origin HEAD:main' solana/publish-verified-devnet-identity.sh; then
+            echo "::error::Publication script must not push directly to main."
+            exit 1
+          fi
           grep -Fq 'gh pr create' solana/publish-verified-devnet-identity.sh
 
       - name: Resolve canonical or replacement mint

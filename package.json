@@ -41,8 +41,13 @@
     "test:glr-ethereum-verifier": "tsx src/lib/glr-ethereum-verifier.test.ts",
     "test:glr-bnb-verifier": "tsx src/lib/glr-bnb-verifier.test.ts",
     "test:glr-solana-verifier": "tsx src/lib/glr-solana-verifier.test.ts",
+    "test:alpaca-oauth-url": "tsx src/lib/alpaca-oauth-url.test.ts",
     "test:outcome-evidence-gates": "tsx src/lib/governance/outcome-evidence-gates.test.ts",
-    "test:cloudflare-worker": "tsx src/worker.test.ts"
+    "test:cloudflare-worker": "tsx src/worker.test.ts",
+    "test:protected-api-paths": "tsx src/lib/auth/protected-api-paths.test.ts",
+    "test:solana-provenance": "tsx scripts/validate-solana-provenance.ts",
+    "test:llama-cloud": "tsx src/lib/llama-cloud.test.ts",
+    "test:backend-auth": "tsx src/lib/auth/backend-auth.test.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",

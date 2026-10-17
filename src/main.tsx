@@ -3,12 +3,36 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-const nativeApiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const configuredApiBase = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
+
+const isLoopbackHttp = (url: URL): boolean =>
+  url.protocol === 'http:' &&
+  ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+
+const isAllowedApiBaseProtocol = (url: URL): boolean =>
+  url.protocol === 'https:' || isLoopbackHttp(url);
+
+const hasForbiddenApiBaseSyntax = (value: string, url: URL): boolean =>
+  /[?#]/.test(value) || Boolean(url.username || url.password || url.search || url.hash);
+
+const getNativeApiBase = (value: string): string => {
+  if (!value) return '';
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return '';
+  }
+  // Reject bare delimiters too: URL.search/hash can normalize '?' or '#' to empty.
+  return isAllowedApiBaseProtocol(url) && !hasForbiddenApiBaseSyntax(value, url) ? value : '';
+};
+
+const nativeApiBase = getNativeApiBase(configuredApiBase);
 
 function resolveRequestUrl(input: RequestInfo | URL): URL | null {
   try {
     const rawUrl = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    return new URL(rawUrl, window.location.href);
+    return new URL(rawUrl, window.location.origin);
   } catch {
     return null;
   }
