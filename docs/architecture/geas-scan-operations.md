@@ -9,14 +9,14 @@ Keep the Enterprise Architecture Scientist read-only, reproducible, and economic
 - The dedicated GEAS scanner daemon is the sole scheduled owner of architecture scans.
 - The general GLORIFIER daemon must not run the architecture scanner on its five-minute orchestration cadence.
 - `GEAS_ARCHITECTURE_SCAN_ENABLED=false` disables the dedicated scanner.
-- `GEAS_ARCHITECTURE_SCAN_INTERVAL_HOURS` controls the dedicated schedule; default is 24 hours, values are bounded to at least one hour, and non-finite values fall back to 24 hours.
+- `GEAS_ARCHITECTURE_SCAN_INTERVAL_HOURS` controls the dedicated schedule; default is one hour, values are bounded to at least one hour, and non-finite values fall back to one hour.
 - With persistence enabled, a PostgreSQL lease is the cross-instance overlap guard; a lease conflict fails visibly rather than starting a second scan. `GEAS_SCAN_PERSIST=false` bypasses that database lease, so operators must ensure only one scanner process is active in that mode.
 
 ## Source cache correctness
 
 - A cached observation is reusable only when the configured source URL exactly matches the URL recorded with the observation.
 - A URL change invalidates the cached observation immediately.
-- Failed source observations become eligible for refresh after one hour, but are fetched only when the next scanner invocation occurs. The default scanner schedule is daily; this is a retry eligibility threshold, not a one-hour retry SLA.
+- Failed source observations become eligible for refresh after one hour. The dedicated scanner runs hourly by default, while successful observations remain cached until their source cadence expires. Scheduling and source availability still mean this is not a guaranteed one-hour retry SLA.
 - Source fetches remain HTTPS-only and same-host across redirects. Do not weaken redirect protections to accommodate a stale registry URL.
 - Source reachability and keyword matches are not claim verification. Missing or inaccessible evidence remains UNKNOWN / NOT OBSERVABLE.
 
