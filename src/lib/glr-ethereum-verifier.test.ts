@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { glrAmountToBaseUnits, verifyEthereumGLRTransfer, ETHEREUM_GLR_CONTRACT } from './glr-ethereum-verifier';
 
 function expect(condition: unknown, message: string) {
@@ -39,9 +40,46 @@ const verified = await verifyEthereumGLRTransfer({
   expectedAmount: '1',
   expectedPayerWallet: payer,
   fetchImpl: mockFetch,
-  env: { GLR_ETHEREUM_PAYMENT_RECIPIENT: recipient, GLR_ETHEREUM_MIN_CONFIRMATIONS: '12' }
+  env: { GLR_ETHEREUM_PAYMENT_RECIPIENT: recipient, GLR_ETHEREUM_MIN_CONFIRMATIONS: '12', GLR_ETHEREUM_RPC_URL: 'https://rpc.example/v2/private-key?api_key=secret' }
 });
 expect(verified.verified && verified.confirmations === 13, 'valid mainnet receipt with exact GLR transfer and finality must verify');
+assert.equal(verified.verifier, 'https://rpc.example', 'verification evidence must not expose RPC paths or query credentials');
+
+let insecureRpcRejected = false;
+let insecureFetchCalls = 0;
+const insecureGuardFetch: typeof fetch = async (input, init) => {
+  insecureFetchCalls++;
+  return mockFetch(input, init);
+};
+try {
+  await verifyEthereumGLRTransfer({
+    transactionHash: txHash, expectedAmount: '1', expectedPayerWallet: payer, fetchImpl: insecureGuardFetch,
+    env: { GLR_ETHEREUM_PAYMENT_RECIPIENT: recipient, GLR_ETHEREUM_RPC_URL: 'http://127.0.0.1:8545' }
+  });
+} catch (error) {
+  insecureRpcRejected = error instanceof Error && error.message.includes('HTTPS');
+}
+assert.ok(insecureRpcRejected, 'non-HTTPS RPC URLs must be rejected before a request is made');
+assert.equal(insecureFetchCalls, 0, 'insecure RPC URLs must be rejected before invoking the fetch implementation');
+const duplicateFetch: typeof fetch = async (_input, init) => {
+  const body = JSON.parse(String(init?.body || '{}'));
+  const result = body.method === 'eth_getTransactionReceipt'
+    ? { ...(payloads.eth_getTransactionReceipt as Record<string, unknown>), logs: [
+        ...((payloads.eth_getTransactionReceipt as { logs: Array<Record<string, unknown>> }).logs),
+        ...((payloads.eth_getTransactionReceipt as { logs: Array<Record<string, unknown>> }).logs),
+      ] }
+    : payloads[body.method];
+  return new Response(JSON.stringify({ jsonrpc: '2.0', id: body.id, result }), { status: 200, headers: { 'content-type': 'application/json' } });
+};
+let duplicateTransferRejected = false;
+try {
+  await verifyEthereumGLRTransfer({
+    transactionHash: txHash, expectedAmount: '1', expectedPayerWallet: payer, fetchImpl: duplicateFetch,
+    env: { GLR_ETHEREUM_PAYMENT_RECIPIENT: recipient, GLR_ETHEREUM_RPC_URL: 'https://rpc.example' }
+  });
+} catch { duplicateTransferRejected = true; }
+assert.ok(duplicateTransferRejected, 'multiple matching Transfer events must not be accepted as one payment');
+
 let wrongPayerRejected = false;
 try {
   await verifyEthereumGLRTransfer({

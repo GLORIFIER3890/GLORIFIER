@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Activity, CheckCircle2, CircleAlert, ExternalLink, Globe2, LockKeyhole, RefreshCw } from 'lucide-react';
 import { IntelligenceHub } from './IntelligenceHub';
 import { MediatorDashboard } from './MediatorDashboard';
+import { getTrustedAlpacaAuthorizationUrl } from '../lib/alpaca-oauth-url';
 
 type CollaborationProvider = { id: string; name: string; category: string; capabilities: string[]; status: string; authorized: boolean; requiresHumanApproval: boolean; connectionId: string | null; scopes: string[]; };
 
@@ -216,7 +217,9 @@ export const IntegrationControl: React.FC = () => {
               const r = await fetch('/api/broker/alpaca/connect?env=live', { cache: 'no-store' });
               const d = await r.json();
               if (!r.ok) throw new Error(d.error || 'OAuth configuration unavailable');
-              window.location.assign(d.authorizationUrl);
+              const authorizationUrl = getTrustedAlpacaAuthorizationUrl(d.authorizationUrl);
+              if (!authorizationUrl) throw new Error('OAuth configuration returned an untrusted authorization URL');
+              window.location.assign(authorizationUrl);
             } catch (e) { setAlpacaMessage(e instanceof Error ? e.message : 'Unable to start authorization'); }
           }} className="px-3 py-2 rounded-lg bg-white text-slate-950 text-xs font-semibold">Connect live account</button>
           <button onClick={async () => {
@@ -225,7 +228,9 @@ export const IntegrationControl: React.FC = () => {
               const r = await fetch('/api/broker/alpaca/connect?env=paper', { cache: 'no-store' });
               const d = await r.json();
               if (!r.ok) throw new Error(d.error || 'OAuth configuration unavailable');
-              window.location.assign(d.authorizationUrl);
+              const authorizationUrl = getTrustedAlpacaAuthorizationUrl(d.authorizationUrl);
+              if (!authorizationUrl) throw new Error('OAuth configuration returned an untrusted authorization URL');
+              window.location.assign(authorizationUrl);
             } catch (e) { setAlpacaMessage(e instanceof Error ? e.message : 'Unable to start authorization'); }
           }} className="px-3 py-2 rounded-lg border border-slate-700 text-slate-200 text-xs font-semibold">Connect paper account</button>
           <button onClick={async () => {

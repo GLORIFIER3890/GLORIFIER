@@ -22,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Layers },
@@ -84,8 +85,21 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-3 text-left"
             aria-label="GLORIFIER overview"
           >
-            <div className="w-9 h-9 rounded-md border border-slate-700 bg-[#111] overflow-hidden flex items-center justify-center">
-              <img src={`${import.meta.env.BASE_URL}glorifier-app-icon.svg`} alt="GLORIFIER" className="h-full w-full object-cover" />
+            <div className="w-9 h-9 shrink-0 rounded-md border border-slate-700 bg-[#111] overflow-hidden flex items-center justify-center">
+              {logoFailed ? (
+                <span aria-label="GLORIFIER logo fallback" className="text-emerald-300 font-bold text-xl leading-none">G</span>
+              ) : (
+                <img
+                  src={`${import.meta.env.BASE_URL}glorifier-logo.jpg`}
+                  alt="GLORIFIER"
+                  width={512}
+                  height={512}
+                  decoding="async"
+                  loading="eager"
+                  onError={() => setLogoFailed(true)}
+                  className="block h-full w-full object-contain"
+                />
+              )}
             </div>
             <div>
               <h1 className="text-[15px] font-semibold tracking-[-0.03em] text-white flex items-center gap-1.5">
