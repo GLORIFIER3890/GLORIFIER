@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   deploy-space:
-    if: ${{ vars.HF_SPACE_ID != '' }}
+    if: ${{ vars.HF_SPACE_DEPLOY_ENABLED == 'true' && vars.HF_SPACE_ID != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -45,7 +45,7 @@ jobs:
           set -euo pipefail
           git -c http.extraheader="AUTHORIZATION: Basic $(printf 'user:%s' "$HF_SPACE_WRITE_TOKEN" | base64 -w0)" \
             clone "https://huggingface.co/spaces/$HF_SPACE_ID" "$RUNNER_TEMP/hf-space"
-          rsync -a --delete \
+          rsync -a \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='.env*' \
