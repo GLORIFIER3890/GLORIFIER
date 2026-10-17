@@ -473,18 +473,16 @@
       "scannerStatus": "discovery-only"
     },
     {
-      "id": "slsa-specification",
-      "authority": "SLSA",
-      "domain": "software",
-      "url": "https://slsa.dev/spec/v1.2/",
+      "id": "w3c-vc",
+      "authority": "W3C",
+      "domain": "emerging-technology",
+      "url": "https://www.w3.org/TR/vc-data-model-2.0/",
       "claimsAllowed": [
-        "build-provenance",
-        "artifact-integrity"
+        "verifiable-credentials"
       ],
-      "reviewCadenceDays": 30,
+      "reviewCadenceDays": 14,
       "implementationStatus": "not-assessed",
-      "scannerStatus": "discovery-only",
-      "aliasOf": "slsa-v1-2"
+      "scannerStatus": "active"
     },
     {
       "id": "slsa-v1-2",
@@ -499,16 +497,18 @@
       "scannerStatus": "active"
     },
     {
-      "id": "w3c-vc",
-      "authority": "W3C",
-      "domain": "emerging-technology",
-      "url": "https://www.w3.org/TR/vc-data-model-2.0/",
+      "id": "slsa-specification",
+      "authority": "SLSA",
+      "domain": "software",
+      "url": "https://slsa.dev/spec/v1.2/",
       "claimsAllowed": [
-        "verifiable-credentials"
+        "build-provenance",
+        "artifact-integrity"
       ],
-      "reviewCadenceDays": 14,
+      "reviewCadenceDays": 30,
       "implementationStatus": "not-assessed",
-      "scannerStatus": "active"
+      "scannerStatus": "discovery-only",
+      "aliasOf": "slsa-v1-2"
     }
   ]
 }
