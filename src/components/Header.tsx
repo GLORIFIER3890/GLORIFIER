@@ -90,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <span aria-label="GLORIFIER logo fallback" className="text-emerald-300 font-bold text-xl leading-none">G</span>
               ) : (
                 <img
-                  src="/glorifier-logo.jpg"
+                  src={`${import.meta.env.BASE_URL}glorifier-logo.jpg`}
                   alt="GLORIFIER"
                   width={512}
                   height={512}
