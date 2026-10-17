@@ -125,7 +125,7 @@ export interface ArchitectureScanResult {
   >;
   irreversibleChangesExecuted: false;
   architectureStateModel: ArchitectureState[];
-  sourcePolicyVersion: 'GEAS-AUTHORITY-1';
+  sourcePolicyVersion: 'GEAS-AUTHORITY-2';
 }
 
 export interface AgentIdentityContract {
@@ -913,7 +913,8 @@ export const initializeGeasArchitectureScientist = async (): Promise<void> => {
       error TEXT,
       final_url TEXT,
       etag TEXT,
-      last_modified TEXT
+      last_modified TEXT,
+      source_url TEXT
     );
     -- CREATE TABLE IF NOT EXISTS does not add columns to pre-existing legacy tables.
     -- Add every column consumed by GEAS reads/writes using safe, idempotent migrations.
@@ -925,6 +926,7 @@ export const initializeGeasArchitectureScientist = async (): Promise<void> => {
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS final_url TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS etag TEXT;
     ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS last_modified TEXT;
+    ALTER TABLE geas_source_observations ADD COLUMN IF NOT EXISTS source_url TEXT;
 
     CREATE TABLE IF NOT EXISTS geas_architecture_evidence (
       id TEXT PRIMARY KEY,
@@ -1038,11 +1040,11 @@ export async function runGeasArchitectureScan(): Promise<ArchitectureScanResult>
   try {
   const scanId = `geas-scan-${randomUUID()}`;
   const startedAt = new Date().toISOString();
-  const previous = new Map<string, { observed_at: string; ok: boolean; status: number | null; content_hash: string | null; evidence_excerpt: string | null; evidence_status: EvidenceStatus; error: string | null; final_url?: string | null; etag?: string | null; last_modified?: string | null }>();
+  const previous = new Map<string, { observed_at: string; ok: boolean; status: number | null; content_hash: string | null; evidence_excerpt: string | null; evidence_status: EvidenceStatus; error: string | null; final_url?: string | null; etag?: string | null; last_modified?: string | null; source_url?: string | null }>();
   if (persist) {
     try {
       const db = getPostgresPool();
-      const prior = await db.query('SELECT source_id, observed_at, ok, status, content_hash, evidence_excerpt, evidence_status, error, final_url, etag, last_modified FROM geas_source_observations');
+      const prior = await db.query('SELECT source_id, observed_at, ok, status, content_hash, evidence_excerpt, evidence_status, error, final_url, etag, last_modified, source_url FROM geas_source_observations');
       for (const row of prior.rows) previous.set(String(row.source_id), row);
     } catch (error) {
       console.warn('[GEAS] source cadence cache unavailable; scanning all sources:', error instanceof Error ? error.message : error);
@@ -1051,7 +1053,9 @@ export async function runGeasArchitectureScan(): Promise<ArchitectureScanResult>
   const nowMs = Date.now();
   const sources = await Promise.all(SOURCES.map(async (source) => {
     const cached = previous.get(source.id);
-    if (cached && !isSourceObservationDue(source.cadenceHours, cached.observed_at, nowMs)) {
+    const sourceUrlChanged = Boolean(cached && cached.source_url !== source.url);
+    const retryFailedObservation = Boolean(cached && !cached.ok && isSourceObservationDue(1, cached.observed_at, nowMs));
+    if (cached && !sourceUrlChanged && !retryFailedObservation && !isSourceObservationDue(source.cadenceHours, cached.observed_at, nowMs)) {
       return {
         sourceId: source.id,
         ok: cached.ok,
@@ -1085,7 +1089,7 @@ export async function runGeasArchitectureScan(): Promise<ArchitectureScanResult>
     coverage: coverage(sources, patterns),
     irreversibleChangesExecuted: false,
     architectureStateModel: ['desired', 'declared', 'deployed', 'observed', 'verified'],
-    sourcePolicyVersion: 'GEAS-AUTHORITY-1',
+    sourcePolicyVersion: 'GEAS-AUTHORITY-2',
   };
 
   if (persist) try {
@@ -1094,8 +1098,8 @@ export async function runGeasArchitectureScan(): Promise<ArchitectureScanResult>
     await db.query('INSERT INTO geas_architecture_scans(scan_id, started_at, completed_at, result) VALUES($1, $2, $3, $4)', [scanId, startedAt, completedAt, result]);
     for (const source of sources) {
       await db.query(
-        'INSERT INTO geas_source_observations(source_id, observed_at, ok, status, content_hash, evidence_excerpt, evidence_status, error, final_url, etag, last_modified) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT(source_id) DO UPDATE SET observed_at = EXCLUDED.observed_at, ok = EXCLUDED.ok, status = EXCLUDED.status, content_hash = EXCLUDED.content_hash, evidence_excerpt = EXCLUDED.evidence_excerpt, evidence_status = EXCLUDED.evidence_status, error = EXCLUDED.error, final_url = EXCLUDED.final_url, etag = EXCLUDED.etag, last_modified = EXCLUDED.last_modified',
-        [source.sourceId, source.observedAt, source.ok, source.status, source.contentHash, source.evidenceExcerpt, source.evidenceStatus, source.error ?? null, source.finalUrl ?? null, source.etag ?? null, source.lastModified ?? null],
+        'INSERT INTO geas_source_observations(source_id, observed_at, ok, status, content_hash, evidence_excerpt, evidence_status, error, final_url, etag, last_modified, source_url) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT(source_id) DO UPDATE SET observed_at = EXCLUDED.observed_at, ok = EXCLUDED.ok, status = EXCLUDED.status, content_hash = EXCLUDED.content_hash, evidence_excerpt = EXCLUDED.evidence_excerpt, evidence_status = EXCLUDED.evidence_status, error = EXCLUDED.error, final_url = EXCLUDED.final_url, etag = EXCLUDED.etag, last_modified = EXCLUDED.last_modified, source_url = EXCLUDED.source_url',
+        [source.sourceId, source.observedAt, source.ok, source.status, source.contentHash, source.evidenceExcerpt, source.evidenceStatus, source.error ?? null, source.finalUrl ?? null, source.etag ?? null, source.lastModified ?? null, SOURCES.find((candidate) => candidate.id === source.sourceId)?.url ?? null],
       );
     }
     for (const item of evidence) {
@@ -1158,7 +1162,7 @@ export function getGeasArchitectureModel() {
     version: 'GEAS-ARCHITECTURE-SCIENTIST-2.0',
     operatingRule: 'GEAS may observe, compare, explain, prioritize and recommend; it must not autonomously apply irreversible production changes.',
     sourcePolicy: 'Only curated authoritative public sources are accepted as architecture evidence.',
-    sourcePolicyVersion: 'GEAS-AUTHORITY-1',
+    sourcePolicyVersion: 'GEAS-AUTHORITY-2',
     evidencePolicy: 'Source availability and keyword matches are not claim verification. A pattern is labeled observed-fact only when its evidence status is claim-supported; absent claim-validation evidence remains UNKNOWN.',
     unknownPolicy: 'Missing or unavailable evidence remains UNKNOWN; no compliance is inferred from absence of evidence.',
     architectureStateModel: ['desired', 'declared', 'deployed', 'observed', 'verified'],
