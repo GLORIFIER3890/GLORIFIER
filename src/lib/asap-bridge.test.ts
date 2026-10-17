@@ -39,6 +39,16 @@ try {
   });
   if (unsafeIdentifier.allowed) throw new Error('control characters in identifiers must deny handoff');
 
+  const secretPayload = prepareAsapHandoff({ ...base, payload: { customer: 'example', api_key: 'must-not-forward' } }, {
+    featureEnabled: true, authenticated: true, geasAuthorized: true,
+  });
+  if (secretPayload.allowed) throw new Error('secret-like payload fields must be denied');
+
+  const oversizedPayload = prepareAsapHandoff({ ...base, payload: { data: 'x'.repeat(16_001) } }, {
+    featureEnabled: true, authenticated: true, geasAuthorized: true,
+  });
+  if (oversizedPayload.allowed) throw new Error('oversized payloads must be denied');
+
   const oversizedObjective = prepareAsapHandoff({ ...base, objective: 'x'.repeat(4_001) }, {
     featureEnabled: true, authenticated: true, geasAuthorized: true, humanApproved: true,
   });
