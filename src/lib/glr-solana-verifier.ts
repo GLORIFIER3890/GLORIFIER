@@ -1,3 +1,4 @@
+import { amountToBaseUnits, createRpcClient, parseSecureRpcUrl, type GLRTransferVerifierInput } from './glr-rpc-verifier-common';
 export const SOLANA_GLR_MINT = '7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9';
 export const SOLANA_TOKEN_2022_PROGRAM = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 const MAINNET_GENESIS_HASH = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -16,20 +17,10 @@ export interface SolanaGLRVerification {
 }
 
 export function solanaGLRAmountToBaseUnits(amount: string): bigint {
-  if (!/^[0-9]+(?:\.[0-9]{1,9})?$/.test(amount)) {
-    throw new Error('GLR amount must be a decimal string with at most 9 decimals on Solana');
-  }
-  const [whole, fraction = ''] = amount.split('.');
-  return BigInt(whole) * 10n ** 9n + BigInt((fraction + '0'.repeat(9)).slice(0, 9));
+  return amountToBaseUnits(amount, 9, 'Solana GLR');
 }
 
-export async function verifySolanaGLRTransfer(input: {
-  transactionHash: string;
-  expectedAmount: string;
-  expectedPayerWallet: string;
-  fetchImpl?: typeof fetch;
-  env?: Record<string, string | undefined>;
-}): Promise<SolanaGLRVerification> {
+export async function verifySolanaGLRTransfer(input: GLRTransferVerifierInput): Promise<SolanaGLRVerification> {
   const env = input.env ?? process.env;
   const fetchImpl = input.fetchImpl ?? fetch;
   const signature = input.transactionHash.trim();
@@ -41,25 +32,8 @@ export async function verifySolanaGLRTransfer(input: {
   const recipient = String(env.GLR_SOLANA_PAYMENT_RECIPIENT || '').trim();
   if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient)) throw new Error('Solana GLR payment recipient is not configured; verification is disabled');
   const rpcUrl = String(env.GLR_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com').trim();
-  let parsedRpcUrl: URL;
-  try { parsedRpcUrl = new URL(rpcUrl); } catch { throw new Error('Solana RPC URL is invalid'); }
-  if (parsedRpcUrl.protocol !== 'https:' || !parsedRpcUrl.hostname || parsedRpcUrl.username || parsedRpcUrl.password) {
-    throw new Error('Solana RPC URL must use HTTPS and must not contain credentials');
-  }
-  let requestId = 0;
-  const rpc = async (method: string, params: unknown[]) => {
-    const response = await fetchImpl(rpcUrl, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: ++requestId, method, params }),
-      redirect: 'error',
-      signal: AbortSignal.timeout(10000)
-    });
-    if (!response.ok) throw new Error('Solana RPC request failed');
-    const payload: any = await response.json();
-    if (payload?.error || !('result' in (payload || {}))) throw new Error('Solana RPC returned an invalid response');
-    return payload.result;
-  };
+  const parsedRpcUrl = parseSecureRpcUrl(rpcUrl, 'Solana');
+  const rpc = createRpcClient(parsedRpcUrl.href, 'Solana', fetchImpl, 10000);
 
   const genesisHash = String(await rpc('getGenesisHash', []));
   if (genesisHash !== MAINNET_GENESIS_HASH) throw new Error('Configured RPC is not Solana mainnet-beta');
