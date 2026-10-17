@@ -65,6 +65,26 @@ const SAFE_IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const isSafeIdentifier = (value: unknown): value is string =>
   typeof value === 'string' && SAFE_IDENTIFIER.test(value.trim());
 
+// Payloads are untrusted input. Reject secret-like fields and bound serialized size
+// before a future transport adapter can forward anything outside GLORIFIER.
+const SENSITIVE_PAYLOAD_KEY = /(?:secret|password|token|api[_-]?key|private[_-]?key|authorization|cookie|credential|mnemonic|seed[_-]?phrase|signing[_-]?key)/i;
+function validatePayload(value: unknown): boolean {
+  let serialized: string;
+  try { serialized = JSON.stringify(value ?? null); } catch { return false; }
+  if (serialized.length > 16_000) return false;
+  const visit = (item: unknown, depth: number): boolean => {
+    if (depth > 8) return false;
+    if (Array.isArray(item)) return item.length <= 100 && item.every(entry => visit(entry, depth + 1));
+    if (item && typeof item === 'object') {
+      const entries = Object.entries(item as Record<string, unknown>);
+      return entries.length <= 100 && entries.every(([key, child]) =>
+        !SENSITIVE_PAYLOAD_KEY.test(key) && visit(child, depth + 1));
+    }
+    return item === null || ['string', 'number', 'boolean'].includes(typeof item);
+  };
+  return visit(value ?? null, 0);
+}
+
 export function isAsapIntegrationEnabled(value = process.env.GLORIFIER_ASAP_ENABLED): boolean {
   return String(value ?? '').trim().toLowerCase() === 'true';
 }
@@ -97,6 +117,9 @@ export function prepareAsapHandoff(
   }
   if (candidate.objective.length > 4_000 || candidate.capability.length > 128) {
     return { allowed: false, status: 'BLOCKED', reason: 'Objective or capability exceeds the supported length limit.' };
+  }
+  if (!validatePayload(candidate.payload)) {
+    return { allowed: false, status: 'BLOCKED', reason: 'Payload is malformed, oversized, too deeply nested, or contains a prohibited sensitive field.' };
   }
   if (!authorization.authenticated) {
     return { allowed: false, status: 'BLOCKED', reason: 'Caller identity is not authenticated.' };
