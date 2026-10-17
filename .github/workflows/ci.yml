@@ -52,6 +52,9 @@ jobs:
       - name: Type-check
         run: npm run lint
 
+      - name: ASAP Protocol governance boundary regression tests
+        run: npm run test:asap-bridge
+
       - name: Protected API path case-insensitivity regression tests
         run: npm run test:protected-api-paths
       - name: LlamaCloud integration tests
