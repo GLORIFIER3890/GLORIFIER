@@ -63,6 +63,9 @@ jobs:
       - name: Internal-service authentication regression tests
         run: npm run test:backend-auth
 
+      - name: LangSmith metadata-only tracing tests
+        run: npx tsx src/lib/observability/langsmith.test.ts
+
       - name: Agent harness approval tests
         run: npm run test:harness
 
