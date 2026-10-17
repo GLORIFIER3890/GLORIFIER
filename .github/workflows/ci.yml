@@ -57,8 +57,6 @@ jobs:
 
       - name: Protected API path case-insensitivity regression tests
         run: npm run test:protected-api-paths
-      - name: Protected API path case-insensitivity regression tests
-        run: npm run test:protected-api-paths
       - name: LlamaCloud integration tests
         run: npm run test:llama-cloud
 
