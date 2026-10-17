@@ -69,9 +69,9 @@ const isSafeIdentifier = (value: unknown): value is string =>
 // before a future transport adapter can forward anything outside GLORIFIER.
 const SENSITIVE_PAYLOAD_KEY = /(?:secret|password|token|api[_-]?key|private[_-]?key|authorization|cookie|credential|mnemonic|seed[_-]?phrase|signing[_-]?key)/i;
 function validatePayload(value: unknown): boolean {
-  let serialized: string;
+  let serialized: string | undefined;
   try { serialized = JSON.stringify(value ?? null); } catch { return false; }
-  if (serialized.length > 16_000) return false;
+  if (typeof serialized !== 'string' || serialized.length > 16_000) return false;
   const visit = (item: unknown, depth: number): boolean => {
     if (depth > 8) return false;
     if (Array.isArray(item)) return item.length <= 100 && item.every(entry => visit(entry, depth + 1));
