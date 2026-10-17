@@ -28,6 +28,16 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === 'string' && value.trim().length > 0;
+const normalizeHttpsUrl = (value: unknown): string | null => {
+  if (!isNonEmptyString(value)) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:' || !url.hostname || url.username || url.password) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+};
 
 if (!isRecord(parsed)) {
   failures.push('registry must be a JSON object');
@@ -49,6 +59,9 @@ if (!isRecord(parsed)) {
     }
 
     const source = item as Partial<Source>;
+    if (Object.prototype.hasOwnProperty.call(item, 'aliasOf') && !isNonEmptyString(source.aliasOf)) {
+      failures.push(`source ${source.id ?? index}: aliasOf must be a non-empty source ID when provided`);
+    }
     if (!isNonEmptyString(source.id)) {
       failures.push(`source at index ${index}: id missing`);
     } else if (ids.has(source.id)) {
@@ -60,27 +73,16 @@ if (!isRecord(parsed)) {
     if (!isNonEmptyString(source.authority)) failures.push(`source ${source.id ?? index}: authority missing`);
     if (!isNonEmptyString(source.domain)) failures.push(`source ${source.id ?? index}: domain missing`);
 
-    let validHttpsUrl = false;
-    if (isNonEmptyString(source.url)) {
-      try {
-        const url = new URL(source.url);
-        validHttpsUrl = url.protocol === 'https:' && url.hostname.length > 0;
-      } catch {
-        validHttpsUrl = false;
-      }
-    }
-    if (!validHttpsUrl) failures.push(`source ${source.id ?? index}: valid HTTPS URL required`);
-    if (validHttpsUrl && isNonEmptyString(source.url)) {
-      const priorOwner = urlOwners.get(source.url);
+    const normalizedUrl = normalizeHttpsUrl(source.url);
+    if (!normalizedUrl) failures.push(`source ${source.id ?? index}: valid HTTPS URL required`);
+    if (normalizedUrl) {
+      const priorOwner = urlOwners.get(normalizedUrl);
       if (priorOwner) {
         if (source.aliasOf !== priorOwner) failures.push(`source ${source.id ?? index}: duplicate URL must explicitly alias ${priorOwner}`);
       } else {
-        urlOwners.set(source.url, source.id ?? String(index));
+        urlOwners.set(normalizedUrl, source.id ?? String(index));
         if (source.aliasOf) failures.push(`source ${source.id ?? index}: aliasOf must reference the first registry entry for its URL`);
       }
-    }
-    if (Object.prototype.hasOwnProperty.call(item, 'aliasOf') && !isNonEmptyString(source.aliasOf)) {
-      failures.push(`source ${source.id ?? index}: aliasOf must be a non-empty source ID when provided`);
     }
 
     if (!Array.isArray(source.claimsAllowed)
@@ -125,7 +127,7 @@ if (!sourceSection) {
     if (source.aliasOf) {
       const target = (parsed as Registry).sources.find((candidate) => candidate.id === source.aliasOf);
       if (!target) failures.push(`source ${source.id}: aliasOf target ${source.aliasOf} does not exist`);
-      else if (target.url !== source.url || target.id === source.id) failures.push(`source ${source.id}: aliasOf target must be a different source with the same URL`);
+      else if (normalizeHttpsUrl(target.url) !== normalizeHttpsUrl(source.url) || target.id === source.id) failures.push(`source ${source.id}: aliasOf target must be a different source with the same normalized URL`);
     }
     if (source.scannerStatus === 'active' && !scannerIdSet.has(source.id)) {
       failures.push(`registry source ${source.id} is marked active but missing from scanner catalog`);
