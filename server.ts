@@ -213,19 +213,6 @@ app.use((req: Request, res: Response, next) => {
 app.use('/api', (req: Request, res: Response, next) => {
   if (req.method === 'OPTIONS') return next();
   const pathName = req.path || '';
-  const protectedRead = [
-    '/payouts',
-    '/monetization/subscription',
-    '/connections',
-    '/llama-cloud',
-    '/agents',
-    '/governance',
-    '/control-plane',
-    '/app-state',
-    '/auth/session',
-    // Payment-intent reads expose payer/payee and settlement metadata; require identity.
-    '/economy/glr/intents'
-  ].some(prefix => pathName === prefix || pathName.startsWith(prefix + '/'));
   const protectedRead = isProtectedApiReadPath(req.path || '');
   if ((req.method === 'GET' || req.method === 'HEAD') && !protectedRead) return next();
   return requireAuthentication(req as any, res, next);
