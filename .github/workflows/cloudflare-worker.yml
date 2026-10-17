@@ -1,0 +1,64 @@
+name: GLORIFIER Cloudflare Worker
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: glorifier-cloudflare-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Type-check
+        run: npm run lint
+
+      - name: Build public frontend for Cloudflare root paths
+        run: npm run build:frontend
+        env:
+          CLOUDFLARE_BUILD: "true"
+
+      - name: Verify static output
+        run: test -s dist/index.html
+
+      - name: Deploy Cloudflare Worker
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_DEPLOY_ENABLED: ${{ vars.CLOUDFLARE_DEPLOY_ENABLED }}
+        run: |
+          set -euo pipefail
+          if [[ "${CLOUDFLARE_DEPLOY_ENABLED:-}" != "true" ]]; then
+            echo "Cloudflare deployment is build-only until repository variable CLOUDFLARE_DEPLOY_ENABLED=true is explicitly enabled."
+            exit 0
+          fi
+          if [[ -z "${CLOUDFLARE_API_TOKEN:-}" || -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+            echo "::error::Cloudflare deploy is enabled but CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID is missing."
+            exit 1
+          fi
+          npx --yes wrangler@4 deploy
