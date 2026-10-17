@@ -254,7 +254,7 @@ const SOURCES: ArchitectureSource[] = [
     id: 'google-architecture',
     authority: 'Google Cloud',
     domain: 'cloud',
-    url: 'https://cloud.google.com/architecture',
+    url: 'https://docs.cloud.google.com/architecture/',
     patternIds: ['federated-data-access'],
     cadenceHours: 168,
   },
