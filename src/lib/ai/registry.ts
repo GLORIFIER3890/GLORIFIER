@@ -406,13 +406,21 @@ export const summarizeProviderRegistryTrace = (result: ProviderExecutionResult):
   errorCount: result.errors.length,
 });
 
-/** Execute providers in governed order with bounded retries and one discovery refresh. */
-export const executeThroughProviderRegistry = async (
+/** Apply the real registry metadata allowlist to an execution result before tracing it. */
+export const withProviderRegistryTrace = (
   request: ProviderExecutionRequest,
+  operation: () => Promise<ProviderExecutionResult>,
 ): Promise<ProviderExecutionResult> => withLangSmithTrace(
   'GLORIFIER Provider Registry',
   buildProviderRegistryTraceInputs(request),
-  async () => {
+  operation,
+  summarizeProviderRegistryTrace,
+);
+
+/** Execute providers in governed order with bounded retries and one discovery refresh. */
+export const executeThroughProviderRegistry = async (
+  request: ProviderExecutionRequest,
+): Promise<ProviderExecutionResult> => withProviderRegistryTrace(request, async () => {
     const policy = resolveExecutionPolicy(request);
     assertGovernedFallbackPolicy(policy);
     const connected = getConnectedProviders();
@@ -427,6 +435,4 @@ export const executeThroughProviderRegistry = async (
     const refreshed = await tryDiscoveryRefresh(request, policy, discovery, state);
     if (refreshed) return buildExecutionResult(refreshed.provider, refreshed.response, state);
     return buildExecutionResult('provider-registry-exhausted', undefined, state);
-  },
-  summarizeProviderRegistryTrace,
-);
+  });
