@@ -113,11 +113,10 @@ if (!sourceSection) {
 } else {
   const scannerIds = [...sourceSection.matchAll(/\bid:\s*'([^']+)'/g)].map((match) => match[1]);
   const scannerIdSet = new Set(scannerIds);
-  const scannerSourceEntries = sourceSection.split(/\n\s*\},\s*/).map((entry) => {
-    const id = entry.match(/\bid:\s*'([^']+)'/)?.[1];
-    const url = entry.match(/\burl:\s*'([^']+)'/)?.[1] ?? '';
-    return id ? { id, url } : null;
-  }).filter((entry): entry is { id: string; url: string } => entry !== null);
+  const scannerSourceEntries = [...sourceSection.matchAll(/\{\s*id:\s*'([^']+)'([^{}]*)\}/g)].map((match) => ({
+    id: match[1],
+    url: match[2].match(/\burl:\s*'([^']+)'/)?.[1] ?? '',
+  }));
   const scannerUrls = new Map(scannerSourceEntries.map((entry) => [entry.id, entry.url]));
   if (scannerSourceEntries.length !== scannerIds.length) failures.push('unable to parse each scanner source URL within its source object');
   if (scannerIds.length === 0) failures.push('scanner source catalog is empty');
