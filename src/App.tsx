@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
+import { newId } from './lib/new-id';
 import { Header } from './components/Header';
 import { ModuleErrorBoundary } from './components/ModuleErrorBoundary';
 import { OverviewTab } from './components/OverviewTab';
@@ -357,7 +358,7 @@ export default function App() {
       ...prev,
       sentinelLogs: [
         {
-          id: `log-${Date.now()}`,
+          id: newId('log'),
           timestamp: new Date().toLocaleTimeString(),
           action: 'DELETE',
           details: `Error [${errorId}] purged by user from active monitoring alerts.`,
@@ -382,7 +383,7 @@ export default function App() {
       ...prev,
       sentinelLogs: [
         {
-          id: `log-${Date.now()}`,
+          id: newId('log'),
           timestamp: new Date().toLocaleTimeString(),
           action: 'DETECT',
           details: `Diagnostic watch probe created: ${newErr.code} (${newErr.source}).`,
