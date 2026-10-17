@@ -13,7 +13,8 @@
         "task-delegation"
       ],
       "reviewCadenceDays": 7,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "discovery-only"
     },
     {
       "id": "aws-well-architected",
@@ -24,7 +25,8 @@
         "cross-cutting-cloud-controls"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "cncf-dapr-agents",
@@ -35,7 +37,8 @@
         "durable-agent-execution"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "cncf-kyverno",
@@ -46,7 +49,8 @@
         "policy-as-code"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "ethereum-security",
@@ -58,7 +62,8 @@
         "independent-testing"
       ],
       "reviewCadenceDays": 30,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "discovery-only"
     },
     {
       "id": "etsi-edge",
@@ -69,7 +74,8 @@
         "edge-degradation"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "etsi-eni",
@@ -80,7 +86,8 @@
         "federated-continuum"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "finops-focus",
@@ -91,7 +98,8 @@
         "cost-outcome-accounting"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "finops-focus-1-4",
@@ -102,7 +110,8 @@
         "cost-outcome-accounting"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "finops-framework",
@@ -114,7 +123,8 @@
         "cost-value-outcomes"
       ],
       "reviewCadenceDays": 30,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "discovery-only"
     },
     {
       "id": "google-architecture",
@@ -125,7 +135,8 @@
         "federated-data-access"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "google-sre-workbook",
@@ -136,7 +147,8 @@
         "slo-error-budget-release-gates"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "ietf-http-problem-details",
@@ -147,7 +159,8 @@
         "standard-api-error-contracts"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "ietf-oauth-security",
@@ -158,7 +171,8 @@
         "oauth-security-best-practice"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "ietf-rfcs",
@@ -169,7 +183,8 @@
         "protocol-neutral-interoperability"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "iso-42001",
@@ -180,7 +195,8 @@
         "ai-management-system"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "mcp-spec-2026-07-28",
@@ -193,7 +209,8 @@
         "extension-negotiation"
       ],
       "reviewCadenceDays": 7,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "discovery-only"
     },
     {
       "id": "mcp-spec-versioning",
@@ -205,7 +222,8 @@
         "unsupported-version-fallback"
       ],
       "reviewCadenceDays": 7,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "discovery-only"
     },
     {
       "id": "microsoft-architecture",
@@ -216,7 +234,8 @@
         "cross-cutting-cloud-controls"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "mitre-atlas",
@@ -227,7 +246,8 @@
         "adversarial-ai-controls"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "nist-ai-agents",
@@ -238,7 +258,8 @@
         "agent-identity-delegation"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "nist-ai-rmf",
@@ -250,7 +271,8 @@
         "lifecycle-risk-management"
       ],
       "reviewCadenceDays": 30,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "nist-blockchain",
@@ -261,7 +283,8 @@
         "selective-trust-anchoring"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "nist-csf",
@@ -272,7 +295,8 @@
         "identity-risk-controls"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "nist-csf-2",
@@ -284,7 +308,8 @@
         "risk-management"
       ],
       "reviewCadenceDays": 30,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "discovery-only"
     },
     {
       "id": "nist-iot",
@@ -295,7 +320,8 @@
         "iot-device-boundaries"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "nist-iot-cybersecurity",
@@ -307,7 +333,8 @@
         "device-lifecycle-security"
       ],
       "reviewCadenceDays": 30,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "discovery-only"
     },
     {
       "id": "nist-ssdf",
@@ -318,7 +345,8 @@
         "software-supply-chain"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "nist-token-protection",
@@ -329,7 +357,8 @@
         "token-lifecycle-protection"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "nist-traceability",
@@ -340,7 +369,8 @@
         "provenance-graph"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "nist-zero-trust",
@@ -351,7 +381,8 @@
         "zero-trust-resource-access"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "opengroup-togaf",
@@ -362,7 +393,8 @@
         "enterprise-architecture-traceability"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "openssf-scorecard",
@@ -373,7 +405,8 @@
         "open-source-supply-chain-risk"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "opentelemetry-docs",
@@ -385,7 +418,8 @@
         "distributed-context"
       ],
       "reviewCadenceDays": 30,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "discovery-only"
     },
     {
       "id": "opentelemetry-semconv",
@@ -396,7 +430,8 @@
         "vendor-neutral-telemetry"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "otel-genai-agents",
@@ -407,7 +442,8 @@
         "genai-agent-telemetry"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "owasp-agent-control",
@@ -418,7 +454,8 @@
         "runtime-agent-controls"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "owasp-api-security",
@@ -430,7 +467,8 @@
         "api-resource-limits"
       ],
       "reviewCadenceDays": 30,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "discovery-only"
     },
     {
       "id": "slsa-specification",
@@ -442,7 +480,8 @@
         "artifact-integrity"
       ],
       "reviewCadenceDays": 30,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "discovery-only"
     },
     {
       "id": "slsa-v1-2",
@@ -453,7 +492,8 @@
         "build-provenance"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     },
     {
       "id": "w3c-vc",
@@ -464,7 +504,8 @@
         "verifiable-credentials"
       ],
       "reviewCadenceDays": 14,
-      "implementationStatus": "not-assessed"
+      "implementationStatus": "not-assessed",
+      "scannerStatus": "active"
     }
   ]
 }
