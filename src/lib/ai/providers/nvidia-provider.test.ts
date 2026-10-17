@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert';
-import { OpenAICompatibleProvider } from './openai-compatible';
+import { getProvider } from '../registry';
 
 const MODEL = 'nvidia/nemotron-3.5-super-vl-120b-a12b';
 const originalKey = process.env.NVIDIA_API_KEY;
@@ -12,16 +12,7 @@ try {
   process.env.NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1';
   delete process.env.NVIDIA_MODEL;
 
-  const provider = new OpenAICompatibleProvider({
-    id: 'nvidia',
-    name: 'NVIDIA NIM / Nemotron',
-    apiKeyEnv: 'NVIDIA_API_KEY',
-    baseUrlEnv: 'NVIDIA_BASE_URL',
-    modelEnv: 'NVIDIA_MODEL',
-    defaultBaseUrl: 'https://integrate.api.nvidia.com/v1',
-    defaultModel: MODEL,
-  });
-
+  const provider = getProvider('nvidia');
   assert.equal(provider.status(), 'connected');
   assert.deepEqual(provider.models(), [MODEL]);
 
