@@ -44,7 +44,7 @@ jobs:
         run: |
           set -euo pipefail
           git -c http.extraheader="AUTHORIZATION: Basic $(printf 'user:%s' "$HF_SPACE_WRITE_TOKEN" | base64 -w0)" \
-            clone "https://huggingface.co/spaces/$HF_SPACE_ID" hf-space
+            clone "https://huggingface.co/spaces/$HF_SPACE_ID" "$RUNNER_TEMP/hf-space"
           rsync -a --delete \
             --exclude='.git/' \
             --exclude='.github/' \
@@ -53,8 +53,8 @@ jobs:
             --exclude='dist/' \
             --exclude='coverage/' \
             --exclude='android/' \
-            ./ hf-space/
-          cat > hf-space/README.md <<'SPACE_README'
+            ./ "$RUNNER_TEMP/hf-space/"
+          cat > "$RUNNER_TEMP/hf-space/README.md" <<'SPACE_README'
           ---
           title: GLORIFIER
           emoji: 🧠
@@ -76,7 +76,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cd hf-space
+          cd "$RUNNER_TEMP/hf-space"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
