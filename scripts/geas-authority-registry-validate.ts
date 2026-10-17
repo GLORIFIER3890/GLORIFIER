@@ -79,7 +79,9 @@ if (!isRecord(parsed)) {
         if (source.aliasOf) failures.push(`source ${source.id ?? index}: aliasOf must reference the first registry entry for its URL`);
       }
     }
-    if (source.aliasOf && !isNonEmptyString(source.aliasOf)) failures.push(`source ${source.id ?? index}: aliasOf must be a non-empty source ID`);
+    if (Object.prototype.hasOwnProperty.call(item, 'aliasOf') && !isNonEmptyString(source.aliasOf)) {
+      failures.push(`source ${source.id ?? index}: aliasOf must be a non-empty source ID when provided`);
+    }
 
     if (!Array.isArray(source.claimsAllowed)
       || source.claimsAllowed.length === 0
