@@ -40,3 +40,10 @@ The canonical identity file, runtime asset-registry seed, current registry docum
 A public Solscan lookup now returns the `HChmY7` signature as a successful, finalized transaction minting 1,000,000,000 GLR to the canonical mint account: [Solscan transaction](https://solscan.io/tx/Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChmY7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa). The `HChyV7` candidate returns “unable to locate this tx hash”: [Solscan lookup](https://solscan.io/tx/Ast4qmsxwCDcA5eLjrNJ4QH6q9H7GwdAi1CwFMDgCySVHChyV7MEdz8vdfpszFn3SqSyF95fejgLyzMeU9aswQa).
 
 This is useful corroborating explorer evidence, but it is not yet the direct finalized Solana RPC reconciliation required by the acceptance gate. Keep the canonical signature unset and the overall status `PARTIALLY_VERIFIED` until `getTransaction` / signature-status data from a trusted mainnet RPC confirms the successful finalized transaction and the registry files are reconciled in one reviewed change.
+
+
+## Direct finalized RPC reconciliation — 2026-10-17
+
+A read-only JSON-RPC `getTransaction` request to `https://api.mainnet-beta.solana.com` with `commitment: finalized`, `maxSupportedTransactionVersion: 0`, and `encoding: jsonParsed` returned the HChmY7 candidate at slot `454519862`, block time `1791455822`, `meta.err: null`, and fee `5000` lamports. The parsed instruction is Token-2022 `mintToChecked`, targeting canonical mint `7Mqd7dSqbE4pgQvozYdCQ1EMABj2ecTrUxLTHceBvkv9`, amount `1000000000000000000` base units (1,000,000,000 GLR), decimals `9`. The same endpoint returned `result: null` for the HChyV7 candidate.
+
+A second public RPC endpoint (`https://solana-rpc.publicnode.com`) returned `result: null` for HChmY7, which may reflect provider retention/indexing and is not treated as proof that the transaction did not exist. The successful finalized response on the first endpoint supports HChmY7 as the canonical mint transaction; keep overall status `PARTIALLY_VERIFIED` until an independent reviewer and the provenance CI gate confirm the cross-file reconciliation. No transaction was submitted and no on-chain state was changed.
