@@ -35,6 +35,17 @@ if (identity.cross_file_provenance_status === 'VERIFIED') {
   assert.equal(runtimeStatus, 'fully_verified', 'runtime status must match verified canonical provenance');
   assert.equal(identity.mint_transaction, provenance.mintTransaction, 'identity and deployment provenance must match');
   assert.equal(identity.mint_transaction, runtimeMintTransaction, 'identity and runtime registry must match');
+} else if (identity.cross_file_provenance_status === 'PARTIALLY_VERIFIED') {
+  assert.equal(identity.status, 'PARTIALLY_VERIFIED', 'partial provenance must not claim full verification');
+  assert.equal(identity.mainnet_status, 'PARTIALLY_VERIFIED');
+  assert.equal(runtimeStatus, 'partially_verified', 'runtime status must remain partial pending independent review');
+  assert.ok(identity.mint_transaction, 'RPC-supported canonical transaction must be recorded for review');
+  assert.equal(identity.mint_transaction, provenance.mintTransaction, 'identity and deployment provenance must match');
+  assert.equal(identity.mint_transaction, runtimeMintTransaction, 'identity and runtime registry must match');
+  for (const signature of disputedSignatures) {
+    assert.ok(identity.reported_mint_transaction_signatures.includes(signature),
+      'both historical signature candidates must remain recorded as audit evidence');
+  }
 } else {
   assert.equal(
     identity.cross_file_provenance_status,
