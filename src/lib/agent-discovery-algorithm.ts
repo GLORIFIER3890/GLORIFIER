@@ -101,31 +101,3 @@ export async function recommendAgents(query: AgentDiscoveryQuery = {}): Promise<
   return scored.sort((a, b) => b.score - a.score).slice(0, limit);
 }
 
-export function getAgentNetworkAttractionPolicy() {
-  return {
-    name: 'GLORIFIER Agent Network Discovery Algorithm',
-    objective: 'Maximize useful, safe, evidence-backed agent connections.',
-    rankingSignals: {
-      capabilityRelevance: 0.40,
-      verifiedEvidence: 0.22,
-      protocolCompatibility: 0.15,
-      ecosystemDiversity: 0.13,
-      exploration: 0.10
-    },
-    excludedSignal: 'raw popularity as a standalone ranking factor',
-    safety: [
-      'discovery does not authorize execution',
-      'credentials are never exposed to agents',
-      'high-risk actions remain governed by GEAS and human authority',
-      'unverified claims are not converted into revenue or trust'
-    ],
-    openDiscoverySurfaces: [
-      '/.well-known/a2a-agent-card.json',
-      '/.well-known/glorifier-agent.json',
-      '/api/a2a/manifest',
-      '/api/a2a/capabilities',
-      '/api/agents/discover',
-      '/api/agents/register'
-    ]
-  };
-}
