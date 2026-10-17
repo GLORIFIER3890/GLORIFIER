@@ -12,10 +12,12 @@ export function amountToBaseUnits(amount: string, decimals: number, label: strin
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 30) {
     throw new Error('Token decimals must be an integer between 0 and 30');
   }
-  const pattern = decimals === 0
-    ? /^(?:0|[1-9]\\d*)$/
-    : new RegExp(`^(?:0|[1-9]\\d*)(?:\\.\\d{1,${decimals}})?$`);
-  if (!pattern.test(amount)) {
+  const parts = amount.split('.');
+  const validWhole = /^(?:0|[1-9][0-9]*)$/.test(parts[0] || '');
+  const validFraction = parts.length === 1
+    || (decimals > 0 && parts.length === 2 && parts[1].length > 0
+      && parts[1].length <= decimals && /^[0-9]+$/.test(parts[1]));
+  if (!validWhole || !validFraction) {
     throw new Error(`${label} amount must be a decimal string with at most ${decimals} decimals`);
   }
   const [whole, fraction = ''] = amount.split('.');
