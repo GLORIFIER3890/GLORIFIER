@@ -591,6 +591,21 @@ export function isSourceObservationDue(cadenceHours: number, observedAt: string 
   return nowMs - observedMs >= cadenceHours * 60 * 60 * 1000;
 }
 
+export function shouldReuseSourceObservation(input: {
+  configuredUrl: string;
+  cachedUrl: string | null | undefined;
+  ok: boolean;
+  cadenceHours: number;
+  observedAt: string | null | undefined;
+  nowMs?: number;
+}): boolean {
+  // URL changes invalidate prior evidence immediately; failures retry hourly instead of waiting for the normal cadence.
+  if (!input.cachedUrl || input.cachedUrl !== input.configuredUrl) return false;
+  const nowMs = input.nowMs ?? Date.now();
+  if (!input.ok && isSourceObservationDue(1, input.observedAt, nowMs)) return false;
+  return !isSourceObservationDue(input.cadenceHours, input.observedAt, nowMs);
+}
+
 function extractEvidence(body: string, keywords: string[]) {
   const text = stripHtml(body);
   const lower = text.toLowerCase();
@@ -1053,9 +1068,7 @@ export async function runGeasArchitectureScan(): Promise<ArchitectureScanResult>
   const nowMs = Date.now();
   const sources = await Promise.all(SOURCES.map(async (source) => {
     const cached = previous.get(source.id);
-    const sourceUrlChanged = Boolean(cached && cached.source_url !== source.url);
-    const retryFailedObservation = Boolean(cached && !cached.ok && isSourceObservationDue(1, cached.observed_at, nowMs));
-    if (cached && !sourceUrlChanged && !retryFailedObservation && !isSourceObservationDue(source.cadenceHours, cached.observed_at, nowMs)) {
+    if (cached && shouldReuseSourceObservation({ configuredUrl: source.url, cachedUrl: cached.source_url, ok: cached.ok, cadenceHours: source.cadenceHours, observedAt: cached.observed_at, nowMs })) {
       return {
         sourceId: source.id,
         ok: cached.ok,
