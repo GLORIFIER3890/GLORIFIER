@@ -45,6 +45,27 @@ jobs:
       - name: Build Ubuntu runtime image
         run: docker build --pull --file Dockerfile.ubuntu --tag glorifier/glorifier:ubuntu-pr-${{ github.event.pull_request.number }} .
 
+      - name: Smoke test Ubuntu runtime health endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          container="glorifier-ubuntu-smoke-${{ github.event.pull_request.number }}"
+          cleanup() {
+            docker logs "$container" 2>/dev/null || true
+            docker rm --force "$container" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          docker run --detach --name "$container" --publish 3000:3000 --env PORT=3000 glorifier/glorifier:ubuntu-pr-${{ github.event.pull_request.number }}
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/api/health; then
+              echo "Ubuntu runtime started and /api/health returned success."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Ubuntu runtime did not return a healthy response within 60 seconds."
+          exit 1
+
       - name: Report all image vulnerabilities (non-blocking)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
