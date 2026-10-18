@@ -1,8 +1,6 @@
 /**
- * Create a namespaced identifier with collision resistance across rapid calls.
- * Uses the Web Crypto API, available in modern browsers and supported Node.js
- * runtimes, so importing this helper does not pull Node-only modules into the
- * frontend bundle.
+ * Normalize a caller-provided prefix using a single linear pass.
+ * Runs of unsupported characters become one hyphen; edge hyphens are removed.
  */
 function normalizePrefix(prefix: string): string {
   const characters: string[] = [];
@@ -33,6 +31,10 @@ function normalizePrefix(prefix: string): string {
   return characters.slice(start, end).join('');
 }
 
+/**
+ * Create a namespaced identifier with collision resistance across rapid calls.
+ * Uses the Web Crypto API without importing Node-only modules into the frontend.
+ */
 export function newId(prefix: string): string {
   const normalizedPrefix = normalizePrefix(prefix);
   if (!normalizedPrefix) throw new Error('ID prefix must contain at least one alphanumeric character');
