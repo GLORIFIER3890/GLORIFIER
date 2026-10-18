@@ -57,6 +57,21 @@ jobs:
           jq '.status = "NOT VERIFIED" | .canonical_mint = null | .creation_transaction = null | .mint_transaction = null | .authority_revocation_transaction = null' solana/canonical-devnet-identity.json > "$temp_identity"
           # Prove a clean initial identity can pass even when no recovery record exists.
           bash solana/validate-devnet-identity-contract.sh "$temp_identity" "$temp_recovery"
+          # Exercise recovery with true JSON null receipts, not only the legacy string "null".
+          jq '.status = "VERIFIED_ON_CHAIN"
+              | .canonical_mint = "8W7eSf3hPyRMFJGKbCvwb9QMq6uok6rxSnRZqofeqnyd"
+              | .creation_transaction = null
+              | .mint_transaction = null
+              | .authority_revocation_transaction = null
+              | .transaction_semantics_verified = false
+              | .verification_run_id = "ci-fixture"
+              | .verification_run_url = "https://github.com/GLORIFIER7/GLORIFIER/actions"
+              | .mainnet_status = "NOT VERIFIED"' solana/canonical-devnet-identity.json > "$temp_identity"
+          jq '.status = "DEPLOYED"
+              | .network = "solana-devnet"
+              | .programId = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+              | .mint = "8W7eSf3hPyRMFJGKbCvwb9QMq6uok6rxSnRZqofeqnyd"' solana/devnet-partial-mint-recovery.json > "$temp_recovery"
+          bash solana/validate-devnet-identity-contract.sh "$temp_identity" "$temp_recovery"
 
       - name: Type-check
         run: npm run lint
