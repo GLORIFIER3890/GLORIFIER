@@ -52,9 +52,11 @@ jobs:
           # Exercise both the existing exact-mint recovery state and a clean initial state.
           bash solana/validate-devnet-identity-contract.sh
           temp_identity="$(mktemp)"
-          trap 'rm -f "$temp_identity"' EXIT
+          temp_recovery="${temp_identity}.recovery.json"
+          trap 'rm -f "$temp_identity" "$temp_recovery"' EXIT
           jq '.status = "NOT VERIFIED" | .canonical_mint = null | .creation_transaction = null | .mint_transaction = null | .authority_revocation_transaction = null' solana/canonical-devnet-identity.json > "$temp_identity"
-          bash solana/validate-devnet-identity-contract.sh "$temp_identity"
+          # Prove a clean initial identity can pass even when no recovery record exists.
+          bash solana/validate-devnet-identity-contract.sh "$temp_identity" "$temp_recovery"
 
       - name: Type-check
         run: npm run lint
