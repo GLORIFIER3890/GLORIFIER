@@ -52,13 +52,9 @@ jobs:
           container="glorifier-ubuntu-smoke-${{ github.event.pull_request.number }}"
           postgres="glorifier-postgres-smoke-${{ github.event.pull_request.number }}"
           network="glorifier-smoke-${{ github.event.pull_request.number }}"
-          cleanup() {
-            docker logs "$container" 2>/dev/null || true
-            docker logs "$postgres" 2>/dev/null || true
-            docker rm --force "$container" "$postgres" >/dev/null 2>&1 || true
-            docker network rm "$network" >/dev/null 2>&1 || true
-          }
-          trap cleanup EXIT
+          # Keep cleanup commands directly in the EXIT trap so actionlint's
+          # embedded ShellCheck can correctly analyze the script.
+          trap 'docker logs "$container" 2>/dev/null || true; docker logs "$postgres" 2>/dev/null || true; docker rm --force "$container" "$postgres" >/dev/null 2>&1 || true; docker network rm "$network" >/dev/null 2>&1 || true' EXIT
 
           # Use a disposable, isolated database; never connect CI smoke tests to production.
           docker network create "$network"
