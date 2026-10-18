@@ -53,7 +53,8 @@ jobs:
           bash solana/validate-devnet-identity-contract.sh
           temp_identity="$(mktemp)"
           temp_recovery="${temp_identity}.recovery.json"
-          trap 'rm -f "$temp_identity" "$temp_recovery"' EXIT
+          temp_mismatch_recovery="${temp_identity}.mismatch-recovery.json"
+          trap 'rm -f "$temp_identity" "$temp_recovery" "$temp_mismatch_recovery"' EXIT
           jq '.status = "NOT VERIFIED" | .canonical_mint = null | .creation_transaction = null | .mint_transaction = null | .authority_revocation_transaction = null' solana/canonical-devnet-identity.json > "$temp_identity"
           # Prove a clean initial identity can pass even when no recovery record exists.
           bash solana/validate-devnet-identity-contract.sh "$temp_identity" "$temp_recovery"
@@ -72,6 +73,12 @@ jobs:
               | .programId = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
               | .mint = "8W7eSf3hPyRMFJGKbCvwb9QMq6uok6rxSnRZqofeqnyd"' solana/devnet-partial-mint-recovery.json > "$temp_recovery"
           bash solana/validate-devnet-identity-contract.sh "$temp_identity" "$temp_recovery"
+          # The validator must fail closed if the recovery record names another mint.
+          jq '.mint = "11111111111111111111111111111111"' "$temp_recovery" > "$temp_mismatch_recovery"
+          if bash solana/validate-devnet-identity-contract.sh "$temp_identity" "$temp_mismatch_recovery"; then
+            echo "ERROR: Validator accepted a mismatched recovery mint." >&2
+            exit 1
+          fi
 
       - name: Type-check
         run: npm run lint
