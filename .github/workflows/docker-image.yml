@@ -50,17 +50,48 @@ jobs:
         run: |
           set -euo pipefail
           container="glorifier-ubuntu-smoke-${{ github.event.pull_request.number }}"
-          # shellcheck disable=SC2034,SC2317
-          # The cleanup function is invoked indirectly through EXIT trap.
+          postgres="glorifier-postgres-smoke-${{ github.event.pull_request.number }}"
+          network="glorifier-smoke-${{ github.event.pull_request.number }}"
           cleanup() {
             docker logs "$container" 2>/dev/null || true
-            docker rm --force "$container" >/dev/null 2>&1 || true
+            docker logs "$postgres" 2>/dev/null || true
+            docker rm --force "$container" "$postgres" >/dev/null 2>&1 || true
+            docker network rm "$network" >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
-          docker run --detach --name "$container" --publish 3000:3000 --env PORT=3000 glorifier/glorifier:ubuntu-pr-${{ github.event.pull_request.number }}
+
+          # Use a disposable, isolated database; never connect CI smoke tests to production.
+          docker network create "$network"
+          docker run --detach --name "$postgres" --network "$network" \
+            --env POSTGRES_USER=glorifier_test \
+            --env POSTGRES_PASSWORD=glorifier_test_only \
+            --env POSTGRES_DB=glorifier_test \
+            --health-cmd "pg_isready -U glorifier_test -d glorifier_test" \
+            --health-interval 2s --health-timeout 5s --health-retries 30 \
+            postgres:16-alpine
+
+          for _ in $(seq 1 30); do
+            db_status="$(docker inspect --format '{{.State.Health.Status}}' "$postgres")"
+            if [ "$db_status" = "healthy" ]; then break; fi
+            if [ "$db_status" = "unhealthy" ]; then
+              echo "::error::Disposable PostgreSQL test service became unhealthy."
+              exit 1
+            fi
+            sleep 2
+          done
+          test "$(docker inspect --format '{{.State.Health.Status}}' "$postgres")" = "healthy" || {
+            echo "::error::Disposable PostgreSQL test service did not become healthy."
+            exit 1
+          }
+
+          docker run --detach --name "$container" --network "$network" --publish 3000:3000 \
+            --env PORT=3000 \
+            --env DATABASE_URL=postgresql://glorifier_test:glorifier_test_only@"$postgres":5432/glorifier_test \
+            glorifier/glorifier:ubuntu-pr-${{ github.event.pull_request.number }}
+
           for _ in $(seq 1 30); do
             if curl --fail --silent --show-error http://127.0.0.1:3000/api/health; then
-              echo "Ubuntu runtime started and /api/health returned success."
+              echo "Ubuntu runtime started with an isolated PostgreSQL service and /api/health returned success."
               exit 0
             fi
             sleep 2
@@ -68,8 +99,10 @@ jobs:
           echo "::error::Ubuntu runtime did not return a healthy response within 60 seconds."
           echo "Container state for diagnosis:"
           docker inspect --format 'status={{.State.Status}} exit={{.State.ExitCode}} error={{.State.Error}}' "$container" || true
-          echo "Container logs:"
+          echo "Application container logs:"
           docker logs "$container" || true
+          echo "PostgreSQL test service logs:"
+          docker logs "$postgres" || true
           exit 1
 
       - name: Report all image vulnerabilities (non-blocking)
