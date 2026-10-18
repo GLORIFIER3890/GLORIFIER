@@ -51,6 +51,9 @@ jobs:
       - name: Test claim-level evidence admission
         run: npm run test:geas-claim-verification
 
+      - name: Test five-state architecture reconciliation
+        run: npm run test:geas-state-reconciliation
+
       - name: Execute authoritative architecture scan
         run: npm run scan:geas-architecture
         env:
