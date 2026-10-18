@@ -23,8 +23,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     NPM_CONFIG_UPDATE_NOTIFIER=false \
     NPM_CONFIG_FUND=false
 
+# Install the shared libraries required by the official Node binary copied from Debian.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates libstdc++6 libgcc-s1 libatomic1 openssl passwd \
+ && apt-get install -y --no-install-recommends ca-certificates libstdc++6 libgcc-s1 libatomic1 libssl3t64 zlib1g passwd \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && groupadd --system --gid 10001 app \
@@ -41,4 +42,5 @@ COPY --from=build --chown=10001:10001 /app/package.json ./package.json
 
 USER 10001:10001
 EXPOSE 3000
+RUN /usr/local/bin/node --version
 CMD ["node", "./node_modules/tsx/dist/cli.mjs", "server.ts"]
