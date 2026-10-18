@@ -9,6 +9,8 @@ In **Settings → Environments**, create an environment named `databricks-readon
 - `DATABRICKS_HOST`: the HTTPS URL of the Databricks workspace, without an API path.
 - `DATABRICKS_CLIENT_ID`: the application/client ID of a dedicated Databricks service principal.
 
+Configure the environment's deployment-branch policy to **Selected branches and tags** and allow only the protected `main` branch. Require reviewer approval if appropriate for your repository. The workflow also checks that it was dispatched from `main` before the job can enter the environment. Do not rely on the OIDC subject alone to restrict branches.
+
 Do not add a personal access token or client secret for this OIDC workflow.
 
 ## 2. Databricks service principal and federation
@@ -35,7 +37,7 @@ On GitHub mobile or desktop:
 
 1. Open **Actions** in the GLORIFIER repository.
 2. Select **Databricks API Verification**.
-3. Tap **Run workflow**.
+3. Tap **Run workflow** from the protected `main` branch.
 4. Review the logs and the `Verify authenticated Databricks identity` step.
 
 A passing run confirms that this workflow authenticated and read the current Databricks identity. It does not prove SQL warehouse, job, file, or model-serving access.
