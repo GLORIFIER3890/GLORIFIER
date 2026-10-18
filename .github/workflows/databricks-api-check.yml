@@ -1,0 +1,46 @@
+name: Databricks API Verification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: databricks-api-verification
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify Databricks OIDC authentication
+    runs-on: ubuntu-latest
+    environment: databricks-readonly
+    timeout-minutes: 5
+    env:
+      DATABRICKS_AUTH_TYPE: github-oidc
+      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ vars.DATABRICKS_CLIENT_ID }}
+
+    steps:
+      - name: Validate configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$DATABRICKS_HOST" =~ ^https://[^/]+/?$ ]]; then
+            echo "::error::DATABRICKS_HOST must be an HTTPS workspace URL without a path."
+            exit 1
+          fi
+          if [[ ! "$DATABRICKS_CLIENT_ID" =~ ^[0-9a-fA-F-]{16,}$ ]]; then
+            echo "::error::DATABRICKS_CLIENT_ID is missing or does not look like an application ID."
+            exit 1
+          fi
+          echo "Required non-secret configuration is present."
+
+      - name: Install pinned Databricks CLI
+        uses: databricks/setup-cli@2bf4520fd10723ed5a22eca62a8c8a63714a7ba9
+        with:
+          version: 1.21.0
+
+      - name: Verify authenticated Databricks identity
+        run: databricks current-user me
