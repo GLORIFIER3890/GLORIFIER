@@ -19,9 +19,13 @@ if [[ ! -f "$RECOVERY_FILE" ]]; then
     and .token_standard == "Token-2022"
     and .program_id == "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
     and .status == "NOT VERIFIED"
+    and has("canonical_mint")
     and .canonical_mint == null
+    and has("creation_transaction")
     and .creation_transaction == null
+    and has("mint_transaction")
     and .mint_transaction == null
+    and has("authority_revocation_transaction")
     and .authority_revocation_transaction == null
   ' "$IDENTITY_FILE" >/dev/null || {
     echo "::error::Missing recovery record is permitted only for a clean NOT VERIFIED identity."
@@ -41,9 +45,13 @@ jq -e --slurpfile recovery "$RECOVERY_FILE" '
   and (
     (
       .status == "NOT VERIFIED"
+      and has("canonical_mint")
       and .canonical_mint == null
+      and has("creation_transaction")
       and .creation_transaction == null
+      and has("mint_transaction")
       and .mint_transaction == null
+      and has("authority_revocation_transaction")
       and .authority_revocation_transaction == null
     )
     or
