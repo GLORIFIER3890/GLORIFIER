@@ -48,6 +48,13 @@ jobs:
           bash -n solana/reconcile-token2022-mainnet.sh
           bash -n solana/publish-verified-mainnet-identity.sh
           jq -e '.asset=="GLORIFIER" and .symbol=="GLR" and .network=="solana-devnet" and .token_standard=="Token-2022"' solana/canonical-devnet-identity.json >/dev/null
+          bash -n solana/validate-devnet-identity-contract.sh
+          # Exercise both the existing exact-mint recovery state and a clean initial state.
+          bash solana/validate-devnet-identity-contract.sh
+          temp_identity="$(mktemp)"
+          trap 'rm -f "$temp_identity"' EXIT
+          jq '.status = "NOT VERIFIED" | .canonical_mint = null | .creation_transaction = null | .mint_transaction = null | .authority_revocation_transaction = null' solana/canonical-devnet-identity.json > "$temp_identity"
+          bash solana/validate-devnet-identity-contract.sh "$temp_identity"
 
       - name: Type-check
         run: npm run lint
