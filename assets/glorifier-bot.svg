@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">GLORIFIER Bot</title>
+  <desc id="desc">An original gold circuit G and radiant star on a midnight navy field.</desc>
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF0A8"/>
+      <stop offset="0.5" stop-color="#E7B84B"/>
+      <stop offset="1" stop-color="#B97819"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#0B1020"/>
+  <circle cx="256" cy="256" r="170" fill="none" stroke="#26314A" stroke-width="3"/>
+  <path d="M343 161A124 124 0 1 0 380 271H270" fill="none" stroke="url(#gold)" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M270 271V327H326" fill="none" stroke="#F7F7F2" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M368 92l12 31 31 12-31 12-12 31-12-31-31-12 31-12z" fill="#FFF0A8"/>
+  <circle cx="146" cy="350" r="12" fill="#F7F7F2"/>
+  <path d="M146 350h48v-28" fill="none" stroke="#F7F7F2" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
