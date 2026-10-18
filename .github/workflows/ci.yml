@@ -77,7 +77,7 @@ jobs:
           jq '.mint = "11111111111111111111111111111111"' "$temp_recovery" > "$temp_mismatch_recovery"
           [ -s "$temp_mismatch_recovery" ] || { echo "ERROR: Failed to create mismatch recovery fixture." >&2; exit 1; }
           jq -e '.mint == "11111111111111111111111111111111"' "$temp_mismatch_recovery" >/dev/null || { echo "ERROR: Mismatch recovery fixture is invalid." >&2; exit 1; }
-          if bash solana/validate-devnet-identity-contract.sh "$temp_identity" "$temp_mismatch_recovery";
+          if bash solana/validate-devnet-identity-contract.sh "$temp_identity" "$temp_mismatch_recovery"; then
             echo "ERROR: Validator accepted a mismatched recovery mint." >&2
             exit 1
           fi
