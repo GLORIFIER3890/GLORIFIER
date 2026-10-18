@@ -8,10 +8,27 @@ test -f "$IDENTITY_FILE" || {
   echo "::error::Missing canonical Devnet identity: $IDENTITY_FILE"
   exit 1
 }
-test -f "$RECOVERY_FILE" || {
-  echo "::error::Missing existing-mint recovery record: $RECOVERY_FILE"
-  exit 1
-}
+if [[ ! -f "$RECOVERY_FILE" ]]; then
+  # A missing recovery record is acceptable only for a genuinely clean initial state.
+  # The deployment workflow still applies its own replay lock before any mint operation.
+  jq -e '
+    .asset == "GLORIFIER"
+    and .symbol == "GLR"
+    and .network == "solana-devnet"
+    and .token_standard == "Token-2022"
+    and .program_id == "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+    and .status == "NOT VERIFIED"
+    and .canonical_mint == null
+    and .creation_transaction == null
+    and .mint_transaction == null
+    and .authority_revocation_transaction == null
+  ' "$IDENTITY_FILE" >/dev/null || {
+    echo "::error::Missing recovery record is permitted only for a clean NOT VERIFIED identity."
+    exit 1
+  }
+  echo "Solana Devnet identity preflight passed: clean initial state without a recovery record."
+  exit 0
+fi
 
 jq -e --slurpfile recovery "$RECOVERY_FILE" '
   .asset == "GLORIFIER"
