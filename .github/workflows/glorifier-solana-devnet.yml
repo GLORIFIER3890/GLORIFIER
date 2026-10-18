@@ -101,48 +101,7 @@ jobs:
             exit 1
           }
           
-          # Accept either a clean first-deployment identity or the already-published
-          # identity for the exact recovered mint. The latter is a resume/reconciliation
-          # path only: transaction receipts are still incomplete, so never create a new mint.
-          test -f solana/devnet-partial-mint-recovery.json || {
-            echo "::error::Missing the existing-mint recovery record; refusing deployment."
-            exit 1
-          }
-          jq -e --slurpfile recovery solana/devnet-partial-mint-recovery.json '
-            .asset == "GLORIFIER"
-            and .symbol == "GLR"
-            and .network == "solana-devnet"
-            and .token_standard == "Token-2022"
-            and .program_id == "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
-            and (
-              (
-                .status == "NOT VERIFIED"
-                and .canonical_mint == null
-                and .creation_transaction == null
-                and .mint_transaction == null
-                and .authority_revocation_transaction == null
-              )
-              or
-              (
-                .status == "VERIFIED_ON_CHAIN"
-                and .canonical_mint == $recovery[0].mint
-                and $recovery[0].status == "DEPLOYED"
-                and $recovery[0].network == "solana-devnet"
-                and $recovery[0].programId == "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
-                and (.canonical_mint | type == "string" and test("^[1-9A-HJ-NP-Za-km-z]{32,44}$"))
-                and .transaction_semantics_verified == false
-                and .creation_transaction == "null"
-                and .mint_transaction == "null"
-                and .authority_revocation_transaction == "null"
-                and (.verification_run_id | type == "string" and length > 0)
-                and (.verification_run_url | type == "string" and length > 0)
-                and .mainnet_status == "NOT VERIFIED"
-              )
-            )
-          ' solana/canonical-devnet-identity.json >/dev/null || {
-            echo "::error::Canonical Devnet identity is neither a clean first-deployment state nor a valid exact-mint recovery state."
-            exit 1
-          }
+          bash solana/validate-devnet-identity-contract.sh
       - name: Install Solana CLI
         shell: bash
         run: |
