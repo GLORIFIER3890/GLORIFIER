@@ -4,8 +4,37 @@
  * runtimes, so importing this helper does not pull Node-only modules into the
  * frontend bundle.
  */
+function normalizePrefix(prefix: string): string {
+  const characters: string[] = [];
+  let insideInvalidRun = false;
+
+  for (const character of prefix.trim()) {
+    const codePoint = character.charCodeAt(0);
+    const allowed =
+      (codePoint >= 48 && codePoint <= 57) ||
+      (codePoint >= 65 && codePoint <= 90) ||
+      (codePoint >= 97 && codePoint <= 122) ||
+      character === '_' ||
+      character === '-';
+
+    if (allowed) {
+      characters.push(character);
+      insideInvalidRun = false;
+    } else if (!insideInvalidRun) {
+      characters.push('-');
+      insideInvalidRun = true;
+    }
+  }
+
+  let start = 0;
+  let end = characters.length;
+  while (start < end && characters[start] === '-') start += 1;
+  while (end > start && characters[end - 1] === '-') end -= 1;
+  return characters.slice(start, end).join('');
+}
+
 export function newId(prefix: string): string {
-  const normalizedPrefix = prefix.trim().replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+  const normalizedPrefix = normalizePrefix(prefix);
   if (!normalizedPrefix) throw new Error('ID prefix must contain at least one alphanumeric character');
   const cryptoApi = globalThis.crypto;
   if (!cryptoApi || typeof cryptoApi.randomUUID !== 'function') {
