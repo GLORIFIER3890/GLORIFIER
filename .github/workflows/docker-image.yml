@@ -49,6 +49,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # shellcheck disable=SC2034 # Referenced by the EXIT-trap cleanup function.
           container="glorifier-ubuntu-smoke-${{ github.event.pull_request.number }}"
           # shellcheck disable=SC2034,SC2317
           # The cleanup function is invoked indirectly through EXIT trap.
