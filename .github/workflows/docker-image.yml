@@ -64,6 +64,10 @@ jobs:
             sleep 2
           done
           echo "::error::Ubuntu runtime did not return a healthy response within 60 seconds."
+          echo "Container state for diagnosis:"
+          docker inspect --format 'status={{.State.Status}} exit={{.State.ExitCode}} error={{.State.Error}}' "$container" || true
+          echo "Container logs:"
+          docker logs "$container" || true
           exit 1
 
       - name: Report all image vulnerabilities (non-blocking)
