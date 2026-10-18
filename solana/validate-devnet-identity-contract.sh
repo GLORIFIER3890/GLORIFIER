@@ -4,8 +4,8 @@ set -euo pipefail
 IDENTITY_FILE="${1:-solana/canonical-devnet-identity.json}"
 RECOVERY_FILE="${2:-solana/devnet-partial-mint-recovery.json}"
 
-test -f "$IDENTITY_FILE" || {
-  echo "::error::Missing canonical Devnet identity: $IDENTITY_FILE"
+[[ -f "$IDENTITY_FILE" ]] || {
+  echo "ERROR: Missing canonical Devnet identity: $IDENTITY_FILE" >&2
   exit 1
 }
 if [[ ! -f "$RECOVERY_FILE" ]]; then
@@ -23,7 +23,7 @@ if [[ ! -f "$RECOVERY_FILE" ]]; then
     and .mint_transaction == null
     and .authority_revocation_transaction == null
   ' "$IDENTITY_FILE" >/dev/null || {
-    echo "::error::Missing recovery record is permitted only for a clean NOT VERIFIED identity."
+    echo "ERROR: Missing recovery record is permitted only for a clean NOT VERIFIED identity." >&2
     exit 1
   }
   echo "Solana Devnet identity preflight passed: clean initial state without a recovery record."
@@ -65,7 +65,7 @@ jq -e --slurpfile recovery "$RECOVERY_FILE" '
     )
   )
 ' "$IDENTITY_FILE" >/dev/null || {
-  echo "::error::Canonical Devnet identity is neither a clean first-deployment state nor a valid exact-mint recovery state."
+  echo "ERROR: Canonical Devnet identity is neither a clean first-deployment state nor a valid exact-mint recovery state." >&2
   exit 1
 }
 
