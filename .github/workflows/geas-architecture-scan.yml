@@ -7,6 +7,7 @@ on:
       - 'src/lib/governance/geas-architecture-scientist.ts'
       - 'scripts/geas-architecture-*.ts'
       - 'scripts/geas-authority-*.ts'
+      - 'scripts/geas-evidence-policy-validate.ts'
       - 'docs/architecture/geas-*'
       - '.github/workflows/geas-architecture-scan.yml'
       - 'package.json'
@@ -43,6 +44,9 @@ jobs:
 
       - name: Validate authoritative source registry
         run: ./node_modules/.bin/tsx scripts/geas-authority-registry-validate.ts
+
+      - name: Validate evidence policy invariants
+        run: ./node_modules/.bin/tsx scripts/geas-evidence-policy-validate.ts
 
       - name: Execute authoritative architecture scan
         run: npm run scan:geas-architecture
