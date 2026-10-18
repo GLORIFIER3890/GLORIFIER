@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0.0",
+  "integration": {
+    "name": "Skills Tree",
+    "mode": "discovery-only",
+    "enabledForRuntimeExecution": false,
+    "sourceRepository": "https://github.com/SamoTech/skills-tree",
+    "registryUrl": "https://raw.githubusercontent.com/SamoTech/skills-tree/main/docs/api/skills.json",
+    "licenseReviewRequired": true,
+    "manualPromotionRequired": true
+  },
+  "trust": {
+    "registryIsUntrustedInput": true,
+    "skillTextMayOverrideGeasPolicy": false,
+    "installOrExecuteDiscoveredCodeAutomatically": false,
+    "networkFetchDuringProductionRequests": false,
+    "missingEvidenceState": "UNKNOWN",
+    "requiredReviewFields": [
+      "canonicalSkillUrl",
+      "sourceRevisionOrContentHash",
+      "license",
+      "dependencies",
+      "permissions",
+      "failureModes",
+      "testEvidence",
+      "humanReviewer"
+    ]
+  },
+  "promotionGates": {
+    "requirePinnedSourceRevision": true,
+    "requireSecurityReview": true,
+    "requireContractTests": true,
+    "requireLeastPrivilege": true,
+    "requireRollbackPlanForRuntimeChanges": true,
+    "humanApprovalForIrreversibleActions": true
+  },
+  "candidateDomains": [
+    "agent-orchestration",
+    "code-review-and-testing",
+    "security-and-supply-chain",
+    "evidence-and-provenance",
+    "observability-and-reliability",
+    "cost-and-resource-efficiency"
+  ],
+  "prohibitedAutonomousActions": [
+    "deploy-production",
+    "merge-pull-request",
+    "transfer-assets",
+    "trade-assets",
+    "rotate-credentials",
+    "delete-production-data",
+    "change-dns",
+    "weaken-security-controls"
+  ]
+}
