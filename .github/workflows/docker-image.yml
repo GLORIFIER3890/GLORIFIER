@@ -50,6 +50,8 @@ jobs:
         run: |
           set -euo pipefail
           container="glorifier-ubuntu-smoke-${{ github.event.pull_request.number }}"
+          # shellcheck disable=SC2034,SC2317
+          # The cleanup function is invoked indirectly through EXIT trap.
           cleanup() {
             docker logs "$container" 2>/dev/null || true
             docker rm --force "$container" >/dev/null 2>&1 || true
