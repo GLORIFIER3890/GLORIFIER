@@ -101,23 +101,7 @@ jobs:
             exit 1
           }
           
-          # Validate canonical identity is in NOT VERIFIED state
-          jq -e '
-            .asset == "GLORIFIER"
-            and .symbol == "GLR"
-            and .network == "solana-devnet"
-            and .token_standard == "Token-2022"
-            and .program_id == "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
-            and .status == "NOT VERIFIED"
-            and .canonical_mint == null
-            and .creation_transaction == null
-            and .mint_transaction == null
-            and .authority_revocation_transaction == null
-          ' solana/canonical-devnet-identity.json >/dev/null || {
-            echo "::error::solana/canonical-devnet-identity.json does not match deployment contract."
-            exit 1
-          }
-
+          bash solana/validate-devnet-identity-contract.sh
       - name: Install Solana CLI
         shell: bash
         run: |
@@ -296,7 +280,6 @@ jobs:
 
             if [[ -n "${EVIDENCE_FILE}" ]] && jq -e '.network == "solana-devnet" and (.mint | type == "string" and length >= 32 and length <= 44) and (.programId == "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb") and (.status == "DEPLOYED" or .status == "READY_FOR_VERIFICATION")' "${EVIDENCE_FILE}" >/dev/null; then
               PRIOR_MINT="$(jq -r '.mint' "${EVIDENCE_FILE}")"
-              PRIOR_STATUS="$(jq -r '.status' "${EVIDENCE_FILE}")"
               echo "DEPLOYABLE=false" >> "$GITHUB_OUTPUT"
               echo "RESUME_MINT=${PRIOR_MINT}" >> "$GITHUB_OUTPUT"
               echo "STATUS=PARTIAL_DEPLOYMENT_RESUME" > solana/deployment-status.txt
