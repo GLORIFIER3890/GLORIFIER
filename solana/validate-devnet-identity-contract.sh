@@ -53,9 +53,12 @@ jq -e --slurpfile recovery "$RECOVERY_FILE" '
       and $recovery[0].programId == "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
       and (.canonical_mint | type == "string" and test("^[1-9A-HJ-NP-Za-km-z]{32,44}$"))
       and .transaction_semantics_verified == false
-      and .creation_transaction == "null"
-      and .mint_transaction == "null"
-      and .authority_revocation_transaction == "null"
+      and has("creation_transaction")
+      and (.creation_transaction == null or .creation_transaction == "null")
+      and has("mint_transaction")
+      and (.mint_transaction == null or .mint_transaction == "null")
+      and has("authority_revocation_transaction")
+      and (.authority_revocation_transaction == null or .authority_revocation_transaction == "null")
       and (.verification_run_id | type == "string" and length > 0)
       and (.verification_run_url | type == "string" and length > 0)
       and .mainnet_status == "NOT VERIFIED"
