@@ -14,6 +14,9 @@ concurrency:
 jobs:
   verify:
     name: Verify Databricks OIDC authentication
+    # Environment-based OIDC subjects do not include the Git ref. Only allow
+    # this job to enter the protected environment when dispatched from main.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: databricks-readonly
     timeout-minutes: 5
