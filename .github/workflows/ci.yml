@@ -52,6 +52,9 @@ jobs:
       - name: Type-check
         run: npm run lint
 
+      - name: Shared UUID helper regression tests
+        run: npm run test:new-id
+
       - name: ASAP Protocol governance boundary regression tests
         run: npm run test:asap-bridge
 
