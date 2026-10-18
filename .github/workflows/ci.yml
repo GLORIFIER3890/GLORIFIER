@@ -48,6 +48,39 @@ jobs:
           bash -n solana/reconcile-token2022-mainnet.sh
           bash -n solana/publish-verified-mainnet-identity.sh
           jq -e '.asset=="GLORIFIER" and .symbol=="GLR" and .network=="solana-devnet" and .token_standard=="Token-2022"' solana/canonical-devnet-identity.json >/dev/null
+          bash -n solana/validate-devnet-identity-contract.sh
+          # Exercise both the existing exact-mint recovery state and a clean initial state.
+          bash solana/validate-devnet-identity-contract.sh
+          temp_identity="$(mktemp)"
+          temp_recovery="${temp_identity}.recovery.json"
+          temp_mismatch_recovery="${temp_identity}.mismatch-recovery.json"
+          trap 'rm -f "$temp_identity" "$temp_recovery" "$temp_mismatch_recovery"' EXIT
+          jq '.status = "NOT VERIFIED" | .canonical_mint = null | .creation_transaction = null | .mint_transaction = null | .authority_revocation_transaction = null' solana/canonical-devnet-identity.json > "$temp_identity"
+          # Prove a clean initial identity can pass even when no recovery record exists.
+          bash solana/validate-devnet-identity-contract.sh "$temp_identity" "$temp_recovery"
+          # Exercise recovery with true JSON null receipts, not only the legacy string "null".
+          jq '.status = "VERIFIED_ON_CHAIN"
+              | .canonical_mint = "8W7eSf3hPyRMFJGKbCvwb9QMq6uok6rxSnRZqofeqnyd"
+              | .creation_transaction = null
+              | .mint_transaction = null
+              | .authority_revocation_transaction = null
+              | .transaction_semantics_verified = false
+              | .verification_run_id = "ci-fixture"
+              | .verification_run_url = "https://github.com/GLORIFIER7/GLORIFIER/actions"
+              | .mainnet_status = "NOT VERIFIED"' solana/canonical-devnet-identity.json > "$temp_identity"
+          jq '.status = "DEPLOYED"
+              | .network = "solana-devnet"
+              | .programId = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+              | .mint = "8W7eSf3hPyRMFJGKbCvwb9QMq6uok6rxSnRZqofeqnyd"' solana/devnet-partial-mint-recovery.json > "$temp_recovery"
+          bash solana/validate-devnet-identity-contract.sh "$temp_identity" "$temp_recovery"
+          # The validator must fail closed if the recovery record names another mint.
+          jq '.mint = "11111111111111111111111111111111"' "$temp_recovery" > "$temp_mismatch_recovery"
+          [ -s "$temp_mismatch_recovery" ] || { echo "ERROR: Failed to create mismatch recovery fixture." >&2; exit 1; }
+          jq -e '.mint == "11111111111111111111111111111111"' "$temp_mismatch_recovery" >/dev/null || { echo "ERROR: Mismatch recovery fixture is invalid." >&2; exit 1; }
+          if bash solana/validate-devnet-identity-contract.sh "$temp_identity" "$temp_mismatch_recovery"; then
+            echo "ERROR: Validator accepted a mismatched recovery mint." >&2
+            exit 1
+          fi
 
       - name: Type-check
         run: npm run lint
