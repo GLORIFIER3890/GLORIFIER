@@ -12,7 +12,10 @@ COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts --no-audit --no-fund
 
 COPY . .
+# Bundle the TypeScript server while esbuild is still installed. The runtime
+# image prunes devDependencies, so it must not launch the server through tsx.
 RUN npm run build \
+ && npm run build:server \
  && npm prune --omit=dev --no-audit --no-fund \
  && npm cache clean --force
 
@@ -36,5 +39,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD ["node", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
 
-# The Distroless Node image supplies node as its entrypoint.
-CMD ["./node_modules/tsx/dist/cli.mjs", "server.ts"]
+# Distroless supplies Node as its entrypoint. Run the bundled server directly;
+# tsx is a devDependency and is intentionally absent from the production image.
+CMD ["dist/server.cjs"]
