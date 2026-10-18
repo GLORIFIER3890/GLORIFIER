@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "Dockerfile"
+      - "Dockerfile.ubuntu"
       - ".dockerignore"
       - "package.json"
       - "package-lock.json"
@@ -41,6 +42,78 @@ jobs:
       - name: Build image
         run: docker build --pull --tag glorifier/glorifier:pr-${{ github.event.pull_request.number }} .
 
+      - name: Build Ubuntu runtime image
+        run: docker build --pull --file Dockerfile.ubuntu --tag glorifier/glorifier:ubuntu-pr-${{ github.event.pull_request.number }} .
+
+      - name: Smoke test Ubuntu runtime health endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          container="glorifier-ubuntu-smoke-${{ github.event.pull_request.number }}"
+          postgres="glorifier-postgres-smoke-${{ github.event.pull_request.number }}"
+          network="glorifier-smoke-${{ github.event.pull_request.number }}"
+          # Keep cleanup commands directly in the EXIT trap so actionlint's
+          # embedded ShellCheck can correctly analyze the script.
+          trap 'docker logs "$container" 2>/dev/null || true; docker logs "$postgres" 2>/dev/null || true; docker rm --force "$container" "$postgres" >/dev/null 2>&1 || true; docker network rm "$network" >/dev/null 2>&1 || true' EXIT
+
+          # Use a disposable, isolated PostgreSQL service with TLS. Never connect CI to production.
+          tls_dir="$RUNNER_TEMP/glorifier-postgres-tls"
+          mkdir -p "$tls_dir"
+          openssl req -new -x509 -days 1 -nodes -text \
+            -out "$tls_dir/server.crt" \
+            -keyout "$tls_dir/server.key" \
+            -subj "/CN=$postgres"
+          sudo chown 70:70 "$tls_dir/server.crt" "$tls_dir/server.key"
+          sudo chmod 644 "$tls_dir/server.crt"
+          sudo chmod 600 "$tls_dir/server.key"
+          docker network create "$network"
+          docker run --detach --name "$postgres" --network "$network" \
+            --mount "type=bind,src=$tls_dir/server.crt,dst=/var/lib/postgresql/server.crt,readonly" \
+            --mount "type=bind,src=$tls_dir/server.key,dst=/var/lib/postgresql/server.key,readonly" \
+            --env POSTGRES_USER=glorifier_test \
+            --env POSTGRES_PASSWORD=glorifier_test_only \
+            --env POSTGRES_DB=glorifier_test \
+            --health-cmd "pg_isready -U glorifier_test -d glorifier_test" \
+            --health-interval 2s --health-timeout 5s --health-retries 30 \
+            postgres:16-alpine postgres -c ssl=on \
+              -c ssl_cert_file=/var/lib/postgresql/server.crt \
+              -c ssl_key_file=/var/lib/postgresql/server.key
+
+          for _ in $(seq 1 30); do
+            db_status="$(docker inspect --format '{{.State.Health.Status}}' "$postgres")"
+            if [ "$db_status" = "healthy" ]; then break; fi
+            if [ "$db_status" = "unhealthy" ]; then
+              echo "::error::Disposable PostgreSQL test service became unhealthy."
+              exit 1
+            fi
+            sleep 2
+          done
+          test "$(docker inspect --format '{{.State.Health.Status}}' "$postgres")" = "healthy" || {
+            echo "::error::Disposable PostgreSQL test service did not become healthy."
+            exit 1
+          }
+
+          docker run --detach --name "$container" --network "$network" --publish 3000:3000 \
+            --env PORT=3000 \
+            --env DATABASE_URL=postgresql://glorifier_test:glorifier_test_only@"$postgres":5432/glorifier_test \
+            glorifier/glorifier:ubuntu-pr-${{ github.event.pull_request.number }}
+
+          for _ in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/api/health; then
+              echo "Ubuntu runtime started with an isolated PostgreSQL service and /api/health returned success."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Ubuntu runtime did not return a healthy response within 60 seconds."
+          echo "Container state for diagnosis:"
+          docker inspect --format 'status={{.State.Status}} exit={{.State.ExitCode}} error={{.State.Error}}' "$container" || true
+          echo "Application container logs:"
+          docker logs "$container" || true
+          echo "PostgreSQL test service logs:"
+          docker logs "$postgres" || true
+          exit 1
+
       - name: Report all image vulnerabilities (non-blocking)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
@@ -55,6 +128,17 @@ jobs:
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: glorifier/glorifier:pr-${{ github.event.pull_request.number }}
+          format: table
+          exit-code: "1"
+          vuln-type: os,library
+          version: v0.76.0
+          severity: HIGH,CRITICAL
+          skip-setup-trivy: true
+
+      - name: Block Ubuntu image with high or critical vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: glorifier/glorifier:ubuntu-pr-${{ github.event.pull_request.number }}
           format: table
           exit-code: "1"
           vuln-type: os,library
