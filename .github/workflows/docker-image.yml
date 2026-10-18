@@ -56,15 +56,28 @@ jobs:
           # embedded ShellCheck can correctly analyze the script.
           trap 'docker logs "$container" 2>/dev/null || true; docker logs "$postgres" 2>/dev/null || true; docker rm --force "$container" "$postgres" >/dev/null 2>&1 || true; docker network rm "$network" >/dev/null 2>&1 || true' EXIT
 
-          # Use a disposable, isolated database; never connect CI smoke tests to production.
+          # Use a disposable, isolated PostgreSQL service with TLS. Never connect CI to production.
+          tls_dir="$RUNNER_TEMP/glorifier-postgres-tls"
+          mkdir -p "$tls_dir"
+          openssl req -new -x509 -days 1 -nodes -text \
+            -out "$tls_dir/server.crt" \
+            -keyout "$tls_dir/server.key" \
+            -subj "/CN=$postgres"
+          sudo chown 70:70 "$tls_dir/server.crt" "$tls_dir/server.key"
+          sudo chmod 644 "$tls_dir/server.crt"
+          sudo chmod 600 "$tls_dir/server.key"
           docker network create "$network"
           docker run --detach --name "$postgres" --network "$network" \
+            --mount "type=bind,src=$tls_dir/server.crt,dst=/var/lib/postgresql/server.crt,readonly" \
+            --mount "type=bind,src=$tls_dir/server.key,dst=/var/lib/postgresql/server.key,readonly" \
             --env POSTGRES_USER=glorifier_test \
             --env POSTGRES_PASSWORD=glorifier_test_only \
             --env POSTGRES_DB=glorifier_test \
             --health-cmd "pg_isready -U glorifier_test -d glorifier_test" \
             --health-interval 2s --health-timeout 5s --health-retries 30 \
-            postgres:16-alpine
+            postgres:16-alpine postgres -c ssl=on \
+              -c ssl_cert_file=/var/lib/postgresql/server.crt \
+              -c ssl_key_file=/var/lib/postgresql/server.key
 
           for _ in $(seq 1 30); do
             db_status="$(docker inspect --format '{{.State.Health.Status}}' "$postgres")"
@@ -82,7 +95,6 @@ jobs:
 
           docker run --detach --name "$container" --network "$network" --publish 3000:3000 \
             --env PORT=3000 \
-            --env DATABASE_SSL=disable \
             --env DATABASE_URL=postgresql://glorifier_test:glorifier_test_only@"$postgres":5432/glorifier_test \
             glorifier/glorifier:ubuntu-pr-${{ github.event.pull_request.number }}
 
