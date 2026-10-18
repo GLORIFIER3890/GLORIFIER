@@ -86,6 +86,7 @@ jobs:
 
           docker run --detach --name "$container" --network "$network" --publish 3000:3000 \
             --env PORT=3000 \
+            --env DATABASE_SSL=disable \
             --env DATABASE_URL=postgresql://glorifier_test:glorifier_test_only@"$postgres":5432/glorifier_test \
             glorifier/glorifier:ubuntu-pr-${{ github.event.pull_request.number }}
 
