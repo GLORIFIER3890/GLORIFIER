@@ -82,7 +82,7 @@ jobs:
             --exclude='*.sqlite3' \
             --exclude='*.db' \
             ./ "$RUNNER_TEMP/hf-space/"
-          printf '%s\\n' \
+          printf '%s\n' \
             '---' \
             'title: GLORIFIER' \
             'emoji: 🧠' \
