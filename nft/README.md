@@ -33,10 +33,11 @@
 ## Required safe completion procedure
 
 1. Retrieve the image bytes with an IPFS-aware client or direct HTTP download, compute SHA-256 locally, and confirm it equals the recorded hash above.
-2. Verify durable pinning for the existing image CID and metadata CID in an authorized storage/pinning provider. Record provider receipt/ID and retention status; do not incur a charge without explicit authorization.
-3. Retrieve the published metadata and image independently. Record timestamps, HTTP results, raw byte hashes, and the metadata's exact `image` URI.
-4. If the existing CID is unavailable, locate the original bytes from existing source/repository history and compare SHA-256. Do not silently replace the CID; document any recovery CID separately only after integrity is proven.
-5. Only after these checks, consider a separate mint proposal. Minting is not authorized by this preparation task.
+2. Pin the existing image CID and metadata CID using an authorized storage/pinning provider; record the provider receipt/ID and retention status. Do not incur a charge without explicit authorization.
+3. Verify durable pinning for the existing image CID and metadata CID in the provider account. Record receipt/ID and retention status; do not treat gateway reachability alone as proof of pinning.
+4. Retrieve the published metadata and image independently. Record timestamps, HTTP results, raw byte hashes, and the metadata's exact `image` URI.
+5. If the existing CID is unavailable, locate the original bytes from existing source/repository history and compare SHA-256. Do not silently replace the CID; document any recovery CID separately only after integrity is proven.
+6. Only after these checks, consider a separate mint proposal. Minting is not authorized by this preparation task.
 
 ## Important
 
