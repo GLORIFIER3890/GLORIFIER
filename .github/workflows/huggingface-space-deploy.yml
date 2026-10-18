@@ -8,11 +8,21 @@ on:
 permissions:
   contents: read
 
+# Do not interrupt an active publish midway through pushing to the Space.
 concurrency:
   group: huggingface-space-deploy
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
+  deployment-disabled:
+    if: ${{ vars.HF_SPACE_DEPLOY_ENABLED != 'true' || vars.HF_SPACE_ID == '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain why deployment was skipped
+        shell: bash
+        run: |
+          echo "::notice::Hugging Face deployment is disabled. Set repository variable HF_SPACE_DEPLOY_ENABLED=true and set HF_SPACE_ID to owner/space-name to enable it."
+
   deploy-space:
     if: ${{ vars.HF_SPACE_DEPLOY_ENABLED == 'true' && vars.HF_SPACE_ID != '' }}
     runs-on: ubuntu-latest
@@ -22,20 +32,24 @@ jobs:
       HF_SPACE_WRITE_TOKEN: ${{ secrets.HF_SPACE_WRITE_TOKEN }}
     steps:
       - name: Checkout source
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
-      - name: Validate deployment credentials
+      - name: Validate deployment configuration
         shell: bash
         run: |
           set -euo pipefail
           if [[ -z "${HF_SPACE_WRITE_TOKEN:-}" ]]; then
-            echo "::error::Repository secret HF_SPACE_WRITE_TOKEN is missing. Create a Hugging Face write token and store it as a GitHub Actions secret."
+            echo "::error::Repository secret HF_SPACE_WRITE_TOKEN is missing. Create a fine-grained Hugging Face write token scoped to the target Space and store it as a GitHub Actions secret."
             exit 1
           fi
           if [[ ! "$HF_SPACE_ID" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
             echo "::error::HF_SPACE_ID must be an existing Hugging Face Space ID in owner/name form."
+            exit 1
+          fi
+          if [[ ! -f Dockerfile ]]; then
+            echo "::error::Dockerfile is missing from the repository root; refusing to publish a Docker Space without its build file."
             exit 1
           fi
 
@@ -43,8 +57,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git -c http.extraheader="AUTHORIZATION: Basic $(printf 'user:%s' "$HF_SPACE_WRITE_TOKEN" | base64 -w0)" \
+          auth_header="AUTHORIZATION: Basic $(printf 'user:%s' "$HF_SPACE_WRITE_TOKEN" | base64 -w0)"
+          git -c http.extraheader="$auth_header" \
             clone "https://huggingface.co/spaces/$HF_SPACE_ID" "$RUNNER_TEMP/hf-space"
+          unset auth_header
           rsync -a \
             --exclude='.git/' \
             --exclude='.github/' \
@@ -53,8 +69,20 @@ jobs:
             --exclude='dist/' \
             --exclude='coverage/' \
             --exclude='android/' \
+            --exclude='.venv/' \
+            --exclude='venv/' \
+            --exclude='__pycache__/' \
+            --exclude='.pytest_cache/' \
+            --exclude='.next/' \
+            --exclude='.vercel/' \
+            --exclude='*.pem' \
+            --exclude='*.key' \
+            --exclude='secrets/' \
+            --exclude='*.sqlite' \
+            --exclude='*.sqlite3' \
+            --exclude='*.db' \
             ./ "$RUNNER_TEMP/hf-space/"
-          printf '%s\n' \
+          printf '%s\\n' \
             '---' \
             'title: GLORIFIER' \
             'emoji: 🧠' \
@@ -85,4 +113,6 @@ jobs:
             exit 0
           fi
           git commit -m "Deploy GLORIFIER from GitHub ${GITHUB_SHA}"
-          git -c http.extraheader="AUTHORIZATION: Basic $(printf 'user:%s' "$HF_SPACE_WRITE_TOKEN" | base64 -w0)" push origin HEAD:main
+          auth_header="AUTHORIZATION: Basic $(printf 'user:%s' "$HF_SPACE_WRITE_TOKEN" | base64 -w0)"
+          git -c http.extraheader="$auth_header" push origin HEAD:main
+          unset auth_header
