@@ -42,6 +42,9 @@ jobs:
       - name: Build image
         run: docker build --pull --tag glorifier/glorifier:pr-${{ github.event.pull_request.number }} .
 
+      - name: Build Ubuntu runtime image
+        run: docker build --pull --file Dockerfile.ubuntu --tag glorifier/glorifier:ubuntu-pr-${{ github.event.pull_request.number }} .
+
       - name: Report all image vulnerabilities (non-blocking)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
@@ -56,6 +59,17 @@ jobs:
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: glorifier/glorifier:pr-${{ github.event.pull_request.number }}
+          format: table
+          exit-code: "1"
+          vuln-type: os,library
+          version: v0.76.0
+          severity: HIGH,CRITICAL
+          skip-setup-trivy: true
+
+      - name: Block Ubuntu image with high or critical vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: glorifier/glorifier:ubuntu-pr-${{ github.event.pull_request.number }}
           format: table
           exit-code: "1"
           vuln-type: os,library
