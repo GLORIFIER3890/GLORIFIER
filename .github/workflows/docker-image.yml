@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "Dockerfile"
+      - "Dockerfile.ubuntu"
       - ".dockerignore"
       - "package.json"
       - "package-lock.json"
