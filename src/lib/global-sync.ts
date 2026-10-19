@@ -69,7 +69,7 @@ export const canonicalInternetNodes: InternetNode[] = [
     category: 'repository',
     url: 'https://github.com/GLORIFIER7/GLORIFIER',
     status: 'configured',
-    lastPingAt: new Date().toISOString()
+    lastPingAt: null
   },
   {
     id: 'huggingface-hub',
@@ -85,7 +85,7 @@ export const canonicalInternetNodes: InternetNode[] = [
     category: 'ecosystem',
     url: 'https://developers.facebook.com/',
     status: 'reachable',
-    lastPingAt: new Date().toISOString()
+    lastPingAt: null
   }
 ];
 
@@ -129,7 +129,7 @@ export async function performGlobalGlorifierSync(deps?: {
       role: 'Frontier Strategy & Reasoning Architect',
       tier: 'reasoning',
       status: 'configured',
-      lastHeartbeat: timestamp,
+      lastHeartbeat: null,
       capabilities: ['commercial-valuation', 'contract-negotiation', 'counter-offers', 'code-review'],
       consensusContribution: 'Provides reasoning and strategy analysis when authorized; no standing commercial directive is asserted.'
     },
@@ -139,7 +139,7 @@ export async function performGlobalGlorifierSync(deps?: {
       role: 'Multimodal Research & Differential Privacy Co-Pilot',
       tier: 'engineering',
       status: 'configured',
-      lastHeartbeat: timestamp,
+      lastHeartbeat: null,
       capabilities: ['cryptographic-bounds', 'laplace-perturbation', 'zero-downtime-failover', 'multimodal-audit'],
       consensusContribution: 'Provides multimodal research and engineering analysis when authorized; numerical privacy claims require explicit evidence.'
     },
@@ -149,7 +149,7 @@ export async function performGlobalGlorifierSync(deps?: {
       role: 'Autonomous QA, Continuous Refactoring & Healing',
       tier: 'code-fleet',
       status: 'configured',
-      lastHeartbeat: timestamp,
+      lastHeartbeat: null,
       capabilities: ['continuous-improvement', 'self-healing', 'type-checking', 'ci-cd-safeguards'],
       consensusContribution: 'Performs repository QA and refactoring workflows; deployment health must be verified from live CI/deployment evidence.'
     },
@@ -159,7 +159,7 @@ export async function performGlobalGlorifierSync(deps?: {
       role: 'Patent Prosecution & Scientific Enablement',
       tier: 'specialist',
       status: 'configured',
-      lastHeartbeat: timestamp,
+      lastHeartbeat: null,
       capabilities: ['35-usc-101-defense', '35-usc-112-enablement', 'claim-prosecution', 'prior-art-differentiation'],
       consensusContribution: 'Provides patent and scientific research support; legal conclusions require qualified human review.'
     },
@@ -169,7 +169,7 @@ export async function performGlobalGlorifierSync(deps?: {
       role: 'Regulatory Privacy & Statutory Enforcement',
       tier: 'specialist',
       status: 'configured',
-      lastHeartbeat: timestamp,
+      lastHeartbeat: null,
       capabilities: ['gdpr-art-17-erasure', 'ccpa-sb-362-clawbacks', 'eu-ai-act-class-1', 'hipaa-expert-determination'],
       consensusContribution: 'Provides compliance and privacy research support; jurisdiction-specific conclusions require source-backed review.'
     }
