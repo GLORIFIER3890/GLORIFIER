@@ -56,10 +56,10 @@ export function GeasArchitectureScientistDashboard() {
         <div>
           <div className="text-xs uppercase tracking-[0.2em] opacity-50">GEAS Enterprise Architecture Scientist</div>
           <h1 className="mt-1 text-2xl font-semibold">Architecture Intelligence</h1>
-          <p className="mt-1 max-w-3xl text-sm opacity-65">Evidence-backed patterns, source health, architecture drift and governed recommendations. Read-only scanning; irreversible production changes are never executed.</p>
+          <p className="mt-1 max-w-3xl text-sm opacity-65">Evidence-linked patterns, source responses, architecture drift and governed recommendations. Evidence links and implementation status require independent review. Read-only scanning; irreversible production changes are never executed.</p>
         </div>
         <button onClick={() => void runScan()} disabled={scanning} className="rounded-lg border px-4 py-2 text-sm disabled:opacity-50">
-          {scanning ? 'Scanning…' : 'Run authoritative scan'}
+          {scanning ? 'Scanning…' : 'Run source scan'}
         </button>
       </div>
 
@@ -68,7 +68,7 @@ export function GeasArchitectureScientistDashboard() {
       <div className="grid gap-3 md:grid-cols-4">
         <Metric label="Patterns" value={String(snapshot?.model?.patterns?.length ?? 0)} />
         <Metric label="Controls" value={String(snapshot?.model?.controls?.length ?? 0)} />
-        <Metric label="Sources healthy" value={scan ? `${sourceStats.healthy}/${sourceStats.total}` : '—'} />
+        <Metric label="Sources responding" value={scan ? `${sourceStats.healthy}/${sourceStats.total}` : '—'} />
         <Metric label="Drift findings" value={String(scan?.drift?.length ?? 0)} />
       </div>
 
@@ -88,7 +88,7 @@ export function GeasArchitectureScientistDashboard() {
       </section>
 
       <section className="rounded-xl border p-4">
-        <div className="mb-3 text-sm font-medium">Authoritative pattern registry</div>
+        <div className="mb-3 text-sm font-medium">Configured pattern registry · evidence review required</div>
         <div className="space-y-2">
           {(snapshot?.model?.patterns || []).map((p: any) => (
             <div key={p.id} className="rounded-lg border p-3">
