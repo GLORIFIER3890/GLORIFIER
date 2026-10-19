@@ -532,7 +532,7 @@ app.get('/auth/broker/callback', async (req: Request, res: Response) => {
 // Global Synthesis & Collaboration Fabric
 app.get('/api/collaboration/status', async (_req: Request, res: Response) => {
   try {
-    res.json({ ok: true, providers: await getGlobalCollaborationStatus(), policy: { minimumScope: true, secretsExposed: false, humanApprovalForConsequentialActions: true, auditViaConnectionRegistry: true } });
+    res.json({ ok: true, providers: await getGlobalCollaborationStatus(), policy: { minimumScope: true, secretsExposed: null, humanApprovalForConsequentialActions: true, auditViaConnectionRegistry: true, secretScanStatus: 'NOT VERIFIED' } });
   } catch (error: any) {
     res.status(503).json({ error: 'Collaboration registry unavailable', details: error?.message });
   }
@@ -642,9 +642,9 @@ app.get('/api/integrations', (_req: Request, res: Response) => {
     ok: true,
     generatedAt: new Date().toISOString(),
     policy: {
-      secretsExposed: false,
-      privateCredentialsReturned: false,
-      coreInfrastructureIndependentOfGoogleCloud: true
+      secretsExposed: null, 
+      privateCredentialsReturned: null, 
+      coreInfrastructureIndependentOfGoogleCloud: null
     },
     integrations: integrationStatus.map((item: any) => ({ ...item, ...classifyIntegration(item) }))
   });
