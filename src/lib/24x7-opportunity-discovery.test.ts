@@ -24,4 +24,5 @@ assertEqual(isPotentialPaidWork(finding({ title: 'Build bounty platform', descri
 assertEqual(isPotentialPaidWork(finding({ url: 'https://huggingface.co/models/example' })), false, 'Non-GitHub source must not qualify under this first-pass policy');
 assertEqual(isPotentialPaidWork(finding({ category: 'ai' })), false, 'Noncommercial category must not qualify');
 assertEqual(isPotentialPaidWork(finding({ description: 'Task pays 100 USD to implement the fix.' })), true, 'Explicit USD work reward should qualify for review');
+assertEqual(isPotentialPaidWork(finding({ description: 'Reward of stickers for implementing the fix.' })), false, 'Non-monetary rewards must not qualify');
 console.log('Opportunity discovery qualification tests passed.');
