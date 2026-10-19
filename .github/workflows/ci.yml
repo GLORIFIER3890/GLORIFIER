@@ -123,6 +123,9 @@ jobs:
       - name: GEAS architecture scientist evidence and cadence tests
         run: npm run test:geas-scientist
 
+      - name: GEAS evidence-policy static guard
+        run: npx tsx scripts/geas-evidence-policy-validate.ts
+
       - name: GEAS state reconciliation tests
         run: npm run test:geas-reconciliation
 
