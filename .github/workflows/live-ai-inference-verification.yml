@@ -83,7 +83,7 @@ jobs:
           const text = typeof rawContent === 'string'
             ? rawContent
             : Array.isArray(rawContent)
-              ? rawContent.filter(part => typeof part?.text === 'string').map(part => part.text).join('\n')
+              ? rawContent.filter(part => typeof part?.text === 'string').map(part => part.text).join('')
               : '';
           const model = process.env.MODEL;
           if (!text.includes('GLORIFIER_RUNTIME_PROBE_OK')) {
