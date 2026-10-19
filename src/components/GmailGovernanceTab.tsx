@@ -309,7 +309,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
                   <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] space-y-1">
                     <div className="font-semibold flex items-center gap-1.5">
                       <Lock className="w-3.5 h-3.5" />
-                      <span>Zero-Raw Leak Contract</span>
+                      <span>Data-flow policy · NOT VERIFIED</span>
                     </div>
                     <p className="text-[10px] text-emerald-400/80">
                       Only data explicitly authorized by the connected Google account is shown here. No claim of anonymization, licensing, or compensation is made unless separately verified.
