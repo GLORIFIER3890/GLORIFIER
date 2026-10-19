@@ -58,8 +58,16 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
     }
   };
 
-  const activeGrantsCount = grants.filter(g => g.status === 'active').length;
-  const totalAccruedFromGrants = grants.reduce((sum, g) => sum + g.revenueAccruedUsd, 0);
+  // Stored status and cached TTL are not authoritative proof of current authorization.
+  // Derive expiry from the grant timestamp; treat malformed/missing timestamps as unknown.
+  const getEffectiveStatus = (grant: ActiveDataGrant): 'active' | 'expired' | 'revoked' | 'unknown' => {
+    if (grant.status === 'revoked') return 'revoked';
+    const expiry = Date.parse(grant.expiresAt);
+    if (!Number.isFinite(expiry)) return 'unknown';
+    if (expiry <= Date.now()) return 'expired';
+    return grant.status === 'active' ? 'active' : 'expired';
+  };
+  const activeGrantsCount = grants.filter(g => getEffectiveStatus(g) === 'active').length;
 
   return (
     <div className="space-y-6">
@@ -127,8 +135,8 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
       {/* Active Grants List */}
       <div className="space-y-4">
         {filteredGrants.map((grant) => {
-          const isActive = grant.status === 'active';
-          const isRevoked = grant.status === 'revoked';
+          const effectiveStatus = getEffectiveStatus(grant);
+          const isActive = effectiveStatus === 'active';
 
           return (
             <div
@@ -150,6 +158,11 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                     </span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
                       Configured protection target: {grant.protectionTech} · NOT VERIFIED
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                      Claimed technique: {grant.protectionTech} (not independently verified)
+                    </span>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${effectiveStatus === 'active' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border-amber-500/20'}`}>
+                      {effectiveStatus === 'unknown' ? 'STATUS UNKNOWN' : effectiveStatus.toUpperCase()}
                     </span>
                     {grant.epsilonLevel && (
                       <span className="text-[10px] font-mono text-emerald-300">
@@ -178,7 +191,7 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                           key={idx}
                           className="text-[10px] px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300 font-mono flex items-center gap-1"
                         >
-                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                          <Info className="w-3 h-3 text-slate-400" />
                           {field}
                         </span>
                       ))}
@@ -192,12 +205,23 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                     <div className="text-[10px] uppercase font-bold text-slate-400">Recorded yield / query count</div>
                     <div className="text-lg font-bold font-mono text-amber-300">NOT VERIFIED</div>
                     <div className="text-[10px] text-slate-400 font-mono mt-0.5">No independently verified usage or payment evidence is attached.</div>
+                    <div className="text-[10px] uppercase font-bold text-slate-400">Total Accrued Yield</div>
+                    <div className="text-sm font-bold font-mono text-amber-300">
+                      NOT VERIFIED
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                      Stored query count: {Number.isFinite(grant.totalQueriesServed) ? grant.totalQueriesServed : 'unknown'} (not independently verified)
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-1 max-w-52 text-right">
+                      Stored yield is not proof of earnings or settlement.
+                    </div>
                   </div>
 
                   {/* TTL Countdown Badge */}
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono bg-slate-950 border border-slate-800 text-slate-300">
                     <Clock className="w-3.5 h-3.5 text-amber-400" />
                     <span>Stored TTL: {isActive ? `${grant.ttlHoursRemaining}h` : 'marked expired'} · provider expiry NOT VERIFIED</span>
+                    <span>{effectiveStatus === 'active' ? `Expires: ${new Date(grant.expiresAt).toLocaleString()}` : effectiveStatus === 'unknown' ? 'Expiry: NOT VERIFIED' : `Grant: ${effectiveStatus.toUpperCase()}`}</span>
                   </div>
 
                   {/* Actions */}
@@ -225,7 +249,7 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                       </button>
                     ) : (
                       <span className="text-xs font-semibold text-rose-400 flex items-center gap-1">
-                        <XCircle className="w-3.5 h-3.5" /> Local record marked revoked
+                        <XCircle className="w-3.5 h-3.5" /> {effectiveStatus === 'expired' ? 'Expired — no active authorization shown' : effectiveStatus === 'unknown' ? 'Status unknown — action disabled' : 'Local record marked revoked'}
                       </span>
                     )}
                   </div>
@@ -236,6 +260,8 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
               <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 font-mono">
                 <div>Recorded grant date: {grant.grantedAt} · recorded expiry: {grant.expiresAt} · provider status NOT VERIFIED</div>
                 <div className="text-slate-400 font-semibold">Stored rate description · NOT VERIFIED: {grant.rateDescription}</div>
+                <div>Recorded grant: {grant.grantedAt} &bull; Recorded expiry: {grant.expiresAt}</div>
+                <div className="text-slate-400 font-semibold">Illustrative rate only — payment not verified</div>
               </div>
             </div>
           );

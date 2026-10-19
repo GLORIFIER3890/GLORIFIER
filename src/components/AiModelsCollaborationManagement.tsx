@@ -94,6 +94,7 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     id: 'patent-attorney-scientist',
     name: 'AI Patent Research Assistant (not a lawyer)',
     provider: 'Local AI research role · provider/credentials NOT VERIFIED',
+    provider: 'USPTO Bar & AI Research Core',
     role: 'Patent Prosecution, Claim Engineering & Scientific Enablement',
     specialization: 'Patent-draft research support only; legal accuracy and patentability NOT VERIFIED',
     badge: 'USPTO / AI Scientist',
@@ -222,13 +223,36 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
       setStatusFeedback('No numeric recommendations were returned. No policy values were changed.');
       return;
     }
+  // Apply council recommendations only when both numeric values are present and valid.
+  // A missing recommendation must never silently overwrite the current policy.
+  const handleApplyCouncilDirectives = () => {
+    if (!councilResult) {
+      setStatusFeedback('No council result is available. No policy changes were applied.');
+      return;
+    }
+
+    const epsilon = councilResult.recommendedEpsilon;
+    const monthlyFloorUsd = councilResult.recommendedFloorUsd;
+    if (
+      typeof epsilon !== 'number' ||
+      !Number.isFinite(epsilon) ||
+      epsilon <= 0 ||
+      typeof monthlyFloorUsd !== 'number' ||
+      !Number.isFinite(monthlyFloorUsd) ||
+      monthlyFloorUsd < 0
+    ) {
+      setStatusFeedback('Council recommendations are missing or invalid (epsilon must be greater than 0 and the monthly floor must be 0 or greater). No policy changes were applied.');
+      return;
+    }
+
     onUpdatePolicy({
-      globalEpsilon: councilResult.recommendedEpsilon,
-      minimumMonthlyFloorUsd: councilResult.recommendedFloorUsd,
+      globalEpsilon: epsilon,
+      minimumMonthlyFloorUsd: monthlyFloorUsd,
       aiModel: 'all-models',
       autoNegotiateHighBids: true
     });
     setStatusFeedback('Backend-returned policy suggestions were applied locally. Provider consensus and production enforcement are NOT VERIFIED.');
+    setStatusFeedback(`Policy update requested from backend-returned council values: ε = ${epsilon}, floor = ${monthlyFloorUsd}/mo. Persistence and enforcement are NOT VERIFIED.`);
   };
 
   const activeNodeCount = nodes.filter(n => n.enabled).length;
