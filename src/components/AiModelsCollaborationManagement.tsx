@@ -93,9 +93,9 @@ const INITIAL_NODES: ModelNodeConfig[] = [
   {
     id: 'patent-attorney-scientist',
     name: 'AI Patent Research Assistant (not a lawyer)',
-    provider: 'USPTO Bar & AI Research Core',
+    provider: 'Local AI research role · provider/credentials NOT VERIFIED',
     role: 'Patent Prosecution, Claim Engineering & Scientific Enablement',
-    specialization: '35 U.S.C. § 101 Alice/Mayo technical character briefs, § 112 mathematical enablement, prior art differentiation & USPTO claim drafting',
+    specialization: 'Patent-draft research support only; legal accuracy and patentability NOT VERIFIED',
     badge: 'USPTO / AI Scientist',
     weight: 20,
     enabled: true,
