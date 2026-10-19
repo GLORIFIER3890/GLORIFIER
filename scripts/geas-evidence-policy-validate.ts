@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 
 const scientistPath = 'src/lib/governance/geas-architecture-scientist.ts';
 const failures: string[] = [];
+let checks = 0;
 let scientist: string;
 try {
   scientist = readFileSync(scientistPath, 'utf8');
@@ -15,6 +16,7 @@ try {
 }
 
 function requirePattern(pattern: RegExp, message: string) {
+  checks += 1;
   if (!pattern.test(scientist)) failures.push(message);
 }
 
@@ -44,7 +46,7 @@ if (failures.length) {
 }
 process.stdout.write(JSON.stringify({
   valid: true,
-  checks: 8,
+  checks,
   policy: 'GEAS-EVIDENCE-GUARD-1',
   note: 'Static invariant checks only; they do not prove live claim support, runtime drift, or production conformance.',
   irreversibleChangesExecuted: false
