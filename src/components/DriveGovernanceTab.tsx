@@ -27,7 +27,7 @@ import { User } from 'firebase/auth';
 import { getAccessToken } from '../lib/firebase';
 import { 
   listDriveFiles, 
-  analyzeDriveFileForSovereignty, 
+  classifyDriveMetadataForReview, 
   createDriveGovernanceManifest, 
   deleteDriveFile 
 } from '../services/driveService';
@@ -77,7 +77,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
         return;
       }
 
-      const analyzed = rawFiles.map(analyzeDriveFileForSovereignty);
+      const analyzed = rawFiles.map(classifyDriveMetadataForReview);
       setFiles(analyzed);
 
 
@@ -143,7 +143,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
       };
 
       const result = await createDriveGovernanceManifest(
-        `DataSovereign-Audit-Manifest-${Date.now().toString().slice(-4)}.json`,
+        `Drive-Metadata-Review-Manifest-${Date.now().toString().slice(-4)}.json`,
         manifestPayload
       );
 
