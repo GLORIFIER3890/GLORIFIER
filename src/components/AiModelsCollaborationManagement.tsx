@@ -690,7 +690,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                 {
                   id: 'peer-debate',
                   name: 'Dialectical Peer Debate & Red-Teaming',
-                  desc: 'Models explicitly challenge each other’s risk assumptions prior to formulating final recommendation.'
+                  desc: 'Intended to prompt participating models to challenge risk assumptions. Whether this interaction occurs is NOT VERIFIED.'
                 }
               ].map(mode => (
                 <div
