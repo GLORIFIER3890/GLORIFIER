@@ -427,7 +427,7 @@ ${session.geminiPeerReview}
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                  24/7 Continuous Co-Working Autopilot (GPT-4o & Gemini)
+                  Background co-working setting · runtime NOT VERIFIED
                 </h3>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 ${
                   is247Enabled 
@@ -439,7 +439,7 @@ ${session.geminiPeerReview}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                Continuously audits circuit breakers, calibrates ε bounds, negotiates dataset pricing floors, and coordinates with the GitHub Actions & Permanent Railway coding fleet.
+                This interface can request work cycles. Continuous operation, provider activity, automatic recovery, and scheduled execution are NOT VERIFIED.
               </p>
             </div>
           </div>
@@ -723,7 +723,7 @@ ${session.geminiPeerReview}
             <div className="flex items-center gap-3 text-xs text-slate-400">
               <span className="flex items-center gap-1 text-emerald-400 font-mono">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                OpenAI GPT-4o + Gemini 3.8 Flash Active
+                Provider pairing configured · live execution NOT VERIFIED
               </span>
               <span>&bull;</span>
               <span>Consensus attestation: NOT VERIFIED</span>
