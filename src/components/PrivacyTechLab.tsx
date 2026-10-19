@@ -133,8 +133,8 @@ export const PrivacyTechLab: React.FC = () => {
         {[
           { id: 'dp', title: 'Differential Privacy', tag: 'Noise Injection', icon: Sliders },
           { id: 'fhe', title: 'Homomorphic Enc.', tag: 'Compute on Ciphertext', icon: Lock },
-          { id: 'fl', title: 'Federated Learning', tag: 'Data Never Leaves Device', icon: Cpu },
-          { id: 'zkp', title: 'Zero-Knowledge Proofs', tag: 'Truth Without Disclosure', icon: Binary }
+          { id: 'fl', title: 'Federated Learning', tag: 'Demo only · data-flow NOT VERIFIED', icon: Cpu },
+          { id: 'zkp', title: 'Zero-Knowledge Proofs', tag: 'Concept demo · proof NOT VERIFIED', icon: Binary }
         ].map((item) => {
           const Icon = item.icon;
           const isActive = activeTech === item.id;
