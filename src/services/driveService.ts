@@ -60,114 +60,60 @@ export async function listDriveFiles(pageSize = 25, query = ''): Promise<ListDri
 }
 
 /**
- * Categorizes and analyzes a Google Drive file for privacy risk and sovereign monetization potential
+ * Metadata-only heuristic classification. This does not read file contents, apply privacy transformations, or estimate revenue.
  */
 export function analyzeDriveFileForSovereignty(file: DriveApiFile): DriveAnalysisItem {
   const nameLower = file.name.toLowerCase();
   const mime = file.mimeType.toLowerCase();
-
   let category: DriveAnalysisItem['category'] = 'Documents & Research';
-  let yieldUsd = 0.45;
   let baseRisk = 20;
   const sensitiveSignals: string[] = [];
 
-  // Determine category
-  if (
-    mime.includes('spreadsheet') ||
-    mime.includes('excel') ||
-    mime.includes('csv') ||
-    nameLower.endsWith('.csv') ||
-    nameLower.endsWith('.xlsx')
-  ) {
+  if (mime.includes('spreadsheet') || mime.includes('excel') || mime.includes('csv') || nameLower.endsWith('.csv') || nameLower.endsWith('.xlsx')) {
     category = 'Spreadsheets & Finance';
-    yieldUsd = 1.65;
     baseRisk = 45;
-  } else if (
-    mime.includes('presentation') ||
-    mime.includes('powerpoint') ||
-    nameLower.endsWith('.pptx') ||
-    nameLower.endsWith('.key')
-  ) {
+  } else if (mime.includes('presentation') || mime.includes('powerpoint') || nameLower.endsWith('.pptx') || nameLower.endsWith('.key')) {
     category = 'Presentations & Strategy';
-    yieldUsd = 0.95;
     baseRisk = 30;
-  } else if (
-    mime.includes('json') ||
-    mime.includes('javascript') ||
-    mime.includes('python') ||
-    mime.includes('zip') ||
-    mime.includes('tar') ||
-    nameLower.endsWith('.py') ||
-    nameLower.endsWith('.ts') ||
-    nameLower.endsWith('.zip')
-  ) {
+  } else if (mime.includes('json') || mime.includes('javascript') || mime.includes('python') || mime.includes('zip') || mime.includes('tar') || nameLower.endsWith('.py') || nameLower.endsWith('.ts') || nameLower.endsWith('.zip')) {
     category = 'Code & Architecture';
-    yieldUsd = 1.20;
     baseRisk = 35;
-  } else if (
-    mime.includes('image') ||
-    mime.includes('video') ||
-    mime.includes('audio') ||
-    mime.includes('photoshop')
-  ) {
+  } else if (mime.includes('image') || mime.includes('video') || mime.includes('audio') || mime.includes('photoshop')) {
     category = 'Media & Creative';
-    yieldUsd = 0.60;
     baseRisk = 15;
   } else if (mime.includes('folder')) {
     category = 'Archival & Other';
-    yieldUsd = 0.20;
     baseRisk = 10;
   }
 
-  // Detect sensitive keywords
   const sensitiveKeywords = [
-    { word: 'tax', signal: 'Taxation / IRS Record' },
-    { word: 'invoice', signal: 'Commercial Billing / Invoice' },
-    { word: 'receipt', signal: 'Purchase Receipt' },
-    { word: 'passport', signal: 'Government Identity Document' },
-    { word: 'license', signal: 'Official License Document' },
-    { word: 'contract', signal: 'Legal / NDA Agreement' },
-    { word: 'salary', signal: 'Compensation / Payroll Telemetry' },
-    { word: 'budget', signal: 'Fiscal Financial Planning' },
-    { word: 'statement', signal: 'Banking / Card Statement' },
-    { word: 'confidential', signal: 'Explicit Confidential Marking' },
-    { word: 'secret', signal: 'Proprietary Credentials' },
-    { word: 'resume', signal: 'Personal CV & Employment History' },
-    { word: 'medical', signal: 'Health & Clinical Record' },
+    { word: 'tax', signal: 'Filename contains tax-related keyword' },
+    { word: 'invoice', signal: 'Filename contains invoice-related keyword' },
+    { word: 'receipt', signal: 'Filename contains receipt-related keyword' },
+    { word: 'passport', signal: 'Filename contains identity-document keyword' },
+    { word: 'license', signal: 'Filename contains license-related keyword' },
+    { word: 'contract', signal: 'Filename contains contract-related keyword' },
+    { word: 'salary', signal: 'Filename contains salary-related keyword' },
+    { word: 'budget', signal: 'Filename contains budget-related keyword' },
+    { word: 'statement', signal: 'Filename contains statement-related keyword' },
+    { word: 'confidential', signal: 'Filename contains confidentiality keyword' },
+    { word: 'secret', signal: 'Filename contains secret-related keyword' },
+    { word: 'resume', signal: 'Filename contains resume-related keyword' },
+    { word: 'medical', signal: 'Filename contains medical-related keyword' },
   ];
 
   for (const item of sensitiveKeywords) {
     if (nameLower.includes(item.word)) {
       sensitiveSignals.push(item.signal);
       baseRisk += 25;
-      yieldUsd += 0.40;
     }
   }
-
-  // Shared external risk multiplier
   if (file.shared) {
-    sensitiveSignals.push('External Sharing Enabled (Public / Team link)');
+    sensitiveSignals.push('Drive API reports sharing enabled; audience/scope not independently checked');
     baseRisk += 20;
   }
 
-  const finalRisk = Math.min(Math.max(baseRisk, 12), 98);
-
-  // Determine governance action based on risk
-  let governanceAction: DriveAnalysisItem['governanceAction'] = 'ZK-Proof Vector Index';
-  let dpNoise = 'Laplace (ε = 0.35)';
-
-  if (finalRisk >= 75) {
-    governanceAction = 'Strict Enclave Lockdown';
-    dpNoise = 'Total Masking (No Raw Exposure)';
-    yieldUsd = 0.10; // High protection, minimal indexing
-  } else if (finalRisk >= 40) {
-    governanceAction = 'Differential Privacy Scrub';
-    dpNoise = 'Laplace (ε = 0.20)';
-  } else if (file.shared && finalRisk < 30) {
-    governanceAction = 'Safe Public Commons';
-    dpNoise = 'k-Anonymity (k = 50)';
-  }
-
+  const heuristicRisk = Math.min(Math.max(baseRisk, 12), 98);
   return {
     id: file.id,
     name: file.name,
@@ -179,11 +125,11 @@ export function analyzeDriveFileForSovereignty(file: DriveApiFile): DriveAnalysi
     webViewLink: file.webViewLink,
     iconLink: file.iconLink,
     category,
-    leakRiskScore: finalRisk,
+    leakRiskScore: heuristicRisk,
     sensitiveSignals,
-    governanceAction,
-    estimatedYieldUsd: Number(yieldUsd.toFixed(2)),
-    differentialPrivacyNoiseLevel: dpNoise,
+    governanceAction: 'NOT VERIFIED — no privacy transformation applied',
+    estimatedYieldUsd: null,
+    differentialPrivacyNoiseLevel: 'NOT APPLIED — no verified privacy transform',
   };
 }
 
@@ -203,7 +149,7 @@ export async function createDriveGovernanceManifest(
   const metadata = {
     name: fileName,
     mimeType: 'application/json',
-    description: 'DataSovereign AI Governance Certificate & Zero-Knowledge Verification Manifest',
+    description: 'Drive metadata review manifest; not a compliance certificate or cryptographic verification proof.',
   };
 
   const content = JSON.stringify(manifestData, null, 2);
