@@ -1,0 +1,87 @@
+name: Live AI Inference Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: "Provider to test using a GitHub Actions secret"
+        required: true
+        type: choice
+        options:
+          - nvidia
+      model:
+        description: "Optional model override (otherwise NVIDIA_MODEL or repository default)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-ai-inference-verification
+  cancel-in-progress: false
+
+jobs:
+  inference:
+    name: Real NVIDIA inference (no secret output)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Execute one minimal live inference request
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          NVIDIA_MODEL_SECRET: ${{ secrets.NVIDIA_MODEL }}
+          MODEL_INPUT: ${{ inputs.model }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${NVIDIA_API_KEY:-}" ]]; then
+            echo "::error::NVIDIA_API_KEY repository or organization secret is missing. Add it in Settings > Secrets and variables > Actions; never put the key in workflow files."
+            exit 1
+          fi
+          model="${MODEL_INPUT:-${NVIDIA_MODEL_SECRET:-nvidia/nemotron-3.5-super-vl-120b-a12b}}"
+          body="$(mktemp)"
+          trap 'rm -f "$body"' EXIT
+          status="$(curl --silent --show-error --connect-timeout 10 --max-time 90 \
+            -o "$body" -w '%{http_code}' \
+            https://integrate.api.nvidia.com/v1/chat/completions \
+            -H "Authorization: Bearer ${NVIDIA_API_KEY}" \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json' \
+            --data "$(MODEL="$model" node -e 'process.stdout.write(JSON.stringify({model:process.env.MODEL,messages:[{role:"user",content:"Reply with exactly GLORIFIER_RUNTIME_PROBE_OK"}],max_tokens:32,temperature:0,stream:false}))')")"
+          echo "Provider: NVIDIA NIM"
+          echo "HTTP status: $status"
+          if [[ "$status" != "200" ]]; then
+            # Print only a bounded, redacted diagnostic; never print headers or the API key.
+            node - "$body" "$status" <<'NODE'
+          const fs = require('node:fs');
+          const status = process.argv[3];
+          let message = 'Provider request failed; response omitted to avoid exposing provider details.';
+          try {
+            const data = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+            const candidate = data?.error?.message || data?.message;
+            if (typeof candidate === 'string') message = candidate.replace(/(?:sk-[A-Za-z0-9_-]{12,}|nvapi-[A-Za-z0-9_-]{12,})/g, '[REDACTED]').slice(0, 240);
+          } catch {}
+          console.error(`::error::NVIDIA inference failed (HTTP ${status}): ${message}`);
+          process.exit(1);
+          NODE
+          fi
+          MODEL="$model" node - "$body" <<'NODE'
+          const fs = require('node:fs');
+          const data = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const text = data?.choices?.[0]?.message?.content;
+          const model = process.env.MODEL;
+          if (typeof text !== 'string' || !text.includes('GLORIFIER_RUNTIME_PROBE_OK')) {
+            console.error('::error::Provider returned HTTP 200 but did not return the required inference probe marker.');
+            process.exit(1);
+          }
+          console.log(JSON.stringify({
+            status: 'VERIFIED',
+            provider: 'NVIDIA NIM',
+            model,
+            inferenceExecuted: true,
+            expectedMarkerReturned: true,
+            usage: data.usage ?? null,
+            responseText: '[omitted]'
+          }, null, 2));
+          NODE
