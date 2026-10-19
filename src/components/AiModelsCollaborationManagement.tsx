@@ -200,7 +200,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: CouncilConsensusResult = await res.json();
       setCouncilResult(data);
-      setStatusFeedback('Multi-model deliberation completed with cryptographically attested consensus.');
+      setStatusFeedback('Backend returned a council result. Provider participation, consensus accuracy, and cryptographic attestation are NOT independently verified.');
     } catch (err) {
       console.warn('Backend council call, assembling resilient enclave consensus:', err);
       setCouncilResult(null);
@@ -243,7 +243,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                 </h2>
                 <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
-                  SOVEREIGN COUNCIL ACTIVE
+                  COUNCIL CONFIGURATION · LIVE STATUS NOT VERIFIED
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-3xl leading-relaxed">
@@ -254,7 +254,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
 
           <div className="flex items-center gap-3 shrink-0">
             <div className="px-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-              <div className="text-[11px] text-slate-400 font-mono uppercase">Active Nodes</div>
+              <div className="text-[11px] text-slate-400 font-mono uppercase">Enabled Configurations</div>
               <div className="text-lg font-bold text-emerald-400 font-mono">{activeNodeCount} / {nodes.length}</div>
             </div>
             <div className="px-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
@@ -290,7 +290,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
             }`}
           >
             <Cpu className="w-3.5 h-3.5" />
-            Model Fleet ({activeNodeCount} Active)
+            Model Configurations ({activeNodeCount} Enabled)
           </button>
 
           <button
@@ -487,7 +487,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                   Initiate Multi-Model Deliberation Council
                 </h3>
                 <p className="text-xs text-slate-400 mt-1">
-                  Broadcast an agenda to all {activeNodeCount} active models. Each model analyzes the topic through its specialized domain and synthesizes a binding agreement.
+                  Submit an agenda with {activeNodeCount} enabled model IDs to the backend. Actual provider participation and agreement are NOT VERIFIED until responses are recorded.
                 </p>
               </div>
 
