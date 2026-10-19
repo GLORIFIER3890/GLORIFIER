@@ -157,7 +157,7 @@ export const AICeoControl: React.FC = () => {
                 <Radio className="h-5 w-5 text-emerald-400 animate-pulse" />
                 <h3 className="text-lg font-bold text-white">Global Synthesis & Synchronization Manifest</h3>
                 <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
-                  Reported consensus score: {manifest.consensusScore}% · NOT VERIFIED
+                  Consensus: {manifest.consensusScore === null ? 'NOT MEASURED · NOT VERIFIED' : `${manifest.consensusScore}% · NOT VERIFIED`}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">
@@ -166,7 +166,7 @@ export const AICeoControl: React.FC = () => {
             </div>
             <div className="flex items-center gap-2">
               <span className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-[11px] text-slate-400">
-                SHA-256 Evidence: {manifest.evidenceDigestSha256.slice(0, 16)}...
+                Registry metadata SHA-256: {manifest.evidenceDigestSha256.slice(0, 16)}...
               </span>
             </div>
           </div>
