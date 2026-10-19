@@ -186,7 +186,6 @@ export async function performGlobalGlorifierSync(deps?: {
   // 3. Ingest latest internet intelligence signals
   const intel = await getLatestIntelligenceReport().catch(() => null);
   const evidenceCount = intel?.evidenceCount || 0;
-  const sourceCount = intel?.sourceCount || 0;
 
   // 4. Generate multi-model synthesis verdict if model runner is provided
   // Do not substitute model-generated narrative for operational evidence.
