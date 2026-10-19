@@ -92,7 +92,7 @@ export async function getGmailMessage(messageId: string): Promise<GmailMessageSu
  * Categorize Gmail metadata using local keyword heuristics only.
  * This function does not anonymize, tokenize, transform, license, or value email data.
  */
-export function analyzeEmailForSovereignMonetization(msg: GmailMessageSummary): GmailAnalysisItem {
+export function classifyEmailMetadataForGovernanceReview(msg: GmailMessageSummary): GmailAnalysisItem {
   const lowerSnippet = msg.snippet.toLowerCase();
   const lowerSender = msg.sender.toLowerCase();
   const lowerSubject = msg.subject.toLowerCase();
