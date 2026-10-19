@@ -255,7 +255,7 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Every query an analytical buyer sends against your sanitized data vault drains a fractional amount of your privacy budget $\epsilon$. To preserve your privacy equilibrium, queries requiring lower noise (higher $\epsilon$) are priced exponentially higher.
+              Proposed pricing model only. This panel does not meter real queries, transform a data vault, track a production privacy budget, or charge buyers. Any pricing relationship must be validated against an implemented mechanism and authorized commercial terms.
             </p>
 
             <div className="p-3.5 rounded-lg bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 space-y-2">
@@ -264,7 +264,7 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
                 Price(Q) = BaseRate × [ Sensitivity(Δf) / ε_target ] × ComplexityWeight
               </div>
               <p className="text-[11px] text-slate-400 font-sans">
-                As the buyer requests sharper resolution (smaller noise scale $b = \Delta f / \epsilon$), the user is compensated directly for the privacy loss.
+                Conceptual model: a buyer may pay more for a higher-utility release, but no buyer contract, privacy loss measurement, or compensation is verified here.
               </p>
             </div>
 
@@ -395,7 +395,7 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
               Proposed Payment Clearing & Micro-Settlement Design · NOT VERIFIED
             </h3>
             <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-              Zero-Gas Micro-Payouts
+              Settlement timing and fees NOT VERIFIED
             </span>
           </div>
 
@@ -405,26 +405,26 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
               {
                 step: '01',
                 title: 'Usage Metering',
-                desc: 'Cryptographic API gateway meters query execution, Laplace noise parameter, and model weights.',
-                status: 'Sub-second event'
+                desc: 'Proposed design: a gateway would meter query execution, privacy parameters, and model weights. Live metering is NOT VERIFIED.',
+                status: 'Timing NOT VERIFIED'
               },
               {
                 step: '02',
                 title: 'State Channel Escrow',
-                desc: 'Buyer pre-funds smart contract escrow. Micropayments sign off-chain balance proofs without gas.',
-                status: 'Instant off-chain'
+                desc: 'Proposed design: buyer-funded escrow and off-chain balance proofs. Contract deployment, funding, and settlement are NOT VERIFIED.',
+                status: 'Timing NOT VERIFIED'
               },
               {
                 step: '03',
                 title: 'Batch Rollup',
-                desc: 'Aggregates thousands of micro-royalties into a daily ZK-Rollup root hash committed on-chain.',
-                status: 'Every 24 hours'
+                desc: 'Proposed design: aggregate eligible records into a rollup commitment. Batch frequency, proof generation, and on-chain commitment are NOT VERIFIED.',
+                status: 'Schedule NOT VERIFIED'
               },
               {
                 step: '04',
                 title: 'Disbursement',
-                desc: 'User liquidates via Solana USDC (instant, 0-fee), Stripe Connect, or direct ACH bank wire.',
-                status: 'Instant / Same-day'
+                desc: 'Proposed payout rails only. Provider availability, fees, transfer timing, and settlement are NOT VERIFIED.'
+                status: 'Timing NOT VERIFIED'
               }
             ].map((stage) => (
               <div key={stage.step} className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
