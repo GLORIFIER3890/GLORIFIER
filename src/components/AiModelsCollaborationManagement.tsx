@@ -672,7 +672,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
               Consensus Protocol Architecture
             </h4>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Define how multiple artificial intelligence model perspectives are reconciled into an immutable action plan.
+              Configure how multiple AI perspectives are intended to be reconciled. Immutability and execution are NOT VERIFIED.
             </p>
 
             <div className="space-y-3 pt-2">
