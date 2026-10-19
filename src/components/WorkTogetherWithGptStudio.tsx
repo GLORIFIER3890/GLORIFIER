@@ -377,7 +377,7 @@ ${session.geminiPeerReview}
               Work Together with GPT & Gemini
             </h2>
             <p className="text-sm text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              Real-time collaborative workspace where you pair directly with OpenAI GPT-4o as your lead architect and strategist, while Google Gemini provides continuous cryptographic cross-auditing, differential privacy verification, and runtime safety checks.
+              Interactive co-working request UI. The backend may return provider-generated content, but actual provider participation, agreement, cryptographic cross-auditing, differential-privacy testing, and runtime safety checks are NOT independently verified.
             </p>
           </div>
 
