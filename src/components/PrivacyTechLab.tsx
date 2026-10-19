@@ -253,7 +253,7 @@ export const PrivacyTechLab: React.FC = () => {
               Without differential privacy, licensing browsing or location data creates catastrophic re-identification risks (the "Netflix Prize" attack). 
             </p>
             <p className="text-xs text-slate-400 leading-relaxed">
-              With DP mathematically enforced at the query barrier:
+              In a system with a correctly implemented and tested query barrier (not verified in this demo):
             </p>
             <ul className="text-xs text-slate-300 space-y-2">
               <li className="flex items-center gap-2">
@@ -435,13 +435,13 @@ export const PrivacyTechLab: React.FC = () => {
 
           <div className="lg:col-span-5 rounded-xl bg-slate-900 border border-slate-800 p-5 space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Zero Raw Data Exfiltration
+              Federated Learning Concept · Data Flow NOT VERIFIED
             </h4>
             <p className="text-xs text-slate-400 leading-relaxed">
               In standard AI development, companies hoover up gigabytes of raw keystrokes, voice snippets, and photos.
             </p>
             <p className="text-xs text-slate-400 leading-relaxed">
-              With Federated Learning, <strong>raw personal data never leaves the user's silicon</strong>. Combined with Secure Multi-Party Computation (SMPC), even the central aggregator cannot inspect individual user gradients.
+              In a correctly implemented federated-learning system, raw data may remain local while model updates are shared. This is conceptual text only; this demo does not establish that GLORIFIER data remains on-device or that SMPC is implemented.
             </p>
           </div>
         </div>
