@@ -17,7 +17,7 @@ import { getAccessToken } from '../lib/firebase';
 import { 
   listGmailMessages, 
   getGmailMessage, 
-  analyzeEmailForSovereignMonetization,
+  classifyEmailMetadataForGovernanceReview,
   sendGmailMessage 
 } from '../services/gmailService';
 import { GmailAnalysisItem } from '../types';
@@ -71,7 +71,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
       );
 
       const validSummaries = fetchedSummaries.filter((s): s is NonNullable<typeof s> => s !== null);
-      const analyzed = validSummaries.map(analyzeEmailForSovereignMonetization);
+      const analyzed = validSummaries.map(classifyEmailMetadataForGovernanceReview);
       setMessages(analyzed);
 
     } catch (err: any) {
