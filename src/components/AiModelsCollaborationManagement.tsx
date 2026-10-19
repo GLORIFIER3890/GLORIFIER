@@ -247,7 +247,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-3xl leading-relaxed">
-                Coordinate, manage, and audit multi-model collaboration across OpenAI GPT-4o, Google Gemini 3.8 Flash, and Meta LLaMA 3.3. Configure voting weights, differential privacy bounds, and autonomous consensus thresholds for your personal data.
+                Configure intended roles and voting weights for these model IDs. Live provider availability, participation, privacy enforcement, and consensus behavior are NOT VERIFIED.
               </p>
             </div>
           </div>
