@@ -89,7 +89,7 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
       setCouncilResult(data);
     } catch (err) {
       console.warn('Council endpoint unavailable; no consensus result was produced.', err);
-    }    } finally {
+    } finally {
       setIsConvening(false);
       setActiveStep(0);
     }
@@ -103,7 +103,7 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
         minimumMonthlyFloorUsd: councilResult.recommendedFloorUsd,
         autoNegotiateHighBids: true
       },
-      `Council Directives Applied: ε = ${councilResult.recommendedEpsilon}, Floor = $${councilResult.recommendedFloorUsd}/mo (Approved unanimously by GPT-4o, Gemini 3.8 Flash, and LLaMA 3.3).`
+      `Council response received: ε = ${councilResult.recommendedEpsilon}, Floor = ${councilResult.recommendedFloorUsd}/mo. Provider participation, consensus, and production enforcement are NOT independently verified.`
     );
     onClose();
   };
@@ -266,9 +266,9 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-emerald-400 flex items-center gap-2">
                   <Cpu className="w-4 h-4 animate-spin" />
-                  Synchronizing multi-model cryptographic enclave...
+                  Council endpoint request in progress
                 </span>
-                <span className="text-slate-400">Step {activeStep} of 3</span>
+                <span className="text-slate-400">Request pending · provider stages NOT VERIFIED</span>
               </div>
               <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
                 <div 
@@ -277,9 +277,7 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
                 />
               </div>
               <p className="text-[11px] text-slate-400">
-                {activeStep === 1 && 'Querying OpenAI GPT-4o for commercial data valuation & counter-negotiation...'}
-                {activeStep === 2 && 'Executing Google Gemini 3.8 Flash differential privacy bound & Laplacian verification...'}
-                {activeStep === 3 && 'Synthesizing Meta LLaMA open-weights decentralized sovereignty audit into final consensus...'}
+                Request lifecycle only. Provider execution, model participation, and consensus are NOT VERIFIED.
               </p>
             </div>
           )}
