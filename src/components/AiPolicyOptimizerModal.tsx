@@ -67,7 +67,7 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
   balanced: {
     level: 'balanced',
     title: 'Balanced Equilibrium',
-    badge: 'Tier III: Cryptographic Enclave',
+    badge: 'Tier III · Configuration target only',
     tagline: 'Illustrative balance preset; privacy enforcement and compensation are NOT VERIFIED',
     epsilon: 0.35,
     privacyTier: 'Balanced policy preset · implementation NOT VERIFIED',
@@ -86,7 +86,7 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
   'yield-focused': {
     level: 'yield-focused',
     title: 'Hypothetical Yield Scenario',
-    badge: 'Tier II · scenario only',
+    badge: 'Tier II · Configuration target only',
     tagline: 'Illustrative revenue scenario; buyer demand and automated negotiation are NOT VERIFIED',
     epsilon: 0.55,
     privacyTier: 'Yield-focused policy preset · implementation NOT VERIFIED',
