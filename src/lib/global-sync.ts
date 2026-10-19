@@ -187,6 +187,8 @@ export async function performGlobalGlorifierSync(deps?: {
   const intel = await getLatestIntelligenceReport().catch(() => null);
   const evidenceCount = intel?.evidenceCount || 0;
 
+  // 4. Use evidence-bounded synthesis only. Model-generated claims are not accepted
+  // as operational evidence and cannot establish consensus or live health.
   // 4. Generate multi-model synthesis verdict if model runner is provided
   // Do not substitute model-generated narrative for operational evidence.
   // Keep the optional dependency parameter for API compatibility, but do not use it.

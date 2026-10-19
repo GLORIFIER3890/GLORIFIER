@@ -96,6 +96,7 @@ export const AICeoControl: React.FC = () => {
                 </span>
               </div>
               <p className="text-sm text-slate-400">
+                Configured orchestration policy • Live provider execution NOT VERIFIED
                 Provider-routing design • live provider execution and enforcement NOT VERIFIED
               </p>
             </div>
@@ -107,6 +108,7 @@ export const AICeoControl: React.FC = () => {
               className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 px-4 py-2 text-xs font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition disabled:opacity-60"
             >
               <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'Refreshing Status Manifest...' : 'Refresh Status Manifest'}
               {isSyncing ? 'Refreshing Registry Manifest...' : 'Refresh Registry Manifest'}
             </button>
             <button
@@ -148,7 +150,7 @@ export const AICeoControl: React.FC = () => {
         </div>
       </div>
 
-      {/* Global Synthesis & Synchronization Manifest */}
+      {/* Global Registry Manifest (live synchronization NOT VERIFIED) */}
       {manifest && (
         <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-lg">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
@@ -157,7 +159,7 @@ export const AICeoControl: React.FC = () => {
                 <Radio className="h-5 w-5 text-slate-400" />
                 <h3 className="text-lg font-bold text-white">Global Synthesis & Synchronization Manifest</h3>
                 <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[11px] font-semibold text-slate-300">
-                  Consensus: NOT MEASURED · NOT VERIFIED
+                  Consensus: {manifest.consensusScore === null ? 'NOT MEASURED · NOT VERIFIED' : `${manifest.consensusScore}% · NOT VERIFIED`}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">
@@ -173,6 +175,7 @@ export const AICeoControl: React.FC = () => {
 
           {/* Executive Synthesis Summary */}
           <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-950/20 p-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-emerald-400">Registry Summary (not an independent audit)</div>
             <div className="text-xs font-bold uppercase tracking-wider text-slate-300">Registry Summary · Not a Live Health Verdict</div>
             <p className="mt-1 text-sm leading-relaxed text-slate-200">
               {manifest.executiveSynthesis}
@@ -217,6 +220,7 @@ export const AICeoControl: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                 <Globe className="h-4 w-4 text-emerald-400" />
+                Registered Infrastructure References ({manifest.internetNodes.length}; live health NOT VERIFIED)
                 Registered Infrastructure References ({manifest.internetNodes.length}; live reachability NOT VERIFIED)
               </h4>
             </div>
@@ -239,6 +243,7 @@ export const AICeoControl: React.FC = () => {
                   </a>
                   <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
                     <span>Category: {node.category}</span>
+                    <span>Live health: NOT VERIFIED</span>
                     <span>Live reachability: NOT VERIFIED</span>
                   </div>
                 </div>
@@ -288,6 +293,7 @@ export const AICeoControl: React.FC = () => {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
         <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
           <Lock className="h-4 w-4 text-cyan-400" />
+          Configured Governance Principles (runtime enforcement NOT VERIFIED)
           Configured Executive Guardrails · runtime enforcement NOT VERIFIED
         </h3>
         <ul className="grid gap-2 md:grid-cols-2">
