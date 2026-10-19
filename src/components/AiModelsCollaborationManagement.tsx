@@ -210,16 +210,25 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
     }
   };
 
-  // Apply council consensus to live policy
+  // Apply only numeric suggestions actually returned by the backend.
   const handleApplyCouncilDirectives = () => {
-    if (!councilResult) return;
+    if (
+      !councilResult ||
+      typeof councilResult.recommendedEpsilon !== 'number' ||
+      !Number.isFinite(councilResult.recommendedEpsilon) ||
+      typeof councilResult.recommendedFloorUsd !== 'number' ||
+      !Number.isFinite(councilResult.recommendedFloorUsd)
+    ) {
+      setStatusFeedback('No numeric recommendations were returned. No policy values were changed.');
+      return;
+    }
     onUpdatePolicy({
       globalEpsilon: councilResult.recommendedEpsilon,
       minimumMonthlyFloorUsd: councilResult.recommendedFloorUsd,
       aiModel: 'all-models',
       autoNegotiateHighBids: true
     });
-    setStatusFeedback(`Enacted Council Directives: ε = ${councilResult.recommendedEpsilon}, Floor = $${councilResult.recommendedFloorUsd}/mo across all data streams.`);
+    setStatusFeedback('Backend-returned policy suggestions were applied locally. Provider consensus and production enforcement are NOT VERIFIED.');
   };
 
   const activeNodeCount = nodes.filter(n => n.enabled).length;
@@ -630,13 +639,14 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                         Backend-returned Council Result · NOT independently verified
                       </h4>
                       <p className="text-xs text-slate-400 font-mono">
-                        Backend-reported score: <span className="text-amber-400 font-bold">{councilResult.consensusScore}% · NOT independently verified</span>
+                        Backend-reported score: <span className="text-amber-400 font-bold">{typeof councilResult.consensusScore === 'number' ? `${councilResult.consensusScore}% · NOT independently verified` : 'NOT MEASURED'}</span>
                       </p>
                     </div>
                   </div>
 
                   <button
                     type="button"
+                    disabled={!councilResult || typeof councilResult.recommendedEpsilon !== 'number' || typeof councilResult.recommendedFloorUsd !== 'number'}
                     onClick={handleApplyCouncilDirectives}
                     className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-colors flex items-center gap-2 shadow-md cursor-pointer"
                   >
