@@ -255,13 +255,13 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
             <div className="text-lg font-bold text-white font-mono mt-0.5">{files.length}</div>
           </div>
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-            <span className="text-[11px] text-slate-400 font-medium">Est. Monthly Drive Yield</span>
+            <span className="text-[11px] text-slate-400 font-medium">Hypothetical estimated value · NOT REVENUE</span>
             <div className="text-lg font-bold text-emerald-400 font-mono mt-0.5">
               ${totalEstMonthlyYield.toFixed(2)}
             </div>
           </div>
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-            <span className="text-[11px] text-slate-400 font-medium">High Exposure Risk</span>
+            <span className="text-[11px] text-slate-400 font-medium">Heuristic high-exposure flags</span>
             <div className={`text-lg font-bold font-mono mt-0.5 ${highRiskCount > 0 ? 'text-amber-400' : 'text-slate-300'}`}>
               {highRiskCount} Files
             </div>
@@ -516,7 +516,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                       </span>
                     </div>
                     <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Leak Risk Score</span>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Heuristic exposure score · not a security assessment</span>
                       <span className={`font-mono font-bold mt-0.5 block text-xs ${
                         selectedFile.leakRiskScore >= 70 ? 'text-rose-400' :
                         selectedFile.leakRiskScore >= 40 ? 'text-amber-400' : 'text-emerald-400'
@@ -537,7 +537,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
 
                   <div>
                     <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">
-                      Detected Exposure Vectors
+                      Heuristic exposure indicators
                     </span>
                     {selectedFile.sensitiveSignals.length > 0 ? (
                       <div className="mt-1 space-y-1">
