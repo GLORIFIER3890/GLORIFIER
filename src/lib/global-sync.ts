@@ -121,7 +121,7 @@ export async function performGlobalGlorifierSync(deps?: {
       status: 'configured',
       lastHeartbeat: null,
       capabilities: ['delegate', 'prioritize', 'synthesize', 'govern'],
-      consensusContribution: 'Synchronizing multi-agent reasoning, internet telemetry, and evidence verification under Human Owner authority.'
+      consensusContribution: 'Configured role description only; no execution, heartbeat, or consensus evidence is attached.'
     },
     {
       id: 'gpt-4o',
@@ -131,7 +131,7 @@ export async function performGlobalGlorifierSync(deps?: {
       status: 'configured',
       lastHeartbeat: null,
       capabilities: ['commercial-valuation', 'contract-negotiation', 'counter-offers', 'code-review'],
-      consensusContribution: 'Provides reasoning and strategy analysis when authorized; no standing commercial directive is asserted.'
+      consensusContribution: 'Configured role description only; provider invocation and output are NOT VERIFIED.'
     },
     {
       id: 'gemini-3.8-flash',
@@ -141,7 +141,7 @@ export async function performGlobalGlorifierSync(deps?: {
       status: 'configured',
       lastHeartbeat: null,
       capabilities: ['cryptographic-bounds', 'laplace-perturbation', 'zero-downtime-failover', 'multimodal-audit'],
-      consensusContribution: 'Provides multimodal research and engineering analysis when authorized; numerical privacy claims require explicit evidence.'
+      consensusContribution: 'Configured role description only; provider invocation and privacy enforcement are NOT VERIFIED.'
     },
     {
       id: 'codex-fleet',
@@ -151,7 +151,7 @@ export async function performGlobalGlorifierSync(deps?: {
       status: 'configured',
       lastHeartbeat: null,
       capabilities: ['continuous-improvement', 'self-healing', 'type-checking', 'ci-cd-safeguards'],
-      consensusContribution: 'Performs repository QA and refactoring workflows; deployment health must be verified from live CI/deployment evidence.'
+      consensusContribution: 'Configured role description only; coding runs and deployment health are NOT VERIFIED.'
     },
     {
       id: 'patent-attorney-scientist',
@@ -161,7 +161,7 @@ export async function performGlobalGlorifierSync(deps?: {
       status: 'configured',
       lastHeartbeat: null,
       capabilities: ['35-usc-101-defense', '35-usc-112-enablement', 'claim-prosecution', 'prior-art-differentiation'],
-      consensusContribution: 'Provides patent and scientific research support; legal conclusions require qualified human review.'
+      consensusContribution: 'Configured role description only; no research execution or legal review is verified.'
     },
     {
       id: 'compliance-scientist',
@@ -171,7 +171,7 @@ export async function performGlobalGlorifierSync(deps?: {
       status: 'configured',
       lastHeartbeat: null,
       capabilities: ['gdpr-art-17-erasure', 'ccpa-sb-362-clawbacks', 'eu-ai-act-class-1', 'hipaa-expert-determination'],
-      consensusContribution: 'Provides compliance and privacy research support; jurisdiction-specific conclusions require source-backed review.'
+      consensusContribution: 'Configured role description only; no compliance audit or runtime privacy enforcement is verified.'
     }
   ];
 
