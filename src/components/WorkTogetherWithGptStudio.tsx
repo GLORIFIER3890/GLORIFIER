@@ -254,9 +254,9 @@ ${session.geminiPeerReview}
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         userGoal: promptToRun,
         domain,
-        gptContribution: data.gptContribution || 'GPT-4o proposal generated.',
-        geminiPeerReview: data.geminiPeerReview || 'Gemini 3.8 Flash cross-validation complete.',
-        jointArtifact: data.jointArtifact || 'Joint solution synthesized.',
+        gptContribution: data.gptContribution || 'NOT AVAILABLE — no OpenAI response was returned for this request.',
+        geminiPeerReview: data.geminiPeerReview || 'NOT AVAILABLE — no Gemini response was returned for this request.',
+        jointArtifact: data.jointArtifact || 'NOT AVAILABLE — the backend did not return a joint artifact.',
         consensusScore: typeof data.consensusScore === 'number' ? data.consensusScore : null
       };
 
