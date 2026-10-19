@@ -43,7 +43,7 @@ function textOf(x: any): string { return [x?.title, x?.name, x?.description, x?.
 
 // Conservative first-pass filter. External text is untrusted data, not authority.
 // This only creates a review candidate; it never proves eligibility, funding, or revenue.
-function isPotentialPaidWork(finding: DiscoveryFinding): boolean {
+export function isPotentialPaidWork(finding: DiscoveryFinding): boolean {
   const text = (finding.title + ' ' + finding.description + ' ' + finding.url).toLowerCase();
   const url = finding.url.toLowerCase();
   if (!/^https:\/\/(github\.com|www\.github\.com)\//i.test(url)) return false;
