@@ -76,7 +76,9 @@ export function validateClaimReview(record: Partial<ClaimReviewRecord>): ClaimRe
   }
 
   const admissible = failures.length === 0 && record.decision === 'supported';
-  const evidenceRef = failures.length === 0
+  // Evidence references are admission handles, not merely review-record IDs.
+  // Contradicted/insufficient records must never expose an admissible evidenceRef.
+  const evidenceRef = admissible
     ? 'claim-review-' + createHash('sha256').update(JSON.stringify({
         claimId: record.claimId,
         sourceId: record.sourceId,

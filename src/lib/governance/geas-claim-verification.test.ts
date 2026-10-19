@@ -38,5 +38,11 @@ assert.ok(badHash.failures.some((failure) => failure.includes('SHA-256')));
 const insufficient = validateClaimReview({ ...valid, decision: 'insufficient' });
 assert.equal(insufficient.admissible, false);
 assert.equal(insufficient.decision, 'insufficient');
+assert.equal(insufficient.evidenceRef, null);
+
+const contradicted = validateClaimReview({ ...valid, decision: 'contradicted' });
+assert.equal(contradicted.admissible, false);
+assert.equal(contradicted.decision, 'contradicted');
+assert.equal(contradicted.evidenceRef, null);
 
 process.stdout.write('GEAS claim-review tests passed; no semantic truth is inferred automatically.\\n');
