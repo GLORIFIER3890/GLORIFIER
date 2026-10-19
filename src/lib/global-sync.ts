@@ -189,7 +189,6 @@ export async function performGlobalGlorifierSync(deps?: {
 
   // 4. Use evidence-bounded synthesis only. Model-generated claims are not accepted
   // as operational evidence and cannot establish consensus or live health.
-  const executiveSynthesis = `Registry contains ${agents.length} configured agent roles and ${canonicalInternetNodes.length} configured infrastructure references. Latest intelligence reports ${evidenceCount} evidence items from ${sourceCount} sources; live provider health, cross-agent consensus, and production uptime are NOT VERIFIED by this manifest.`
   // 4. Generate multi-model synthesis verdict if model runner is provided
   // Do not substitute model-generated narrative for operational evidence.
   // Keep the optional dependency parameter for API compatibility, but do not use it.
