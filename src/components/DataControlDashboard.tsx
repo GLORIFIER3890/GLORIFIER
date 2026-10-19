@@ -158,6 +158,7 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                     </span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
                       Configured protection target: {grant.protectionTech} · NOT VERIFIED
+                    </span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
                       Claimed technique: {grant.protectionTech} (not independently verified)
                     </span>

@@ -68,7 +68,6 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
     level: 'balanced',
     title: 'Balanced Equilibrium',
     badge: 'Tier III · Configuration target only',
-    badge: 'Tier III: Cryptographic Enclave',
     tagline: 'Illustrative balance preset; privacy enforcement and compensation are NOT VERIFIED',
     epsilon: 0.35,
     privacyTier: 'Balanced policy preset · implementation NOT VERIFIED',
@@ -88,8 +87,6 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
     level: 'yield-focused',
     title: 'Hypothetical Yield Scenario',
     badge: 'Tier II · Configuration target only',
-    title: 'Maximized Yield & Growth',
-    badge: 'Tier II: Differential Bastion',
     tagline: 'Illustrative revenue scenario; buyer demand and automated negotiation are NOT VERIFIED',
     epsilon: 0.55,
     privacyTier: 'Yield-focused policy preset · implementation NOT VERIFIED',
@@ -101,12 +98,9 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
     allowAdTargeting: false,
     allowAcademic: true,
     allowActuarial: false,
-    rationale: 'No validated valuation model, buyer quote, offer, contract, or earned revenue is available. Automated counter-offers, privacy protections, and restrictions on targeting or actuarial use are NOT VERIFIED.',
-    mathematicalGuarantee: 'For ε = 0.55, e^ε ≈ 1.733. This does not establish k-anonymity; no cohort-size or implementation verification is available here.',
-    recommendedFor: 'Users comparing a hypothetical revenue scenario; no income or privacy outcome is guaranteed.'
     rationale: 'The displayed monthly amount is a hypothetical projection, not a quote, offer, contract, or earned revenue. Automated counter-offers, privacy protections, and restrictions on targeting or actuarial use are NOT VERIFIED.',
     mathematicalGuarantee: 'For ε = 0.55, e^ε ≈ 1.733. This does not establish k-anonymity; no cohort-size or implementation verification is available here.',
-    recommendedFor: 'Power users aiming to maximize digital asset monetization while maintaining non-identifiability.'
+    recommendedFor: 'Users comparing a hypothetical revenue scenario; no income or privacy outcome is guaranteed.'
   }
 };
 

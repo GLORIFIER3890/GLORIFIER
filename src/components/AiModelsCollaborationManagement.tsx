@@ -94,7 +94,6 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     id: 'patent-attorney-scientist',
     name: 'AI Patent Research Assistant (not a lawyer)',
     provider: 'Local AI research role · provider/credentials NOT VERIFIED',
-    provider: 'USPTO Bar & AI Research Core',
     role: 'Patent Prosecution, Claim Engineering & Scientific Enablement',
     specialization: 'Patent-draft research support only; legal accuracy and patentability NOT VERIFIED',
     badge: 'USPTO / AI Scientist',
@@ -211,18 +210,6 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
     }
   };
 
-  // Apply only numeric suggestions actually returned by the backend.
-  const handleApplyCouncilDirectives = () => {
-    if (
-      !councilResult ||
-      typeof councilResult.recommendedEpsilon !== 'number' ||
-      !Number.isFinite(councilResult.recommendedEpsilon) ||
-      typeof councilResult.recommendedFloorUsd !== 'number' ||
-      !Number.isFinite(councilResult.recommendedFloorUsd)
-    ) {
-      setStatusFeedback('No numeric recommendations were returned. No policy values were changed.');
-      return;
-    }
   // Apply council recommendations only when both numeric values are present and valid.
   // A missing recommendation must never silently overwrite the current policy.
   const handleApplyCouncilDirectives = () => {
@@ -251,7 +238,6 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
       aiModel: 'all-models',
       autoNegotiateHighBids: true
     });
-    setStatusFeedback('Backend-returned policy suggestions were applied locally. Provider consensus and production enforcement are NOT VERIFIED.');
     setStatusFeedback(`Policy update requested from backend-returned council values: ε = ${epsilon}, floor = ${monthlyFloorUsd}/mo. Persistence and enforcement are NOT VERIFIED.`);
   };
 
