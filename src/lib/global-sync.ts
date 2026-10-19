@@ -91,15 +91,6 @@ export const canonicalInternetNodes: InternetNode[] = [
 
 let latestManifest: GlobalSyncManifest | null = null;
 
-async function computeSha256(text: string): Promise<string> {
-  if (typeof crypto === 'undefined' || !crypto.subtle) {
-    throw new Error('SHA-256 unavailable: Web Crypto is required; no substitute digest will be labeled SHA-256.');
-  }
-  const buffer = new TextEncoder().encode(text);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-  return Array.from(new Uint8Array(hashBuffer))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
 async function computeSha256(text: string): Promise<string | null> {
   if (typeof crypto !== 'undefined' && crypto.subtle) {
     try {
