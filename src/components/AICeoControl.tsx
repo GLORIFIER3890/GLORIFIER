@@ -92,11 +92,11 @@ export const AICeoControl: React.FC = () => {
               <div className="flex items-center gap-2">
                 <h2 className="text-2xl font-black tracking-tight text-white">GLORIFIER AI CEO</h2>
                 <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
-                  GPT Orchestration • Provider-Neutral
+                  Governed orchestration design · runtime NOT VERIFIED
                 </span>
               </div>
               <p className="text-sm text-slate-400">
-                GPT-led orchestration with governed provider routing • Evidence before execution
+                Provider-routing design • live provider execution and enforcement NOT VERIFIED
               </p>
             </div>
           </div>
@@ -107,7 +107,7 @@ export const AICeoControl: React.FC = () => {
               className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 px-4 py-2 text-xs font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition disabled:opacity-60"
             >
               <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-              {isSyncing ? 'Running Governed GPT Sync...' : 'Run Governed GPT Sync'}
+              {isSyncing ? 'Refreshing Registry Manifest...' : 'Refresh Registry Manifest'}
             </button>
             <button
               onClick={loadStatus}
@@ -130,8 +130,8 @@ export const AICeoControl: React.FC = () => {
           <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
             <UserCheck className="mb-2 h-5 w-5 text-emerald-400" />
             <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500">Final Authority</div>
-            <div className="mt-1 font-bold text-emerald-300">Human Owner (Supreme Rights)</div>
-            <p className="mt-1 text-xs text-slate-400">Deployment, merges, secrets & financial commitments require human approval.</p>
+            <div className="mt-1 font-bold text-emerald-300">Human Owner Policy (Configured)</div>
+            <p className="mt-1 text-xs text-slate-400">Configured policy says deployment, merges, secrets, and financial commitments require human approval; enforcement is NOT VERIFIED.</p>
           </div>
           <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4">
             <ShieldCheck className="mb-2 h-5 w-5 text-cyan-400" />
@@ -268,7 +268,7 @@ export const AICeoControl: React.FC = () => {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
         <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
           <Layers className="h-4 w-4 text-violet-400" />
-          Synchronized Chain of Command
+          Configured Chain of Command
         </h3>
         <div className="flex flex-wrap items-center gap-2">
           {status.chainOfCommand.map((item, index) => (
@@ -288,7 +288,7 @@ export const AICeoControl: React.FC = () => {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
         <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
           <Lock className="h-4 w-4 text-cyan-400" />
-          Permanent Executive Guardrails
+          Configured Executive Guardrails · runtime enforcement NOT VERIFIED
         </h3>
         <ul className="grid gap-2 md:grid-cols-2">
           {status.operatingPrinciples.map(item => (
