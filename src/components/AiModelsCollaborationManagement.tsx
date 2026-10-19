@@ -41,8 +41,8 @@ export interface ModelNodeConfig {
   badge: string;
   weight: number; // 0 to 100% influence in consensus
   enabled: boolean;
-  status: 'online' | 'busy' | 'standby';
-  latencyMs: number;
+  status: 'not-verified';
+  latencyMs: number | null;
   color: 'emerald' | 'teal' | 'cyan' | 'purple' | 'amber';
   privacyBoundary: 'Zero-Knowledge Enclave' | 'Statutory PII Redaction' | 'Cryptographic Perturbation' | 'Sovereign Core Arbitrator';
 }
@@ -57,8 +57,8 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     badge: 'OpenAI Flagship',
     weight: 35,
     enabled: true,
-    status: 'online',
-    latencyMs: 142,
+    status: 'not-verified',
+    latencyMs: null,
     color: 'emerald',
     privacyBoundary: 'Zero-Knowledge Enclave'
   },
@@ -71,8 +71,8 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     badge: 'DeepMind Core',
     weight: 35,
     enabled: true,
-    status: 'online',
-    latencyMs: 98,
+    status: 'not-verified',
+    latencyMs: null,
     color: 'teal',
     privacyBoundary: 'Cryptographic Perturbation'
   },
@@ -85,8 +85,8 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     badge: 'Open Weights',
     weight: 20,
     enabled: true,
-    status: 'online',
-    latencyMs: 115,
+    status: 'not-verified',
+    latencyMs: null,
     color: 'cyan',
     privacyBoundary: 'Statutory PII Redaction'
   },
@@ -99,8 +99,8 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     badge: 'USPTO / AI Scientist',
     weight: 20,
     enabled: true,
-    status: 'online',
-    latencyMs: 104,
+    status: 'not-verified',
+    latencyMs: null,
     color: 'purple',
     privacyBoundary: 'Zero-Knowledge Enclave'
   },
@@ -113,8 +113,8 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     badge: 'CIPP / Privacy Ph.D.',
     weight: 20,
     enabled: true,
-    status: 'online',
-    latencyMs: 92,
+    status: 'not-verified',
+    latencyMs: null,
     color: 'amber',
     privacyBoundary: 'Statutory PII Redaction'
   },
@@ -127,8 +127,8 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     badge: 'Autonomous Protocol',
     weight: 10,
     enabled: true,
-    status: 'online',
-    latencyMs: 12,
+    status: 'not-verified',
+    latencyMs: null,
     color: 'emerald',
     privacyBoundary: 'Sovereign Core Arbitrator'
   }
@@ -356,7 +356,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                 type="button"
                 onClick={() => {
                   setNodes(prev => prev.map(n => ({ ...n, enabled: true })));
-                  setStatusFeedback('All AI models enabled for full collaborative governance.');
+                  setStatusFeedback('All model configurations enabled for future requests; live provider activity is NOT VERIFIED.');
                 }}
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
               >
@@ -627,10 +627,10 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-                        Binding Multi-Model Consensus Agreement
+                        Backend-returned Council Result · NOT independently verified
                       </h4>
                       <p className="text-xs text-slate-400 font-mono">
-                        Consensus Score: <span className="text-emerald-400 font-bold">{councilResult.consensusScore}% Agreement</span>
+                        Backend-reported score: <span className="text-amber-400 font-bold">{councilResult.consensusScore}% · NOT independently verified</span>
                       </p>
                     </div>
                   </div>
