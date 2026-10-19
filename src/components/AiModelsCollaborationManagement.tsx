@@ -210,16 +210,35 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
     }
   };
 
-  // Apply council consensus to live policy
+  // Apply council recommendations only when both numeric values are present and valid.
+  // A missing recommendation must never silently overwrite the current policy.
   const handleApplyCouncilDirectives = () => {
-    if (!councilResult) return;
+    if (!councilResult) {
+      setStatusFeedback('No council result is available. No policy changes were applied.');
+      return;
+    }
+
+    const epsilon = councilResult.recommendedEpsilon;
+    const monthlyFloorUsd = councilResult.recommendedFloorUsd;
+    if (
+      typeof epsilon !== 'number' ||
+      !Number.isFinite(epsilon) ||
+      epsilon <= 0 ||
+      typeof monthlyFloorUsd !== 'number' ||
+      !Number.isFinite(monthlyFloorUsd) ||
+      monthlyFloorUsd < 0
+    ) {
+      setStatusFeedback('Council recommendations are missing or invalid (epsilon must be greater than 0 and the monthly floor must be 0 or greater). No policy changes were applied.');
+      return;
+    }
+
     onUpdatePolicy({
-      globalEpsilon: councilResult.recommendedEpsilon,
-      minimumMonthlyFloorUsd: councilResult.recommendedFloorUsd,
+      globalEpsilon: epsilon,
+      minimumMonthlyFloorUsd: monthlyFloorUsd,
       aiModel: 'all-models',
       autoNegotiateHighBids: true
     });
-    setStatusFeedback(`Enacted Council Directives: ε = ${councilResult.recommendedEpsilon}, Floor = $${councilResult.recommendedFloorUsd}/mo across all data streams.`);
+    setStatusFeedback(`Policy update requested from backend-returned council values: ε = ${epsilon}, floor = ${monthlyFloorUsd}/mo. Persistence and enforcement are NOT VERIFIED.`);
   };
 
   const activeNodeCount = nodes.filter(n => n.enabled).length;
