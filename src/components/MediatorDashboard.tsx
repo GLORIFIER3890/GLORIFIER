@@ -48,7 +48,7 @@ export const MediatorDashboard:React.FC = () => {
     {error && <div className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-3 text-xs text-rose-300">{error}</div>}
     {snapshot && <>
       <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">
-        <div className="text-xs uppercase tracking-wider text-emerald-400">{snapshot.version} · ACTIVE ARCHITECTURAL LAYER</div>
+        <div className="text-xs uppercase tracking-wider text-emerald-400">{snapshot.version} · CONFIGURED LAYER · runtime NOT VERIFIED</div>
         <div className="text-lg font-semibold text-white mt-1">{snapshot.role}</div>
         <p className="text-xs text-slate-400 mt-2">{snapshot.policy.mission}</p>
       </div>
