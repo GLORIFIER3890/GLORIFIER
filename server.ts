@@ -1879,23 +1879,15 @@ app.post('/api/ai/work-247-gpt/trigger', async (req: Request, res: Response) => 
 // =========================================================================
 // 7. 24/7 AI Code Sentinel Bot CRUD Operations Engine (User Request: "monitor code internally 24/7 can perform crude operations.. fix, edit, delete error")
 // =========================================================================
-let serverSentinelLogs = [
-  {
-    id: 'log-srv-1',
-    timestamp: new Date().toLocaleTimeString(),
-    action: 'SCAN',
-    details: '24/7 Sentinel Bot background probe: 10 internet accounts synced, zero critical panics.',
-    model: 'Dual-Consensus-Healer'
-  },
-  {
-    id: 'log-srv-2',
-    timestamp: new Date(Date.now() - 60000).toLocaleTimeString(),
-    action: 'GPT_COLLABORATE',
-    details: 'OpenAI GPT-4o & Gemini peer-reviewed hot-patch for ERR_503_GEMINI_HIGH_DEMAND.',
-    errorId: 'err-503-gemini',
-    model: 'OpenAI GPT-4o'
-  }
-];
+// No seeded monitoring events: only append records after the corresponding action is actually observed.
+let serverSentinelLogs: Array<{
+  id: string;
+  timestamp: string;
+  action: string;
+  details: string;
+  errorId?: string;
+  model: string;
+}> = [];
 
 app.post('/api/sentinel/crud', async (req: Request, res: Response) => {
   try {
