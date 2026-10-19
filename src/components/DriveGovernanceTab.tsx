@@ -126,12 +126,12 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
         title: 'Drive Metadata Review Manifest · NOT A COMPLIANCE CERTIFICATE',
         generatedAt: new Date().toISOString(),
         userEmail: currentUser?.email,
-        totalFilesAudited: files.length,
-        highRiskFilesDetected: files.filter(f => f.leakRiskScore >= 70).length,
+        totalFilesMetadataReviewed: files.length,
+        heuristicHighRiskFlags: files.filter(f => f.leakRiskScore >= 70).length,
         privacyStandard: 'Configured privacy targets only; transformation and proof generation NOT VERIFIED',
         hypotheticalEstimatedValueMonthlyUsd: null,
         estimatedValueStatus: 'NOT ESTIMATED — no validated buyer quote or valuation model',
-        filesAuditLog: files.map(f => ({
+        filesMetadataReviewLog: files.map(f => ({
           name: f.name,
           category: f.category,
           riskScore: f.leakRiskScore,
@@ -234,7 +234,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                   className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-2 border border-slate-700 transition-colors disabled:opacity-50"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${loading ? 'animate-spin' : ''}`} />
-                  <span>{loading ? 'Auditing Drive...' : 'Audit Files'}</span>
+                  <span>{loading ? 'Loading Drive metadata…' : 'Review File Metadata'}</span>
                 </button>
                 <button
                   onClick={() => setExportManifestConfirmOpen(true)}
@@ -242,7 +242,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                   className="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold flex items-center gap-2 shadow-md transition-colors disabled:opacity-50"
                 >
                   <FilePlus2 className="w-3.5 h-3.5" />
-                  <span>{exporting ? 'Exporting...' : 'Save Audit Manifest'}</span>
+                  <span>{exporting ? 'Exporting…' : 'Save Metadata Review Manifest'}</span>
                 </button>
               </div>
             )}
@@ -252,7 +252,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
         {/* Live Metrics Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-800/80">
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-            <span className="text-[11px] text-slate-400 font-medium">Audited Cloud Files</span>
+            <span className="text-[11px] text-slate-400 font-medium">Drive metadata records loaded</span>
             <div className="text-lg font-bold text-white font-mono mt-0.5">{files.length}</div>
           </div>
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
@@ -302,7 +302,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
         <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-            <span>Created Governance Audit Manifest: <strong>{exportSuccessLink.name}</strong></span>
+            <span>Created metadata review manifest: <strong>{exportSuccessLink.name}</strong></span>
           </div>
           {exportSuccessLink.link && (
             <a 
@@ -327,7 +327,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
           <div className="space-y-1">
             <h3 className="text-base font-bold text-white">Google Drive Access Authorization Required</h3>
             <p className="text-xs text-slate-400 max-w-md mx-auto">
-              Connect your Google account with official Drive scopes to audit stored documents, detect shadow shared links, and govern your cloud storage footprint.
+              Connect your Google account to review available file metadata and Drive-reported sharing fields. This screen does not scan full file contents or apply privacy transformations.
             </p>
           </div>
           <button
