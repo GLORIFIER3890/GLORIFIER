@@ -39,7 +39,7 @@ requirePattern(/export type DriftStatus = 'aligned' \| 'partial' \| 'drift' \| '
   'drift status must preserve UNKNOWN for missing evidence');
 
 if (failures.length) {
-  process.stderr.write(JSON.stringify({ valid: false, failures }, null, 2) + '\\n');
+  process.stderr.write(JSON.stringify({ valid: false, failures }, null, 2) + '\n');
   process.exit(1);
 }
 process.stdout.write(JSON.stringify({
@@ -48,4 +48,4 @@ process.stdout.write(JSON.stringify({
   policy: 'GEAS-EVIDENCE-GUARD-1',
   note: 'Static invariant checks only; they do not prove live claim support, runtime drift, or production conformance.',
   irreversibleChangesExecuted: false
-}, null, 2) + '\\n');
+}, null, 2) + '\n');
