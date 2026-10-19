@@ -191,7 +191,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
 
   const highRiskCount = files.filter(f => f.leakRiskScore >= 70).length;
   const externalSharedCount = files.filter(f => f.shared).length;
-  const totalEstMonthlyYield: number | null = null;
+  
 
   return (
     <div className="space-y-6">
@@ -258,7 +258,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
             <span className="text-[11px] text-slate-400 font-medium">Valuation estimate · NOT AVAILABLE</span>
             <div className="text-lg font-bold text-emerald-400 font-mono mt-0.5">
-              {totalEstMonthlyYield == null ? 'NOT ESTIMATED' : `${totalEstMonthlyYield.toFixed(2)}`}
+              NOT ESTIMATED
             </div>
           </div>
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
