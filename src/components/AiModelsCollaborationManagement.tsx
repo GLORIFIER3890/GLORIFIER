@@ -684,8 +684,8 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                 },
                 {
                   id: 'strict-unanimous',
-                  name: 'Strict Unanimous Concordance (100%)',
-                  desc: 'Requires 100% concordance across all frontier nodes before any policy change or data licensing agreement is approved.'
+                  name: 'Unanimity Threshold (100%; configuration only)',
+                  desc: 'Intended to require agreement from all configured participants. Provider participation, quorum enforcement, and blocking of policy changes are NOT VERIFIED.'
                 },
                 {
                   id: 'peer-debate',
@@ -733,19 +733,19 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
               <div className="flex justify-between text-[10px] text-slate-400 font-mono">
                 <span>Supermajority (66%)</span>
                 <span>Robust (85%)</span>
-                <span>Unanimous (100%)</span>
+                <span>Unanimity target (100%; enforcement NOT VERIFIED)</span>
               </div>
             </div>
 
             {/* Differential Privacy Guardrails */}
             <div className="pt-4 border-t border-slate-800 space-y-3">
               <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">
-                Council Guardrails Enforced:
+                Configured Council Guardrails · Runtime enforcement NOT VERIFIED:
               </span>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-xs text-slate-300">
                   <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>No model receives unhashed raw PII or plaintext email identifiers.</span>
+                  <span>Policy intent: do not send unhashed raw PII or plaintext email identifiers. Actual provider payloads and enforcement are NOT VERIFIED.</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-slate-300">
                   <Lock className="w-4 h-4 text-teal-400 shrink-0" />
