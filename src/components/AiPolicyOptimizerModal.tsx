@@ -68,7 +68,6 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
     level: 'balanced',
     title: 'Balanced Equilibrium',
     badge: 'Tier III · Configuration target only',
-    badge: 'Tier III: Cryptographic Enclave',
     tagline: 'Illustrative balance preset; privacy enforcement and compensation are NOT VERIFIED',
     epsilon: 0.35,
     privacyTier: 'Balanced policy preset · implementation NOT VERIFIED',
