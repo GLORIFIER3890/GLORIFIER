@@ -680,7 +680,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                 {
                   id: 'council-weighted',
                   name: 'Weighted Council Synthesis (Recommended)',
-                  desc: 'Each model votes according to assigned weights (GPT for pricing, Gemini for privacy proofs, LLaMA for anti-monopoly).'
+                  desc: 'Intended role mapping: GPT for pricing, Gemini for privacy analysis, and LLaMA for provider-neutrality review. Actual voting and participation are NOT VERIFIED.'
                 },
                 {
                   id: 'strict-unanimous',
