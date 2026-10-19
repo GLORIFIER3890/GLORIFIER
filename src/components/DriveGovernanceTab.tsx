@@ -558,7 +558,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
 
                   <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
                     <div>
-                      <span className="text-slate-400 text-[10px] block uppercase font-bold">Calculated Sovereign Yield</span>
+                      <span className="text-slate-400 text-[10px] block uppercase font-bold">Hypothetical estimated value · NOT REVENUE</span>
                       <span className="text-base font-bold text-emerald-400 font-mono">
                         ${selectedFile.estimatedYieldUsd.toFixed(2)} USD
                       </span>
