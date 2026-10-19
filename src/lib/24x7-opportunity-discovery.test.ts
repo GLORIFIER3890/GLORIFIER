@@ -17,6 +17,7 @@ const finding = (overrides: Partial<{
 });
 
 assertEqual(isPotentialPaidWork(finding()), true, 'Explicit paid developer task should be a review candidate');
+assertEqual(isPotentialPaidWork(finding({ description: 'Reward $250 to implement the OAuth fix.' })), true, 'Standalone dollar amount should be recognized');
 assertEqual(isPotentialPaidWork(finding({ description: 'Please fix this issue; no reward mentioned.' })), false, 'Unpriced work must not qualify');
 assertEqual(isPotentialPaidWork(finding({ title: 'In-game silver reward', description: 'Bounty reward: $250 for a game task.' })), false, 'Game reward findings must be excluded');
 assertEqual(isPotentialPaidWork(finding({ title: 'Build bounty platform', description: 'Funded bounty program: $500 to build reward distribution.' })), false, 'Bounty-infrastructure meta-work must be excluded');
