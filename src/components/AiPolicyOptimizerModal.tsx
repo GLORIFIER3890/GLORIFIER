@@ -324,7 +324,7 @@ export const AiPolicyOptimizerModal: React.FC<AiPolicyOptimizerModalProps> = ({
 
               {/* Metric 2: Privacy Shield Index */}
               <div className="flex items-center justify-between py-1.5 border-b border-slate-800/60">
-                <span className="text-slate-400">Projected Privacy Shield Index:</span>
+                <span className="text-slate-400">Illustrative policy index · not a measured protection score:</span>
                 <div className="flex items-center gap-2 font-mono">
                   <span className="text-slate-400">Current</span>
                   <ArrowRight className="w-3 h-3 text-slate-500" />
