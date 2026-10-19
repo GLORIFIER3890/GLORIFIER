@@ -179,11 +179,12 @@ export const GlobalCollaborationDashboard: React.FC = () => {
       </div>
 
       <div className="grid gap-3 lg:grid-cols-3">
-        <Section title="24/7 Discovery" icon={Activity}>
+        <Section title="Opportunity Discovery · daemon status reported" icon={Activity}>
           <div className="space-y-2 p-4 text-xs text-slate-400">
-            <div className="flex justify-between"><span>Continuous</span><span className="text-emerald-400">Enabled</span></div>
-            <div className="flex justify-between"><span>Sources</span><span>{discovery?.sourcesScanned ?? '—'}</span></div>
-            <div className="flex justify-between"><span>Observed</span><span>{discovery?.findingsObserved ?? '—'}</span></div>
+            <div className="flex justify-between"><span>Daemon timer</span><span>{!discovery ? 'NOT OBSERVABLE' : discovery.daemon?.running ? 'Reported running' : 'Not running'}</span></div>
+            <div className="flex justify-between"><span>Current cycle</span><span>{discovery?.daemon?.cycleRunning ? 'Reported running' : 'No cycle reported'}</span></div>
+            <div className="flex justify-between"><span>Last run</span><span>{discovery?.freshness?.latestRunAt ? new Date(discovery.freshness.latestRunAt).toLocaleString() : 'NOT OBSERVABLE'}</span></div>
+            <p className="pt-1 text-[10px]">Process uptime, automatic recovery, and continuous availability are NOT independently verified.</p>
           </div>
         </Section>
         <Section title="Evidence" icon={Eye}>
