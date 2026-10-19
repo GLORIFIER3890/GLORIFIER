@@ -126,11 +126,14 @@ export const WorkTogetherWithGptStudio: React.FC<WorkTogetherWithGptStudioProps>
       });
       if (res.ok) {
         const data = await res.json();
-        setIs247Enabled(data.enabled);
-        setApplySuccessNotice(data.enabled ? 'Backend accepted enable request; runtime NOT VERIFIED' : 'Backend accepted pause request; runtime NOT VERIFIED');
+        setIs247Enabled(Boolean(data.enabled));
+        setApplySuccessNotice(data.enabled ? 'Backend accepted the configuration request; continuous execution NOT VERIFIED.' : 'Backend accepted the disable request; runtime state NOT VERIFIED.');
+      } else {
+        setApplySuccessNotice('Request failed. Background execution status remains NOT VERIFIED.');
       }
     } catch (err) {
       console.warn('Failed to toggle 24/7 co-working:', err);
+      setApplySuccessNotice('Request failed. Background execution status remains NOT VERIFIED.');
     }
   };
 
