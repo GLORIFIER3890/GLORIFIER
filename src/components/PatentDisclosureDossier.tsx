@@ -1403,7 +1403,7 @@ generate an interactive patent and legal defense interface displaying system arc
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Dual-qualified AI agent specializing in 35 U.S.C. §§ 101/112 prosecution, mathematical differential privacy proofs, Alice/Mayo defenses, and prior art differentiation.
+                    AI research assistant for patent-draft exploration. It has no verified legal credentials; all legal conclusions and technical claims require independent review.
                   </p>
                 </div>
               </div>
