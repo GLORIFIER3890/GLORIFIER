@@ -133,8 +133,8 @@ export const PrivacyTechLab: React.FC = () => {
         {[
           { id: 'dp', title: 'Differential Privacy', tag: 'Noise Injection', icon: Sliders },
           { id: 'fhe', title: 'Homomorphic Enc.', tag: 'Compute on Ciphertext', icon: Lock },
-          { id: 'fl', title: 'Federated Learning', tag: 'Data Never Leaves Device', icon: Cpu },
-          { id: 'zkp', title: 'Zero-Knowledge Proofs', tag: 'Truth Without Disclosure', icon: Binary }
+          { id: 'fl', title: 'Federated Learning', tag: 'Demo only · data-flow NOT VERIFIED', icon: Cpu },
+          { id: 'zkp', title: 'Zero-Knowledge Proofs', tag: 'Concept demo · proof NOT VERIFIED', icon: Binary }
         ].map((item) => {
           const Icon = item.icon;
           const isActive = activeTech === item.id;
@@ -253,7 +253,7 @@ export const PrivacyTechLab: React.FC = () => {
               Without differential privacy, licensing browsing or location data creates catastrophic re-identification risks (the "Netflix Prize" attack). 
             </p>
             <p className="text-xs text-slate-400 leading-relaxed">
-              With DP mathematically enforced at the query barrier:
+              In a system with a correctly implemented and tested query barrier (not verified in this demo):
             </p>
             <ul className="text-xs text-slate-300 space-y-2">
               <li className="flex items-center gap-2">
@@ -435,13 +435,13 @@ export const PrivacyTechLab: React.FC = () => {
 
           <div className="lg:col-span-5 rounded-xl bg-slate-900 border border-slate-800 p-5 space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Zero Raw Data Exfiltration
+              Federated Learning Concept · Data Flow NOT VERIFIED
             </h4>
             <p className="text-xs text-slate-400 leading-relaxed">
               In standard AI development, companies hoover up gigabytes of raw keystrokes, voice snippets, and photos.
             </p>
             <p className="text-xs text-slate-400 leading-relaxed">
-              With Federated Learning, <strong>raw personal data never leaves the user's silicon</strong>. Combined with Secure Multi-Party Computation (SMPC), even the central aggregator cannot inspect individual user gradients.
+              In a correctly implemented federated-learning system, raw data may remain local while model updates are shared. This is conceptual text only; this demo does not establish that GLORIFIER data remains on-device or that SMPC is implemented.
             </p>
           </div>
         </div>
@@ -454,13 +454,13 @@ export const PrivacyTechLab: React.FC = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Binary className="w-4 h-4 text-emerald-400" />
-                Zero-Knowledge Attestation (zk-SNARK) Generator
+                Zero-Knowledge Proof Concept Demo · NOT VERIFIED
               </h3>
-              <span className="text-xs font-mono text-emerald-400">Groth16 / Plonk Prover</span>
+              <span className="text-xs font-mono text-emerald-400">ZK proof concept · prover implementation NOT VERIFIED</span>
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Prove a mathematical statement (e.g. "I am over 21 years old", "My credit score exceeds 700", "I reside in California") with 100% cryptographic certainty without disclosing your date of birth, credit report, or street address.
+              A properly implemented zero-knowledge proof can establish a defined statement without revealing the witness. This panel is a demonstration; no production Groth16/Plonk proof, circuit audit, or cryptographic verification is established here.
             </p>
 
             {/* ZKP Inputs */}

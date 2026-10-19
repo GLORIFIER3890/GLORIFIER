@@ -152,7 +152,7 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
       source: newErrorSource,
       severity: newErrorSeverity,
       status: 'active',
-      timestamp: 'Just now',
+      timestamp: new Date().toISOString(),
       occurrences: 1,
       rootCause: 'Manual watch record created in the interface; runtime detection has not been verified.',
       gptAnalysis: 'NOT RUN — no provider-backed analysis has been recorded.',

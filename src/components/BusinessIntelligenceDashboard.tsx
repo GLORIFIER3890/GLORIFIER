@@ -50,10 +50,10 @@ export const BusinessIntelligenceDashboard: React.FC = () => {
             <div className="flex items-center gap-2">
               <Database className="w-5 h-5 text-cyan-400" />
               <h2 className="text-base font-bold text-white">GLORIFIER Business Intelligence</h2>
-              <span className="text-[9px] uppercase px-2 py-1 rounded-full border border-cyan-500/30 text-cyan-300 bg-cyan-500/10">Continuous intelligence</span>
+              <span className="text-[9px] uppercase px-2 py-1 rounded-full border border-amber-500/30 text-amber-300 bg-amber-500/10">Refresh on request · continuous runtime NOT VERIFIED</span>
             </div>
             <p className="text-xs text-slate-400 mt-1 max-w-3xl">
-              One command center for GLORIFIER public footprint, engineering activity, market signals, first-party telemetry, verified revenue and data-product opportunities.
+              On-demand view of available public-footprint, engineering, market, telemetry, economic-ledger, and data-product records. Revenue is verified only when qualifying evidence is present.
             </p>
           </div>
           <button onClick={() => void collect()} disabled={loading} className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-cyan-500 text-slate-950 text-xs font-bold disabled:opacity-50">
@@ -62,7 +62,7 @@ export const BusinessIntelligenceDashboard: React.FC = () => {
         </div>
         <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-200">
           <ShieldCheck className="inline w-3.5 h-3.5 mr-1" />
-          Business intelligence is separated from private/raw data. Commercialization still requires consent, privacy review and verified source rights.
+          Data separation and privacy enforcement are NOT VERIFIED by this dashboard. Commercialization still requires consent, privacy review and verified source rights.
         </div>
         {error && <div className="mt-3 text-xs text-rose-300">{error}</div>}
         {report?.executiveSummary && (

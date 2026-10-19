@@ -92,7 +92,7 @@ const INITIAL_NODES: ModelNodeConfig[] = [
   },
   {
     id: 'patent-attorney-scientist',
-    name: 'A.I. Bot Patent Attorney Scientist',
+    name: 'AI Patent Research Assistant (not a lawyer)',
     provider: 'USPTO Bar & AI Research Core',
     role: 'Patent Prosecution, Claim Engineering & Scientific Enablement',
     specialization: '35 U.S.C. § 101 Alice/Mayo technical character briefs, § 112 mathematical enablement, prior art differentiation & USPTO claim drafting',
@@ -247,7 +247,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-3xl leading-relaxed">
-                Coordinate, manage, and audit multi-model collaboration across OpenAI GPT-4o, Google Gemini 3.8 Flash, and Meta LLaMA 3.3. Configure voting weights, differential privacy bounds, and autonomous consensus thresholds for your personal data.
+                Configure intended roles and voting weights for these model IDs. Live provider availability, participation, privacy enforcement, and consensus behavior are NOT VERIFIED.
               </p>
             </div>
           </div>
@@ -672,7 +672,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
               Consensus Protocol Architecture
             </h4>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Define how multiple artificial intelligence model perspectives are reconciled into an immutable action plan.
+              Configure how multiple AI perspectives are intended to be reconciled. Immutability and execution are NOT VERIFIED.
             </p>
 
             <div className="space-y-3 pt-2">
@@ -680,17 +680,17 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                 {
                   id: 'council-weighted',
                   name: 'Weighted Council Synthesis (Recommended)',
-                  desc: 'Each model votes according to assigned weights (GPT for pricing, Gemini for privacy proofs, LLaMA for anti-monopoly).'
+                  desc: 'Intended role mapping: GPT for pricing, Gemini for privacy analysis, and LLaMA for provider-neutrality review. Actual voting and participation are NOT VERIFIED.'
                 },
                 {
                   id: 'strict-unanimous',
-                  name: 'Strict Unanimous Concordance (100%)',
-                  desc: 'Requires 100% concordance across all frontier nodes before any policy change or data licensing agreement is approved.'
+                  name: 'Unanimity Threshold (100%; configuration only)',
+                  desc: 'Intended to require agreement from all configured participants. Provider participation, quorum enforcement, and blocking of policy changes are NOT VERIFIED.'
                 },
                 {
                   id: 'peer-debate',
                   name: 'Dialectical Peer Debate & Red-Teaming',
-                  desc: 'Models explicitly challenge each other’s risk assumptions prior to formulating final recommendation.'
+                  desc: 'Intended to prompt participating models to challenge risk assumptions. Whether this interaction occurs is NOT VERIFIED.'
                 }
               ].map(mode => (
                 <div
@@ -733,19 +733,19 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
               <div className="flex justify-between text-[10px] text-slate-400 font-mono">
                 <span>Supermajority (66%)</span>
                 <span>Robust (85%)</span>
-                <span>Unanimous (100%)</span>
+                <span>Unanimity target (100%; enforcement NOT VERIFIED)</span>
               </div>
             </div>
 
             {/* Differential Privacy Guardrails */}
             <div className="pt-4 border-t border-slate-800 space-y-3">
               <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">
-                Council Guardrails Enforced:
+                Configured Council Guardrails · Runtime enforcement NOT VERIFIED:
               </span>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-xs text-slate-300">
                   <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>No model receives unhashed raw PII or plaintext email identifiers.</span>
+                  <span>Policy intent: do not send unhashed raw PII or plaintext email identifiers. Actual provider payloads and enforcement are NOT VERIFIED.</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-slate-300">
                   <Lock className="w-4 h-4 text-teal-400 shrink-0" />

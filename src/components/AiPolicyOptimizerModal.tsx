@@ -47,9 +47,9 @@ interface OptimizationPreset {
 const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
   conservative: {
     level: 'conservative',
-    title: 'Zero-Risk Sovereign Citadel',
-    badge: 'Tier IV: Sovereign Citadel',
-    tagline: 'Military-grade mathematical zero-knowledge differential privacy with maximum noise injection',
+    title: 'Conservative Privacy Preset (Illustrative)',
+    badge: 'Tier IV · Configuration target only',
+    tagline: 'Illustrative privacy-policy preset; implementation and enforcement NOT VERIFIED',
     epsilon: 0.15,
     privacyTier: 'Tier IV (Sovereign Citadel)',
     privacyShieldScore: 98,
@@ -60,15 +60,15 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
     allowAdTargeting: false,
     allowAcademic: true,
     allowActuarial: false,
-    rationale: 'Calibrated for users prioritizing uncompromising privacy sovereignty. With ε = 0.15, Laplacian perturbation injects heavy statistical noise into all queries, preventing reconstruction even against nation-state adversaries. Commercial AI labs and behavioral ad-trackers are quarantined; only peer-reviewed non-profit research is permitted under strict tokenization.',
-    mathematicalGuarantee: 'e^0.15 ≈ 1.16 max bound leakage. PII reconstruction probability < 0.001%.',
+    rationale: 'Illustrative preset only. Selecting ε = 0.15 does not prove that data is transformed, that trackers are quarantined, or that reconstruction is prevented. Runtime controls and outcomes are NOT VERIFIED.',
+    mathematicalGuarantee: 'For ε = 0.15, e^ε ≈ 1.162. This is a differential-privacy ratio bound under applicable mechanism assumptions, not a measured PII reconstruction probability. Implementation NOT VERIFIED.',
     recommendedFor: 'Medical researchers, legal professionals, and privacy purists.'
   },
   balanced: {
     level: 'balanced',
     title: 'Balanced Equilibrium',
     badge: 'Tier III: Cryptographic Enclave',
-    tagline: 'Optimal equilibrium between privacy preservation and steady recurring passive compensation',
+    tagline: 'Illustrative balance preset; privacy enforcement and compensation are NOT VERIFIED',
     epsilon: 0.35,
     privacyTier: 'Tier III (Cryptographic Enclave)',
     privacyShieldScore: 92,
@@ -79,15 +79,15 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
     allowAdTargeting: false,
     allowAcademic: true,
     allowActuarial: false,
-    rationale: 'Our algorithmic sweet spot. At ε = 0.35, synthetic cohort tokenization allows frontier AI labs to license anonymized developer and consumer patterns for model pretraining while eliminating 100% of raw identity vectors. Behavioral adtech and credit risk profiling remain strictly blocked.',
-    mathematicalGuarantee: 'e^0.35 ≈ 1.41 differential privacy bound. Compliant with NIST SP 800-226.',
-    recommendedFor: 'Everyday digital citizens seeking strong passive income without privacy risk.'
+    rationale: 'Illustrative policy settings only. ε = 0.35 does not itself prove anonymization, removal of identity vectors, provider licensing, or blocking of ad targeting and credit-risk profiling. Runtime enforcement is NOT VERIFIED.',
+    mathematicalGuarantee: 'For ε = 0.35, e^ε ≈ 1.419. This is a mathematical ratio only; NIST alignment and implementation compliance have NOT been independently verified.',
+    recommendedFor: 'Users evaluating a hypothetical policy preset; income and privacy risk are not guaranteed.'
   },
   'yield-focused': {
     level: 'yield-focused',
     title: 'Maximized Yield & Growth',
     badge: 'Tier II: Differential Bastion',
-    tagline: 'Aggressive revenue yield optimization with autonomous 25% premium counter-negotiation',
+    tagline: 'Illustrative revenue scenario; buyer demand and automated negotiation are NOT VERIFIED',
     epsilon: 0.55,
     privacyTier: 'Tier II (Differential Bastion)',
     privacyShieldScore: 86,
@@ -98,8 +98,8 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
     allowAdTargeting: false,
     allowAcademic: true,
     allowActuarial: false,
-    rationale: 'Maximizes monthly data yield up to ~$382/mo. Employs coarse differential privacy (ε = 0.55) paired with automated high-reputation counter-offers (+25% pricing boost). Allows safe consumer trend analytics while keeping invasive behavioral retargeting and actuarial scoring quarantined.',
-    mathematicalGuarantee: 'e^0.55 ≈ 1.73 differential noise ceiling. 100% k-anonymity (k ≥ 50) verified.',
+    rationale: 'The displayed monthly amount is a hypothetical projection, not a quote, offer, contract, or earned revenue. Automated counter-offers, privacy protections, and restrictions on targeting or actuarial use are NOT VERIFIED.',
+    mathematicalGuarantee: 'For ε = 0.55, e^ε ≈ 1.733. This does not establish k-anonymity; no cohort-size or implementation verification is available here.',
     recommendedFor: 'Power users aiming to maximize digital asset monetization while maintaining non-identifiability.'
   }
 };
@@ -324,19 +324,19 @@ export const AiPolicyOptimizerModal: React.FC<AiPolicyOptimizerModalProps> = ({
 
               {/* Metric 2: Privacy Shield Index */}
               <div className="flex items-center justify-between py-1.5 border-b border-slate-800/60">
-                <span className="text-slate-400">Projected Privacy Shield Index:</span>
+                <span className="text-slate-400">Illustrative policy index · not a measured protection score:</span>
                 <div className="flex items-center gap-2 font-mono">
                   <span className="text-slate-400">Current</span>
                   <ArrowRight className="w-3 h-3 text-slate-500" />
                   <span className="text-emerald-400 font-bold">
-                    {preset.privacyShieldScore}/100
+                    {preset.privacyShieldScore}/100 · illustrative, not measured
                   </span>
                 </div>
               </div>
 
               {/* Metric 3: Minimum Monthly Floor */}
               <div className="flex items-center justify-between py-1.5 border-b border-slate-800/60">
-                <span className="text-slate-400">Compensation Floor:</span>
+                <span className="text-slate-400">Proposed policy floor (not a buyer offer):</span>
                 <div className="flex items-center gap-2 font-mono">
                   <span className="text-slate-400 line-through">${currentFloor}/mo</span>
                   <ArrowRight className="w-3 h-3 text-slate-500" />
@@ -348,7 +348,7 @@ export const AiPolicyOptimizerModal: React.FC<AiPolicyOptimizerModalProps> = ({
 
               {/* Metric 4: Projected Monthly Pacing */}
               <div className="flex items-center justify-between py-1.5 border-b border-slate-800/60">
-                <span className="text-slate-400">Projected Recurring Pacing:</span>
+                <span className="text-slate-400">Hypothetical monthly projection · revenue NOT VERIFIED:</span>
                 <div className="flex items-center gap-2 font-mono">
                   <span className="text-slate-200 font-bold">
                     ~${preset.projectedPacing.toFixed(2)} / month
@@ -364,7 +364,7 @@ export const AiPolicyOptimizerModal: React.FC<AiPolicyOptimizerModalProps> = ({
                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
                     : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                 }`}>
-                  {preset.allowAiPretraining ? 'PERMITTED (Zero-PII Tokenized)' : 'QUARANTINED (Zero Access)'}
+                  {preset.allowAiPretraining ? 'POLICY SETTING: PERMITTED · enforcement NOT VERIFIED' : 'POLICY SETTING: BLOCKED · enforcement NOT VERIFIED'}
                 </span>
               </div>
             </div>
@@ -378,7 +378,7 @@ export const AiPolicyOptimizerModal: React.FC<AiPolicyOptimizerModalProps> = ({
               </div>
               <div className="space-y-1.5">
                 <div className="text-xs font-bold text-white flex items-center gap-2">
-                  <span>GPT-4o Algorithmic Rationale</span>
+                  <span>Illustrative Policy Rationale · not a verified model response</span>
                   <span className="text-[10px] font-mono text-emerald-400">({preset.mathematicalGuarantee})</span>
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
