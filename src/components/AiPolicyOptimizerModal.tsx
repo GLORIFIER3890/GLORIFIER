@@ -31,10 +31,10 @@ interface OptimizationPreset {
   tagline: string;
   epsilon: number;
   privacyTier: string;
-  privacyShieldScore: number;
+  privacyShieldScore: number | null;
   monthlyFloor: number;
   brokerMode: 'strict-sovereign' | 'balanced-protective' | 'autonomous-maximize';
-  projectedPacing: number;
+  projectedPacing: number | null;
   allowAiPretraining: boolean;
   allowAdTargeting: boolean;
   allowAcademic: boolean;
@@ -51,11 +51,11 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
     badge: 'Tier IV · Configuration target only',
     tagline: 'Illustrative privacy-policy preset; implementation and enforcement NOT VERIFIED',
     epsilon: 0.15,
-    privacyTier: 'Tier IV (Sovereign Citadel)',
-    privacyShieldScore: 98,
+    privacyTier: 'Strict policy preset · implementation NOT VERIFIED',
+    privacyShieldScore: null,
     monthlyFloor: 50,
     brokerMode: 'strict-sovereign',
-    projectedPacing: 145.00,
+    projectedPacing: null,
     allowAiPretraining: false,
     allowAdTargeting: false,
     allowAcademic: true,
@@ -70,11 +70,11 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
     badge: 'Tier III: Cryptographic Enclave',
     tagline: 'Illustrative balance preset; privacy enforcement and compensation are NOT VERIFIED',
     epsilon: 0.35,
-    privacyTier: 'Tier III (Cryptographic Enclave)',
-    privacyShieldScore: 92,
+    privacyTier: 'Balanced policy preset · implementation NOT VERIFIED',
+    privacyShieldScore: null,
     monthlyFloor: 35,
     brokerMode: 'balanced-protective',
-    projectedPacing: 215.30,
+    projectedPacing: null,
     allowAiPretraining: true,
     allowAdTargeting: false,
     allowAcademic: true,
@@ -89,16 +89,16 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
     badge: 'Tier II · scenario only',
     tagline: 'Illustrative revenue scenario; buyer demand and automated negotiation are NOT VERIFIED',
     epsilon: 0.55,
-    privacyTier: 'Tier II (Differential Bastion)',
-    privacyShieldScore: 86,
+    privacyTier: 'Yield-focused policy preset · implementation NOT VERIFIED',
+    privacyShieldScore: null,
     monthlyFloor: 20,
     brokerMode: 'autonomous-maximize',
-    projectedPacing: 382.40,
+    projectedPacing: null,
     allowAiPretraining: true,
     allowAdTargeting: false,
     allowAcademic: true,
     allowActuarial: false,
-    rationale: 'The displayed monthly amount is a hypothetical projection, not a quote, offer, contract, or earned revenue. Automated counter-offers, privacy protections, and restrictions on targeting or actuarial use are NOT VERIFIED.',
+    rationale: 'No validated valuation model, buyer quote, offer, contract, or earned revenue is available. Automated counter-offers, privacy protections, and restrictions on targeting or actuarial use are NOT VERIFIED.',
     mathematicalGuarantee: 'For ε = 0.55, e^ε ≈ 1.733. This does not establish k-anonymity; no cohort-size or implementation verification is available here.',
     recommendedFor: 'Users comparing a hypothetical revenue scenario; no income or privacy outcome is guaranteed.'
   }
@@ -329,7 +329,7 @@ export const AiPolicyOptimizerModal: React.FC<AiPolicyOptimizerModalProps> = ({
                   <span className="text-slate-400">Current</span>
                   <ArrowRight className="w-3 h-3 text-slate-500" />
                   <span className="text-emerald-400 font-bold">
-                    {preset.privacyShieldScore}/100 · illustrative, not measured
+                    {preset.privacyShieldScore == null ? 'NOT MEASURED' : `${preset.privacyShieldScore}/100 · illustrative, not measured`}
                   </span>
                 </div>
               </div>
@@ -351,7 +351,7 @@ export const AiPolicyOptimizerModal: React.FC<AiPolicyOptimizerModalProps> = ({
                 <span className="text-slate-400">Hypothetical monthly projection · revenue NOT VERIFIED:</span>
                 <div className="flex items-center gap-2 font-mono">
                   <span className="text-slate-200 font-bold">
-                    ~${preset.projectedPacing.toFixed(2)} / month
+                    {preset.projectedPacing == null ? 'NOT ESTIMATED' : `~${preset.projectedPacing.toFixed(2)} / month · NOT REVENUE`}
                   </span>
                 </div>
               </div>
