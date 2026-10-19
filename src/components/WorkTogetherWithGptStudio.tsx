@@ -760,7 +760,7 @@ ${session.geminiPeerReview}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
             <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <span>Co-Authored Session Result</span>
+              <span>{currentSession.id === 'sample-not-verified' ? 'Sample Session Placeholder' : 'Session Output · Provenance Not Independently Verified'}</span>
               <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono">
                 Consensus Score: {currentSession.consensusScore === null ? 'NOT VERIFIED' : `${currentSession.consensusScore}% backend-reported; not independently verified`}
               </span>
@@ -810,8 +810,8 @@ ${session.geminiPeerReview}
             <div className="bg-slate-950 rounded-xl p-5 border border-slate-800/90 shadow-inner relative space-y-4 font-sans">
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 text-xs text-slate-400">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-emerald-400">Joint Consensus Artifact</span>
-                  <span className="font-mono text-[11px] text-slate-500">Co-Authored by GPT-4o & Gemini 3.8 Flash</span>
+                  <span className="font-bold text-emerald-400">{currentSession.id === 'sample-not-verified' ? 'Sample Artifact · NOT VERIFIED' : 'Backend-Returned Artifact · Consensus NOT VERIFIED'}</span>
+                  <span className="font-mono text-[11px] text-slate-500">{currentSession.id === 'sample-not-verified' ? 'No verified model authorship' : 'Provider authorship not independently verified'}</span>
                 </div>
                 <button
                   onClick={() => handleCopy(currentSession.jointArtifact, 'joint')}
