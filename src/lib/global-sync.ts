@@ -63,7 +63,7 @@ export const canonicalInternetNodes: InternetNode[] = [
     category: 'production',
     url: 'https://glorifier-303lllgzc-glorifier.vercel.app',
     status: 'configured',
-    lastPingAt: new Date().toISOString()
+    lastPingAt: null
   },
   {
     id: 'github-origin',
@@ -71,7 +71,7 @@ export const canonicalInternetNodes: InternetNode[] = [
     category: 'repository',
     url: 'https://github.com/GLORIFIER7/GLORIFIER',
     status: 'configured',
-    lastPingAt: new Date().toISOString()
+    lastPingAt: null
   },
   {
     id: 'huggingface-hub',
@@ -87,7 +87,7 @@ export const canonicalInternetNodes: InternetNode[] = [
     category: 'ecosystem',
     url: 'https://developers.facebook.com/',
     status: 'reachable',
-    lastPingAt: new Date().toISOString()
+    lastPingAt: null
   }
 ];
 
