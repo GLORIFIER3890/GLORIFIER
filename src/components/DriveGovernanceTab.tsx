@@ -587,7 +587,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                       <span>Delete File from Drive</span>
                     </button>
                     <p className="text-[10px] text-slate-500 text-center mt-1.5">
-                      Permanently removes file to revoke data broker access. Requires confirmation.
+                      Deletes the selected file from the connected Drive account if the provider accepts the request. It cannot revoke copies already downloaded or shared elsewhere. Requires confirmation.
                     </p>
                   </div>
                 </div>
