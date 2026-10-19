@@ -158,10 +158,8 @@ export const AICeoControl: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Radio className="h-5 w-5 text-slate-400" />
                 <h3 className="text-lg font-bold text-white">Global Synthesis & Synchronization Manifest</h3>
-                <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
-                  Consensus: {manifest.consensusScore === null ? 'NOT MEASURED · NOT VERIFIED' : `${manifest.consensusScore}% · NOT VERIFIED`}
                 <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[11px] font-semibold text-slate-300">
-                  Consensus: NOT MEASURED · NOT VERIFIED
+                  Consensus: {manifest.consensusScore === null ? 'NOT MEASURED · NOT VERIFIED' : `${manifest.consensusScore}% · NOT VERIFIED`}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">
@@ -170,7 +168,6 @@ export const AICeoControl: React.FC = () => {
             </div>
             <div className="flex items-center gap-2">
               <span className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-[11px] text-slate-400">
-                Registry metadata SHA-256: {manifest.evidenceDigestSha256.slice(0, 16)}...
                 Manifest metadata SHA-256: {manifest.evidenceDigestSha256 ? `${manifest.evidenceDigestSha256.slice(0, 16)}...` : 'UNAVAILABLE · NOT VERIFIED'}
               </span>
             </div>
