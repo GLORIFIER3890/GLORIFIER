@@ -47,8 +47,8 @@ interface OptimizationPreset {
 const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
   conservative: {
     level: 'conservative',
-    title: 'Zero-Risk Sovereign Citadel',
-    badge: 'Tier IV: Sovereign Citadel',
+    title: 'Conservative Privacy Preset (Illustrative)',
+    badge: 'Tier IV · Configuration target only',
     tagline: 'Illustrative privacy-policy preset; implementation and enforcement NOT VERIFIED',
     epsilon: 0.15,
     privacyTier: 'Tier IV (Sovereign Citadel)',
