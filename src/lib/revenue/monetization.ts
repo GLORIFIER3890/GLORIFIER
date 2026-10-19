@@ -73,6 +73,28 @@ export async function createCheckout(customerReference: string, planId: string) 
 
 export async function captureCheckout(customerReference: string, orderId: string) {
   if (!customerReference || !orderId) throw new Error('Customer reference and order ID are required');
+
+  // Check local ownership and expected plan before making any external capture call.
+  // A browser-supplied order ID must never be enough to capture an unrelated order.
+  const pending = await getPostgresPool().query(
+    `SELECT plan_id, currency, amount_minor
+     FROM subscriptions
+     WHERE provider='paypal' AND provider_order_id=$1
+       AND customer_reference=$2 AND status='pending'
+     LIMIT 1`,
+    [orderId, customerReference],
+  );
+  if (pending.rowCount !== 1) {
+    throw new Error('Checkout is invalid, already processed, or does not belong to this customer');
+  }
+
+  const expectedPlan = getPlan(String(pending.rows[0].plan_id));
+  const expectedCurrency = String(pending.rows[0].currency);
+  const expectedAmountMinor = Number(pending.rows[0].amount_minor);
+  if (expectedPlan.currency !== expectedCurrency || Math.round(Number(expectedPlan.price) * 100) !== expectedAmountMinor) {
+    throw new Error('Stored checkout amount does not match the configured plan');
+  }
+
   const result = await capturePayPalOrder(orderId);
   const purchaseUnit = result.purchase_units?.[0];
   const capture = purchaseUnit?.payments?.captures?.[0];
@@ -81,8 +103,11 @@ export async function captureCheckout(customerReference: string, orderId: string
   const currency = String(capture?.amount?.currency_code || '');
   const amount = String(capture?.amount?.value || '');
 
-  if (status !== 'COMPLETED' || captureStatus !== 'COMPLETED' || !/^[A-Z]{3}$/.test(currency) || !/^\\d+(\\.\\d{1,2})?$/.test(amount)) {
+  if (status !== 'COMPLETED' || captureStatus !== 'COMPLETED' || !/^[A-Z]{3}$/.test(currency) || !/^\d+(\.\d{1,2})?$/.test(amount)) {
     throw new Error('PayPal payment was not completed');
+  }
+  if (currency !== expectedCurrency || Math.round(Number(amount) * 100) !== expectedAmountMinor) {
+    throw new Error('Captured PayPal amount or currency does not match the expected plan price');
   }
 
   const client = await getPostgresPool().connect();
