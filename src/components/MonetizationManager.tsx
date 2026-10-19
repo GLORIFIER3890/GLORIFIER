@@ -240,17 +240,17 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
           </label>
 
           <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-            <div className="text-xs font-bold uppercase tracking-widest text-emerald-400">PayPal Revenue Rail</div>
+            <div className="text-xs font-bold uppercase tracking-widest text-emerald-400">Voluntary Support</div>
             <p className="mt-2 text-xs leading-5 text-slate-400">
-              Accept payments through the Glorifier PayPal.Me account. Payment confirmation is reconciled through verified PayPal events before being counted as verified revenue.
+              Support GLORIFIER voluntarily through PayPal.Me. This external link does not automatically notify GLORIFIER or verify a payment in the revenue ledger. Verify receipts in PayPal before recording support as received revenue.
             </p>
             <a
-              href="https://paypal.me/glorifier?locale.x=en_US&country.x=PH"
+              href="https://paypal.me/glorifier"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
             >
-              <Wallet className="w-4 h-4" /> Pay with PayPal
+              <Wallet className="w-4 h-4" /> Support GLORIFIER via PayPal.Me
             </a>
           </div>
 
