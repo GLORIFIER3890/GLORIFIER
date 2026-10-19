@@ -40,6 +40,20 @@ function scientistForCategory(category: string): string {
 
 function textOf(x: any): string { return [x?.title, x?.name, x?.description, x?.body, x?.html_url, x?.url].filter(Boolean).join(' ').slice(0, 4000); }
 
+
+// Conservative first-pass filter. External text is untrusted data, not authority.
+// This only creates a review candidate; it never proves eligibility, funding, or revenue.
+function isPotentialPaidWork(finding: DiscoveryFinding): boolean {
+  const text = (finding.title + ' ' + finding.description + ' ' + finding.url).toLowerCase();
+  const url = finding.url.toLowerCase();
+  if (!/^https:\/\/(github\.com|www\.github\.com)\//i.test(url)) return false;
+  // Exclude simulated/game economies and meta-work about building bounty infrastructure.
+  if (/\b(in-game|game currency|silver reward|simulated reward|bounty system|bounty platform|reward distribution|bounty infrastructure|funded bounty program)\b/i.test(text)) return false;
+  const explicitPaidSignal = /\b(\$\s?\d+(?:[,.]\d{2})?|\d+(?:\.\d+)?\s?(?:usd|usdc|usdt|eth|btc)\b|paid bounty|cash reward|funded bounty|reward of|bounty reward)\b/i.test(text);
+  const workSignal = /\b(issue|bug|fix|implement|feature|task|bounty|pull request|pr)\b/i.test(finding.title + ' ' + finding.description);
+  return explicitPaidSignal && workSignal && (finding.category.toLowerCase().includes('bounty') || finding.category.toLowerCase().includes('developer-work'));
+}
+
 function extractFindings(source: DiscoverySource, payload: any): DiscoveryFinding[] {
   const items = Array.isArray(payload) ? payload : Array.isArray(payload?.items) ? payload.items : [];
   const observedAt = new Date().toISOString();
@@ -86,6 +100,13 @@ export async function run24x7OpportunityDiscoveryCycle(actor = 'ai-ceo-autonomou
         const scientistId = scientistForCategory(finding.category);
         const insert = await db.query('INSERT INTO glorifier_discovery_findings (id,source_id,title,url,description,category,fingerprint,scientist_id,evidence) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb) ON CONFLICT(fingerprint) DO NOTHING RETURNING id', [ 'finding-' + crypto.randomUUID(), finding.sourceId, finding.title, finding.url, finding.description, finding.category, fingerprint, scientistId, JSON.stringify({ source: finding.sourceId, observedAt: finding.observedAt, evidenceStatus: 'observed' }) ]);
         if (!insert.rowCount) continue;
+        if (!isPotentialPaidWork(finding)) {
+          await db.query("UPDATE glorifier_discovery_findings SET status=$2, evidence=evidence || $3::jsonb, updated_at=NOW() WHERE id=$1", [
+            insert.rows[0].id, 'observed-noncommercial',
+            JSON.stringify({ qualification: 'not-qualified', reason: 'No explicit monetary work signal or excluded simulated/meta-reward pattern', economicTruth: 'OBSERVED — NOT VERIFIED' })
+          ]);
+          continue;
+        }
         const modelAssignees = listAgentCards().map((agent: any) => ({ id: String(agent.id || agent.name || 'agent'), type: 'model-or-agent' }));
         const scientistAssignees = MONETIZATION_SCIENTISTS.map((scientist) => ({ id: scientist.id, type: 'scientist' }));
         const assignees = [...modelAssignees, ...scientistAssignees];
@@ -94,8 +115,11 @@ export async function run24x7OpportunityDiscoveryCycle(actor = 'ai-ceo-autonomou
         }
         const opportunity = await createMonetizationOpportunity({ title: finding.title, scientistId, evidenceRefs: [finding.url, 'discovery:' + insert.rows[0].id] });
         opportunitiesCreated++;
-        await db.query('UPDATE glorifier_discovery_findings SET status=$2,updated_at=NOW() WHERE id=$1', [insert.rows[0].id, 'qualified-for-review']);
-        await db.query('UPDATE monetization_opportunities SET metadata=metadata || $2::jsonb, next_action=$3 WHERE id=$1', [opportunity.id, JSON.stringify({ discoveryRunId: runId, discoverySource: finding.sourceId, economicTruth: 'OBSERVED — NOT VERIFIED', autonomousAction: 'discovery-only' }), 'Verify source, buyer demand, deliverability, and commercial terms']);
+        await db.query('UPDATE glorifier_discovery_findings SET status=$2, evidence=evidence || $3::jsonb, updated_at=NOW() WHERE id=$1', [
+          insert.rows[0].id, 'qualified-for-review',
+          JSON.stringify({ qualification: 'candidate-only', economicTruth: 'OBSERVED — NOT VERIFIED', requiresHumanQualification: true })
+        ]);
+        await db.query('UPDATE monetization_opportunities SET metadata=metadata || $2::jsonb, next_action=$3 WHERE id=$1', [opportunity.id, JSON.stringify({ discoveryRunId: runId, discoverySource: finding.sourceId, economicTruth: 'OBSERVED — NOT VERIFIED', autonomousAction: 'discovery-only', qualification: 'candidate-only', requiresHumanApproval: true }), 'Verify current source state, buyer demand, eligibility, funding, deliverability, and terms; obtain owner approval before commitment']);
       }
     } catch (error: any) { errors.push(source.id + ': ' + (error?.message || String(error))); }
   }
