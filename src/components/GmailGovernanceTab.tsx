@@ -221,7 +221,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
                   onClick={fetchEmails}
                   className="px-3 py-1.5 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 text-xs font-semibold"
                 >
-                  Scan Inbox Now
+                  Load Recent Message Metadata
                 </button>
               </div>
             ) : (
