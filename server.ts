@@ -1789,7 +1789,10 @@ ${geminiText || 'No verified Gemini response was available.'}`;
       gptContribution: gptText,
       geminiPeerReview: geminiText,
       jointArtifact,
-      coAuthors: ['OpenAI GPT-4o', 'Google Gemini 3.8 Flash'],
+      coAuthors: [
+        ...(gptText ? ['OpenAI GPT-4o'] : []),
+        ...(geminiText ? ['Google Gemini 3.8 Flash'] : [])
+      ],
       consensusScore: null,
       consensusStatus: 'NOT MEASURED — provider agreement has not been independently tested',
       timestamp: new Date().toISOString()
