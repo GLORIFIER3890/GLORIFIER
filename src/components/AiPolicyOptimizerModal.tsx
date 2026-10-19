@@ -329,14 +329,14 @@ export const AiPolicyOptimizerModal: React.FC<AiPolicyOptimizerModalProps> = ({
                   <span className="text-slate-400">Current</span>
                   <ArrowRight className="w-3 h-3 text-slate-500" />
                   <span className="text-emerald-400 font-bold">
-                    {preset.privacyShieldScore}/100
+                    {preset.privacyShieldScore}/100 · illustrative, not measured
                   </span>
                 </div>
               </div>
 
               {/* Metric 3: Minimum Monthly Floor */}
               <div className="flex items-center justify-between py-1.5 border-b border-slate-800/60">
-                <span className="text-slate-400">Compensation Floor:</span>
+                <span className="text-slate-400">Proposed policy floor (not a buyer offer):</span>
                 <div className="flex items-center gap-2 font-mono">
                   <span className="text-slate-400 line-through">${currentFloor}/mo</span>
                   <ArrowRight className="w-3 h-3 text-slate-500" />
@@ -348,7 +348,7 @@ export const AiPolicyOptimizerModal: React.FC<AiPolicyOptimizerModalProps> = ({
 
               {/* Metric 4: Projected Monthly Pacing */}
               <div className="flex items-center justify-between py-1.5 border-b border-slate-800/60">
-                <span className="text-slate-400">Projected Recurring Pacing:</span>
+                <span className="text-slate-400">Hypothetical monthly projection · revenue NOT VERIFIED:</span>
                 <div className="flex items-center gap-2 font-mono">
                   <span className="text-slate-200 font-bold">
                     ~${preset.projectedPacing.toFixed(2)} / month
@@ -364,7 +364,7 @@ export const AiPolicyOptimizerModal: React.FC<AiPolicyOptimizerModalProps> = ({
                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
                     : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                 }`}>
-                  {preset.allowAiPretraining ? 'PERMITTED (Zero-PII Tokenized)' : 'QUARANTINED (Zero Access)'}
+                  {preset.allowAiPretraining ? 'POLICY SETTING: PERMITTED · enforcement NOT VERIFIED' : 'POLICY SETTING: BLOCKED · enforcement NOT VERIFIED'}
                 </span>
               </div>
             </div>
@@ -378,7 +378,7 @@ export const AiPolicyOptimizerModal: React.FC<AiPolicyOptimizerModalProps> = ({
               </div>
               <div className="space-y-1.5">
                 <div className="text-xs font-bold text-white flex items-center gap-2">
-                  <span>GPT-4o Algorithmic Rationale</span>
+                  <span>Illustrative Policy Rationale · not a verified model response</span>
                   <span className="text-[10px] font-mono text-emerald-400">({preset.mathematicalGuarantee})</span>
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
