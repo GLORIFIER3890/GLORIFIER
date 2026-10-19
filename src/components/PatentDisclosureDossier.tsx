@@ -396,7 +396,7 @@ generate an interactive patent and legal defense interface displaying system arc
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                <Scale className="w-3.5 h-3.5" /> Formal Patent Disclosure
+                <Scale className="w-3.5 h-3.5" /> Draft Patent Disclosure
               </span>
               <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono">
                 Draft legal references · patentability and filing readiness NOT VERIFIED
