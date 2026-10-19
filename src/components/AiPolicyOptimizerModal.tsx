@@ -397,7 +397,7 @@ export const AiPolicyOptimizerModal: React.FC<AiPolicyOptimizerModalProps> = ({
         <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/80 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Applies cryptographic zero-knowledge governance instantly</span>
+            <span>Applies local policy settings only; production enforcement NOT VERIFIED</span>
           </div>
 
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
