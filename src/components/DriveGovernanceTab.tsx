@@ -36,13 +36,11 @@ import { DriveAnalysisItem } from '../types';
 interface DriveGovernanceTabProps {
   currentUser: User | null;
   onLogin: () => void;
-  onAddEarnings: (amountUsd: number, description: string) => void;
 }
 
 export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
   currentUser,
   onLogin,
-  onAddEarnings,
 }) => {
   const [loading, setLoading] = useState(false);
   const [files, setFiles] = useState<DriveAnalysisItem[]>([]);
@@ -81,11 +79,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
       const analyzed = rawFiles.map(analyzeDriveFileForSovereignty);
       setFiles(analyzed);
 
-      // Add compensation yield
-      const totalYield = analyzed.reduce((acc, curr) => acc + curr.estimatedYieldUsd, 0);
-      if (totalYield > 0) {
-        onAddEarnings(Number((totalYield * 0.25).toFixed(2)), 'Google Drive Data Footprint Audit');
-      }
+
     } catch (err: any) {
       console.error('Failed to sync Drive:', err);
       setError(err.message || 'Error connecting to Google Drive. Please sign in again.');
