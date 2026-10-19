@@ -599,7 +599,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
               ) : (
                 <div className="py-12 text-center text-slate-500 text-xs space-y-2">
                   <EyeOff className="w-6 h-6 mx-auto text-slate-600" />
-                  <p>Select any cloud file from the list to view sensitivity analysis and cryptographic protections.</p>
+                  <p>Select a cloud file to view available sensitivity analysis. Cryptographic protections and actual data flow are NOT VERIFIED by this screen.</p>
                 </div>
               )}
             </div>
