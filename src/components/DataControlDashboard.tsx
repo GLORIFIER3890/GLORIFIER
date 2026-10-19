@@ -234,8 +234,8 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
 
               {/* Footer bar */}
               <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 font-mono">
-                <div>Granted: {grant.grantedAt} &bull; Auto-Expires: {grant.expiresAt}</div>
-                <div className="text-slate-400 font-semibold">{grant.rateDescription}</div>
+                <div>Recorded grant date: {grant.grantedAt} · recorded expiry: {grant.expiresAt} · provider status NOT VERIFIED</div>
+                <div className="text-slate-400 font-semibold">Stored rate description · NOT VERIFIED: {grant.rateDescription}</div>
               </div>
             </div>
           );
