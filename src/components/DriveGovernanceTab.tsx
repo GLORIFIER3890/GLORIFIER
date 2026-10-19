@@ -556,7 +556,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                     ) : (
                       <div className="p-2 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] flex items-center gap-1.5 mt-1">
                         <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-                        <span>Shield Verified: Zero PII detected in title/metadata.</span>
+                        <span>Local metadata scan: no configured PII patterns detected in the checked title/metadata. This is not a complete PII audit or privacy guarantee.</span>
                       </div>
                     )}
                   </div>
@@ -695,7 +695,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                 DataSovereign-Audit-Manifest.json
               </div>
               <p className="text-[11px] text-slate-400">
-                The manifest documents your verified CCPA / GDPR privacy status and Zero-Knowledge protection logs, stored securely in your own Google Drive root folder.
+                The manifest records the selected governance settings and available scan results. It does not certify CCPA/GDPR compliance or prove zero-knowledge protections. Google Drive storage success and access controls depend on the active integration.
               </p>
             </div>
 
