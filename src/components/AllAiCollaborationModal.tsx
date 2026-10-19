@@ -71,10 +71,7 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
     setCouncilResult(null);
     setActiveStep(1);
 
-    // Step 1: Broadcasting to models
-    setTimeout(() => setActiveStep(2), 700);
-    // Step 2: Cross-model deliberation
-    setTimeout(() => setActiveStep(3), 1400);
+    // Progress reflects the request lifecycle only; provider participation is not inferred.
 
     try {
       const res = await fetch('/api/ai/council', {
