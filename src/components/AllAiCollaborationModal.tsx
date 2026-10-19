@@ -85,8 +85,31 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: CouncilConsensusResult = await res.json();
-      setCouncilResult(data);
+      const raw = await res.json();
+      const participants = Array.isArray(raw.participants)
+        ? raw.participants.map((p: any, index: number) => ({
+            modelId: String(p.model || p.id || p.provider || `participant-${index + 1}`),
+            name: String(p.title || p.model || p.provider || 'Unnamed participant'),
+            provider: String(p.provider || 'Provider not reported'),
+            role: String(p.title || 'Specialist perspective'),
+            color: 'cyan',
+            badge: String(p.status || 'Response returned'),
+            status: 'completed' as const,
+            output: String(p.output || 'No output returned.'),
+            perspective: String(p.output || 'No perspective returned.')
+          }))
+        : [];
+      const normalized: CouncilConsensusResult = {
+        agenda: String(raw.agenda || currentTopic),
+        timestamp: String(raw.timestamp || new Date().toISOString()),
+        participants,
+        unifiedConsensus: String(raw.synthesis?.output || 'No synthesis was returned. Multiple responses do not by themselves establish consensus.'),
+        consensusScore: typeof raw.consensusScore === 'number' ? raw.consensusScore : null,
+        recommendedEpsilon: typeof raw.recommendedEpsilon === 'number' ? raw.recommendedEpsilon : null,
+        recommendedFloorUsd: typeof raw.recommendedFloorUsd === 'number' ? raw.recommendedFloorUsd : null,
+        actionDirectives: Array.isArray(raw.actionDirectives) ? raw.actionDirectives.filter((x: unknown): x is string => typeof x === 'string') : []
+      };
+      setCouncilResult(normalized);
     } catch (err) {
       console.warn('Council endpoint unavailable; no consensus result was produced.', err);
     } finally {
@@ -96,7 +119,13 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
   };
 
   const handleApply = () => {
-    if (!councilResult) return;
+    if (
+      !councilResult ||
+      typeof councilResult.recommendedEpsilon !== 'number' ||
+      !Number.isFinite(councilResult.recommendedEpsilon) ||
+      typeof councilResult.recommendedFloorUsd !== 'number' ||
+      !Number.isFinite(councilResult.recommendedFloorUsd)
+    ) return;
     onApplyDirectives(
       {
         globalEpsilon: councilResult.recommendedEpsilon,
@@ -384,13 +413,13 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-mono text-slate-400">Backend-reported consensus score (not independently verified):</span>
                     <span className="text-xs font-bold font-mono px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                      {councilResult.consensusScore}% Agreement
+                      {typeof councilResult.consensusScore === 'number' ? `${councilResult.consensusScore}% backend-reported · not independently verified` : 'NOT MEASURED'}
                     </span>
                   </div>
                 </div>
 
                 <p className="text-xs text-slate-200 mt-3 leading-relaxed">
-                  {councilResult.unifiedConsensus}
+                  {councilResult.unifiedConsensus || 'No synthesis was returned.'}
                 </p>
 
                 {/* Calibrated Metrics */}
@@ -398,25 +427,25 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
                   <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-center">
                     <div className="text-[10px] text-slate-400 font-mono">Recommended ε</div>
                     <div className="text-sm font-bold text-emerald-400 font-mono mt-0.5">
-                      ε = {councilResult.recommendedEpsilon}
+                      {typeof councilResult.recommendedEpsilon === 'number' ? `ε = ${councilResult.recommendedEpsilon}` : 'NOT RETURNED'}
                     </div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-center">
                     <div className="text-[10px] text-slate-400 font-mono">Recommended Floor</div>
                     <div className="text-sm font-bold text-teal-400 font-mono mt-0.5">
-                      ${councilResult.recommendedFloorUsd}/mo
+                      {typeof councilResult.recommendedFloorUsd === 'number' ? `${councilResult.recommendedFloorUsd}/mo · backend-reported` : 'NOT RETURNED'}
                     </div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-center">
                     <div className="text-[10px] text-slate-400 font-mono">Pre-Training AI</div>
                     <div className="text-sm font-bold text-cyan-400 font-mono mt-0.5">
-                      Authorized (Zero PII)
+                      NOT VERIFIED
                     </div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-center">
                     <div className="text-[10px] text-slate-400 font-mono">Shadow Brokers</div>
                     <div className="text-sm font-bold text-rose-400 font-mono mt-0.5">
-                      Quarantined
+                      NOT VERIFIED
                     </div>
                   </div>
                 </div>
@@ -444,7 +473,7 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
         <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/80 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>OpenAI, Google DeepMind, and Meta open weights acting in unison</span>
+            <span>Provider participation, consensus, and production enforcement are NOT VERIFIED unless explicit evidence is returned.</span>
           </div>
 
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
@@ -455,7 +484,7 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
             >
               Close
             </button>
-            {councilResult && (
+            {councilResult && typeof councilResult.recommendedEpsilon === 'number' && Number.isFinite(councilResult.recommendedEpsilon) && typeof councilResult.recommendedFloorUsd === 'number' && Number.isFinite(councilResult.recommendedFloorUsd) && (
               <button
                 type="button"
                 id="adopt-council-consensus-btn"
