@@ -253,7 +253,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
 
                       <div className="text-right shrink-0">
                         <div className="text-xs font-bold text-emerald-400 font-mono">
-                          Est. ${item.estimatedYieldUsd.toFixed(2)} · NOT REVENUE
+                          NOT ESTIMATED · NOT REVENUE
                         </div>
                         <span className="text-[10px] text-slate-400">{item.date}</span>
                       </div>
@@ -302,7 +302,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
                   <div>
                     <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Hypothetical estimated value · NOT REVENUE</span>
                     <div className="text-base font-bold text-emerald-400 font-mono mt-1">
-                      ${selectedItem.estimatedYieldUsd.toFixed(2)} USD · estimated only, NOT REVENUE
+                      NOT ESTIMATED — no validated buyer quote or valuation model
                     </div>
                   </div>
 
