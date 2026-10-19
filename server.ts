@@ -1655,22 +1655,19 @@ ${codeSnippet || '// No code snippet provided'}`;
 
     const [gptRes, geminiRes] = await Promise.allSettled([gptPromise, geminiPromise]);
 
-    const gptText = gptRes.status === 'fulfilled' && gptRes.value.text
-      ? gptRes.value.text
-      : `[OpenAI GPT-4o Code Fix Analysis]:\nRoot Cause: High-demand 503 or transient rate-limit exhaustion encountered in the provider pipeline.\nFix: Implement fast-switching multi-model circuit breaker to instantly switch over to gemini-3.1-flash-lite or GPT-4o without holding connection pools open.`;
+    const gptText = gptRes.status === 'fulfilled' && gptRes.value.text ? gptRes.value.text : '';
+    const geminiText = geminiRes.status === 'fulfilled' && geminiRes.value.text ? geminiRes.value.text : '';
 
-    const geminiText = geminiRes.status === 'fulfilled' && geminiRes.value.text
-      ? geminiRes.value.text
-      : `[Google Gemini 3.8 Flash Peer Review]:\nConcur with GPT-4o. Rate-limit backoff on 503 is inefficient. Immediate failover ensures zero client-side latency stalls and preserves differential privacy state.`;
+    if (!gptText && !geminiText) {
+      return res.status(503).json({
+        success: false,
+        error: 'No provider-backed analysis is available.',
+        providerStatus: 'NOT VERIFIED — no synthetic model response or patch was generated.'
+      });
+    }
 
-    const unifiedPatch = `// Collaborative Patch synthesized by OpenAI GPT-4o & Google Gemini 3.8 Flash
-// File: ${errorSource || 'server.ts'}
-- // Old single-threaded or blocking retry handler
-+ // Enhanced collaborative circuit breaker:
-+ if (isUnavailable || isQuota) {
-+   console.info('[SentinelBot] Auto-failover activated across model council');
-+   return await runModelExecution({ model: 'gpt-4o', ...executionPayload });
-+ }`;
+    // Provider prose is analysis only; this endpoint does not synthesize or certify an executable patch.
+    const unifiedPatch = '';
 
     res.json({
       success: true,
@@ -1680,7 +1677,8 @@ ${codeSnippet || '// No code snippet provided'}`;
       collaborativeFixProposal: 'Implement Multi-Model Dynamic Circuit Breaker with immediate failover across OpenAI GPT-4o and Gemini Flash-Lite.',
       patchDiff: unifiedPatch,
       collaboratingModels: ['OpenAI GPT-4o', 'Google Gemini 3.8 Flash', 'Sovereign Enclave Core'],
-      verifiedSafe: true,
+      verifiedSafe: false,
+      safetyStatus: 'NOT VERIFIED — provider analysis is not a patch safety test',
       timestamp: new Date().toISOString()
     });
   } catch (err: any) {
@@ -1792,7 +1790,8 @@ ${geminiText || 'No verified Gemini response was available.'}`;
       geminiPeerReview: geminiText,
       jointArtifact,
       coAuthors: ['OpenAI GPT-4o', 'Google Gemini 3.8 Flash'],
-      consensusScore: 100,
+      consensusScore: null,
+      consensusStatus: 'NOT MEASURED — provider agreement has not been independently tested',
       timestamp: new Date().toISOString()
     });
   } catch (err: any) {
@@ -1811,8 +1810,8 @@ interface Gpt247State {
   enabled: boolean;
   intervalMs: number;
   cyclesCompleted: number;
-  lastCycleAt: string;
-  uptimeHours: number;
+  lastCycleAt: string | null;
+  uptimeHours: number | null;
   recentDeliverables: Array<{
     id: string;
     timestamp: string;
@@ -1824,66 +1823,16 @@ interface Gpt247State {
 }
 
 const gpt247State: Gpt247State = {
-  enabled: true,
+  enabled: false,
   intervalMs: 120_000,
-  cyclesCompleted: 24,
-  lastCycleAt: new Date().toISOString(),
-  uptimeHours: 168.0,
-  recentDeliverables: [
-    {
-      id: 'gpt247-1',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      domain: 'code_engineering',
-      task: 'Self-Healing Circuit Breaker & 503 Jittered Failover Audit',
-      consensusScore: 100,
-      summary: 'Verified 0 dropped socket frames; state machine isolated transient upstream latency.'
-    },
-    {
-      id: 'gpt247-2',
-      timestamp: new Date(Date.now() - 120_000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      domain: 'differential_privacy',
-      task: 'Continuous Laplace Scale Perturbation (b = Δf / ε, ε = 0.30)',
-      consensusScore: 100,
-      summary: 'Re-identification risk bounded at P ≤ 0.0004 under HIPAA Expert Determination.'
-    },
-    {
-      id: 'gpt247-3',
-      timestamp: new Date(Date.now() - 240_000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      domain: 'monetization_strategy',
-      task: 'Frontier AI Dataset Licensing Compensation Floor ($40/mo)',
-      consensusScore: 100,
-      summary: 'Automated counter-offer rule enforced across all external pre-training dataset buyers.'
-    }
-  ]
+  cyclesCompleted: 0,
+  lastCycleAt: null,
+  uptimeHours: null,
+  recentDeliverables: []
 };
 
-// 24/7 Heartbeat timer
-setInterval(() => {
-  if (!gpt247State.enabled) return;
-  gpt247State.cyclesCompleted += 1;
-  gpt247State.lastCycleAt = new Date().toISOString();
-
-  const cycleTasks = [
-    { domain: 'code_engineering', task: 'Automated 24/7 Concurrency & Circuit-Breaker Health Verification', summary: 'Checked API health, process sockets, and zero unhandled rejections.' },
-    { domain: 'differential_privacy', task: 'Automated ε Budget Calibration (ε = 0.30)', summary: 'Validated Laplace mechanism perturbation across active telemetry pipelines.' },
-    { domain: 'monetization_strategy', task: 'Dataset Reserve Price Audit ($40.00/mo floor)', summary: 'Audited buyer bids; confirmed all unapproved low bids remain blocked.' },
-    { domain: 'patent_ip', task: 'Alice / Mayo 35 U.S.C. 101/112 Technical Enablement Audit', summary: 'Confirmed non-abstract technological claim dependencies remain mathematically validated.' }
-  ];
-  const nextTask = cycleTasks[gpt247State.cyclesCompleted % cycleTasks.length];
-
-  gpt247State.recentDeliverables.unshift({
-    id: `gpt247-${Date.now()}`,
-    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    domain: nextTask.domain,
-    task: nextTask.task,
-    consensusScore: 100,
-    summary: nextTask.summary
-  });
-
-  if (gpt247State.recentDeliverables.length > 10) {
-    gpt247State.recentDeliverables.pop();
-  }
-}, gpt247State.intervalMs);
+// No synthetic heartbeat or scheduled deliverables are created here.
+// A future worker must persist real cycle evidence before this API reports completed work.
 
 app.get('/api/ai/work-247-gpt', (_req: Request, res: Response) => {
   res.json({
@@ -1909,31 +1858,12 @@ app.post('/api/ai/work-247-gpt/toggle', (req: Request, res: Response) => {
 
 app.post('/api/ai/work-247-gpt/trigger', async (req: Request, res: Response) => {
   try {
-    gpt247State.cyclesCompleted += 1;
-    gpt247State.lastCycleAt = new Date().toISOString();
-    
-    const task = req.body.task || '24/7 Manual Triggered GPT-4o & Gemini Peer Audit';
-    const domain = req.body.domain || 'code_engineering';
-    
-    const newDeliverable = {
-      id: `gpt247-trigger-${Date.now()}`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      domain,
-      task,
-      consensusScore: 100,
-      summary: 'Verified 100% agreement between GPT-4o and Gemini 3.8 Flash. Codebase verified clean.'
-    };
-    
-    gpt247State.recentDeliverables.unshift(newDeliverable);
-    if (gpt247State.recentDeliverables.length > 10) {
-      gpt247State.recentDeliverables.pop();
-    }
-
-    res.json({
-      success: true,
+    return res.status(501).json({
+      success: false,
+      status: 'NOT VERIFIED',
+      error: 'No real background co-working executor is configured for this endpoint.',
       cyclesCompleted: gpt247State.cyclesCompleted,
-      deliverable: newDeliverable,
-      state: gpt247State
+      deliverable: null
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2033,8 +1963,9 @@ app.post('/api/sentinel/crud', async (req: Request, res: Response) => {
     // READ / SCAN: Default status scan
     return res.json({
       success: true,
-      monitoringActive24x7: true,
-      healthScore: 98,
+      monitoringActive24x7: null,
+      healthScore: null,
+      status: 'NOT VERIFIED — no independent continuous monitoring evidence is available',
       recentLogs: serverSentinelLogs.slice(0, 10),
       timestamp: new Date().toISOString()
     });
