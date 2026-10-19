@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import type { Pool, PoolClient } from 'pg';
 import { getPostgresPool } from '../db/postgres';
 
 export type RevenueEvent = {
@@ -35,14 +36,14 @@ export async function initializeRevenueLedger(): Promise<void> {
   `);
 }
 
-export async function recordRevenueEvent(event: RevenueEvent): Promise<{ inserted: boolean; id?: number }> {
+export async function recordRevenueEvent(event: RevenueEvent, db: Pool | PoolClient = getPostgresPool()): Promise<{ inserted: boolean; id?: number }> {
   if (!event.eventId || !event.provider || !event.userReference || !event.currency || !Number.isSafeInteger(event.amountMinor)) {
     throw new Error('Invalid revenue event');
   }
   if (event.amountMinor < 0) throw new Error('Revenue amount cannot be negative');
   if (!/^[A-Z]{3}$/.test(event.currency)) throw new Error('Currency must be an ISO 4217 uppercase code');
 
-  const result = await getPostgresPool().query(
+  const result = await db.query(
     `INSERT INTO revenue_ledger
       (event_id, provider, provider_transaction_id, customer_reference, user_reference, currency, amount_minor, status, occurred_at, metadata)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,COALESCE($9,NOW()),$10)
