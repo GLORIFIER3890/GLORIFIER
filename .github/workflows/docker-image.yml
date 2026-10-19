@@ -62,7 +62,8 @@ jobs:
           openssl req -new -x509 -days 1 -nodes -text \
             -out "$tls_dir/server.crt" \
             -keyout "$tls_dir/server.key" \
-            -subj "/CN=$postgres"
+            -subj "/CN=$postgres" \\
+            -addext "subjectAltName=DNS:$postgres"
           sudo chown 70:70 "$tls_dir/server.crt" "$tls_dir/server.key"
           sudo chmod 644 "$tls_dir/server.crt"
           sudo chmod 600 "$tls_dir/server.key"
