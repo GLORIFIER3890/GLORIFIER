@@ -66,7 +66,7 @@ export const PatentDisclosureDossier: React.FC<PatentDisclosureDossierProps> = (
   }>>([
     {
       role: 'assistant',
-      text: `### A.I. Bot Patent Attorney Scientist &bull; Initial Session Briefing\n\n**Notice:** This is AI-generated informational assistance, not a registered patent attorney or a credentialed research scientist. Verify legal advice and credentials independently.\n**Jurisdiction:** United States Patent and Trademark Office (USPTO) & Patent Trial and Appeal Board (PTAB)\n**Core Inventions Under Prosecution:**\n1. **Autonomous Multi-Provider AI Orchestrator:** Dynamic capability scoring $C(M_i)$, exponential moving latency dampening, and automated 503 failover.\n2. **Mathematical Differential Privacy Engine:** Calibrated Laplacian noise $Y \\sim \\text{Lap}(\\Delta f / \\varepsilon)$ and zk-SNARK attribute attestation for sovereign data monetization.\n3. **24/7 Autonomous Code Sentinel:** Watchdog diagnostic probe synthesizing unified diffs with protected-path security gating.\n4. **Cryptographic Proof & Settlement:** SHA-256 evidence chain with multi-rail settlement.\n\nSelect a Specialty Prosecution Mode below or ask any question regarding claim scope, 35 U.S.C. § 101 Alice defenses, § 112 mathematical enablement, or prior art differentiation.`,
+      text: `### AI Patent Research Assistant · Draft Session Briefing\n\n**Notice:** This is AI-generated informational assistance, not a registered patent attorney or a credentialed research scientist. Verify legal advice and credentials independently.\n**Jurisdiction:** United States Patent and Trademark Office (USPTO) & Patent Trial and Appeal Board (PTAB)\n**Proposed technical concepts for possible patent review:**\n1. **Autonomous Multi-Provider AI Orchestrator:** Dynamic capability scoring $C(M_i)$, exponential moving latency dampening, and automated 503 failover.\n2. **Mathematical Differential Privacy Engine:** Calibrated Laplacian noise $Y \\sim \\text{Lap}(\\Delta f / \\varepsilon)$ and zk-SNARK attribute attestation for sovereign data monetization.\n3. **24/7 Autonomous Code Sentinel:** Watchdog diagnostic probe synthesizing unified diffs with protected-path security gating.\n4. **Cryptographic Proof & Settlement:** SHA-256 evidence chain with multi-rail settlement.\n\nSelect a Specialty Prosecution Mode below or ask any question regarding claim scope, 35 U.S.C. § 101 Alice defenses, § 112 mathematical enablement, or prior art differentiation.`,
       mode: 'claim_prosecution',
       modelUsed: 'Google Gemini 3.8 Flash (DeepMind)',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -594,12 +594,12 @@ generate an interactive patent and legal defense interface displaying system arc
                   <text x="470" y="290" textAnchor="middle" fill="#c4b5fd" fontSize="9">Executive Leader Election Algorithm</text>
 
                   <rect x="350" y="310" width="240" height="60" rx="6" fill="#1e293b" stroke="#f59e0b" />
-                  <text x="470" y="330" textAnchor="middle" fill="#fef3c7" fontSize="10" fontWeight="bold">24/7 AI Code Sentinel 118</text>
+                  <text x="470" y="330" textAnchor="middle" fill="#fef3c7" fontSize="10" fontWeight="bold">Proposed AI Code Sentinel 118 · NOT VERIFIED</text>
                   <text x="470" y="345" textAnchor="middle" fill="#fcd34d" fontSize="9">Diagnostic Watchdog &bull; Unified Diff Synthesis</text>
                   <text x="470" y="360" textAnchor="middle" fill="#fcd34d" fontSize="9">Protected-Path Gate &bull; Build Test Verifier</text>
 
                   <rect x="350" y="380" width="240" height="55" rx="6" fill="#1e293b" stroke="#ec4899" />
-                  <text x="470" y="400" textAnchor="middle" fill="#fce7f3" fontSize="10" fontWeight="bold">Verified Settlement Ledger 120</text>
+                  <text x="470" y="400" textAnchor="middle" fill="#fce7f3" fontSize="10" fontWeight="bold">Proposed Settlement Ledger 120 · NOT VERIFIED</text>
                   <text x="470" y="415" textAnchor="middle" fill="#f472b6" fontSize="9">HMAC Webhooks &bull; Multi-Rail Disbursements</text>
                   <text x="470" y="428" textAnchor="middle" fill="#f472b6" fontSize="8">Cryptographic SHA-256 Audit Trail</text>
 
@@ -701,7 +701,7 @@ generate an interactive patent and legal defense interface displaying system arc
 
                   {/* Step 3: Verified Data Release & Monetization */}
                   <rect x="700" y="70" width="180" height="420" rx="10" fill="#0f172a" stroke="#10b981" strokeWidth="2" />
-                  <text x="790" y="98" textAnchor="middle" fill="#34d399" fontSize="11" fontWeight="bold">VERIFIED RELEASES 250</text>
+                  <text x="790" y="98" textAnchor="middle" fill="#34d399" fontSize="11" fontWeight="bold">ILLUSTRATIVE RELEASES 250 · NOT VERIFIED</text>
                   <rect x="715" y="125" width="150" height="65" rx="6" fill="#1e293b" />
                   <text x="790" y="148" textAnchor="middle" fill="#a7f3d0" fontSize="10" fontWeight="bold">Differentially Private Feed</text>
                   <text x="790" y="165" textAnchor="middle" fill="#6ee7b7" fontSize="9">Per-Query Micro-Yield</text>
@@ -952,7 +952,7 @@ generate an interactive patent and legal defense interface displaying system arc
 
                   {/* Center: Data Monetization Transaction Reconciliation 520 */}
                   <rect x="310" y="70" width="260" height="420" rx="10" fill="#0f172a" stroke="#10b981" strokeWidth="2" />
-                  <text x="440" y="98" textAnchor="middle" fill="#34d399" fontSize="11" fontWeight="bold">VERIFIED SETTLEMENT LEDGER 520</text>
+                  <text x="440" y="98" textAnchor="middle" fill="#34d399" fontSize="11" fontWeight="bold">PROPOSED SETTLEMENT LEDGER 520 · NOT VERIFIED</text>
 
                   <rect x="325" y="120" width="230" height="70" rx="6" fill="#1e293b" />
                   <text x="440" y="142" textAnchor="middle" fill="#a7f3d0" fontSize="10" fontWeight="bold">Buyer Payment Webhook Ingestion</text>
@@ -1062,7 +1062,7 @@ generate an interactive patent and legal defense interface displaying system arc
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">500:</span> Evidence & Settlement Architecture</div>
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">504:</span> SHA-256 Observation Hasher</div>
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">506:</span> Tamper-Evident Audit Ledger</div>
-                    <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">520:</span> Double-Entry Verified Settlement Ledger</div>
+                    <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">520:</span> Proposed Double-Entry Settlement Ledger · NOT VERIFIED</div>
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">542:</span> Decentralized Blockchain Stablecoin Rails (USDC/USDT)</div>
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">544:</span> Regulated Fiat Banking Rails (ACH/SEPA/PayPal)</div>
                   </>
