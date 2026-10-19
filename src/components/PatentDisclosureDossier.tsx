@@ -677,7 +677,7 @@ generate an interactive patent and legal defense interface displaying system arc
                   <rect x="300" y="115" width="320" height="80" rx="8" fill="#1e293b" stroke="#059669" />
                   <text x="460" y="138" textAnchor="middle" fill="#a7f3d0" fontSize="11" fontWeight="bold">Tier 1: Differential Privacy (Laplace / Gaussian) 210</text>
                   <text x="460" y="158" textAnchor="middle" fill="#cbd5e1" fontSize="10" fontFamily="monospace">Noise Y ~ Lap(Δf / ε), b = sensitivity / epsilon</text>
-                  <text x="460" y="176" textAnchor="middle" fill="#6ee7b7" fontSize="9">Guarantees Pr[M(D1) ∈ S] ≤ exp(ε) · Pr[M(D2) ∈ S]</text>
+                  <text x="460" y="176" textAnchor="middle" fill="#6ee7b7" fontSize="9">DP condition if mechanism is correctly implemented: Pr[M(D1) ∈ S] ≤ exp(ε) · Pr[M(D2) ∈ S]</text>
 
                   {/* Tier 2 */}
                   <rect x="300" y="205" width="320" height="80" rx="8" fill="#1e293b" stroke="#0ea5e9" />
