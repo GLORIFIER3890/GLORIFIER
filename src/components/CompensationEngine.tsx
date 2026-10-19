@@ -340,15 +340,15 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Layers className="w-4 h-4 text-emerald-400" />
-                Cohort Subscription & Continuous Streaming Pacing
+                Hypothetical Cohort Subscription Model · NOT VERIFIED
               </h3>
               <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                Predictable Recurring Yield
+                Revenue NOT VERIFIED
               </span>
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Institutional economic and epidemiology researchers require continuous stream feeds rather than ad-hoc queries. Users who opt into certified research cohorts earn stable monthly recurring royalties.
+              Some research use cases may prefer continuous data feeds. Actual buyer demand, certified cohorts, subscriptions, and recurring royalties are NOT VERIFIED.
             </p>
 
             <div className="grid grid-cols-2 gap-3 pt-2">
@@ -392,7 +392,7 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <Zap className="w-4 h-4 text-emerald-400" />
-              Automated Payment Clearing & Micro-Settlement Architecture
+              Proposed Payment Clearing & Micro-Settlement Design · NOT VERIFIED
             </h3>
             <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
               Zero-Gas Micro-Payouts
