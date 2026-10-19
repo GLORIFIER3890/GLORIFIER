@@ -69,7 +69,7 @@ export const PatentDisclosureDossier: React.FC<PatentDisclosureDossierProps> = (
       text: `### AI Patent Research Assistant · Draft Session Briefing\n\n**Notice:** This is AI-generated informational assistance, not a registered patent attorney or a credentialed research scientist. Verify legal advice and credentials independently.\n**Jurisdiction:** United States Patent and Trademark Office (USPTO) & Patent Trial and Appeal Board (PTAB)\n**Proposed technical concepts for possible patent review:**\n1. **Autonomous Multi-Provider AI Orchestrator:** Dynamic capability scoring $C(M_i)$, exponential moving latency dampening, and automated 503 failover.\n2. **Mathematical Differential Privacy Engine:** Calibrated Laplacian noise $Y \\sim \\text{Lap}(\\Delta f / \\varepsilon)$ and zk-SNARK attribute attestation for sovereign data monetization.\n3. **24/7 Autonomous Code Sentinel:** Watchdog diagnostic probe synthesizing unified diffs with protected-path security gating.\n4. **Cryptographic Proof & Settlement:** SHA-256 evidence chain with multi-rail settlement.\n\nSelect a Specialty Prosecution Mode below or ask any question regarding claim scope, 35 U.S.C. § 101 Alice defenses, § 112 mathematical enablement, or prior art differentiation.`,
       mode: 'claim_prosecution',
       modelUsed: 'No provider request has been made',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: 'SAMPLE · NOT VERIFIED'
     }
   ]);
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -84,7 +84,7 @@ export const PatentDisclosureDossier: React.FC<PatentDisclosureDossierProps> = (
   const handleDownloadSpec = () => {
     const element = document.createElement('a');
     element.href = '/PATENT_DISCLOSURE_SPECIFICATION.md';
-    element.download = 'GLORIFIER_AI_PATENT_SPECIFICATION_USPTO.md';
+    element.download = 'GLORIFIER_AI_PATENT_SPECIFICATION_DRAFT_NOT_FILED.md';
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
