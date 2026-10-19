@@ -529,7 +529,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
 
                   <div>
                     <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">
-                      Telemetry Anonymization Noise
+                      Privacy transform status · NOT VERIFIED
                     </span>
                     <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 font-mono text-cyan-300 text-[11px] mt-1">
                       {selectedFile.differentialPrivacyNoiseLevel}
