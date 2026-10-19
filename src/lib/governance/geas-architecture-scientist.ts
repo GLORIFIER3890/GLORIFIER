@@ -679,6 +679,7 @@ const SOURCE_REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
 async function fetchCuratedSource(
   sourceUrl: string,
   signal: AbortSignal,
+  conditionalHeaders: Record<string, string> = {},
 ): Promise<{ response: Response; finalUrl: URL; body: string }> {
   const originalUrl = new URL(sourceUrl);
   if (originalUrl.protocol !== 'https:' || originalUrl.username || originalUrl.password) {
@@ -693,6 +694,7 @@ async function fetchCuratedSource(
       headers: {
         'User-Agent': 'GLORIFIER-GEAS-Architecture-Scientist/2.0',
         Accept: 'text/html,application/xhtml+xml,text/plain',
+        ...conditionalHeaders,
       },
       signal,
     });
@@ -726,6 +728,11 @@ async function fetchCuratedSource(
     throw new Error('source redirect rejected: final host/protocol differs from curated source');
   }
 
+  if (response.status === 304) {
+    // A 304 has no new representation body. The caller must validate and reuse the exact URL's cached evidence.
+    return { response, finalUrl, body: '' };
+  }
+
   const declaredLength = Number(response.headers.get('content-length') ?? 0);
   if (declaredLength > SOURCE_MAX_BYTES) {
     await response.body?.cancel();
@@ -757,12 +764,40 @@ async function fetchCuratedSource(
   return { response, finalUrl, body: new TextDecoder().decode(bytes) };
 }
 
-async function fetchSource(source: ArchitectureSource): Promise<SourceObservation> {
+async function fetchSource(source: ArchitectureSource, cached?: CachedSourceObservation | null): Promise<SourceObservation> {
   const observedAt = new Date().toISOString();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 12000);
   try {
-    const { response, finalUrl, body } = await fetchCuratedSource(source.url, controller.signal);
+    const { response, finalUrl, body } = await fetchCuratedSource(
+      source.url,
+      controller.signal,
+      buildConditionalRequestHeaders(source.url, cached),
+    );
+    if (response.status === 304) {
+      const revalidated = reuseNotModifiedSourceObservation(
+        source,
+        cached,
+        {
+          finalUrl: finalUrl.toString(),
+          etag: response.headers.get('etag'),
+          lastModified: response.headers.get('last-modified'),
+        },
+        observedAt,
+      );
+      if (revalidated) return revalidated;
+      return {
+        sourceId: source.id,
+        ok: false,
+        status: 304,
+        contentHash: null,
+        observedAt,
+        finalUrl: finalUrl.toString(),
+        evidenceExcerpt: null,
+        evidenceStatus: 'unavailable',
+        error: 'source returned 304 without valid cached evidence for the exact configured URL',
+      };
+    }
     const normalizedText = stripHtml(body);
     const contentHash = createHash('sha256').update(normalizedText).digest('hex');
     const keywords = PATTERN_DEFINITIONS
@@ -1136,7 +1171,7 @@ export async function runGeasArchitectureScan(): Promise<ArchitectureScanResult>
         error: cached.error ?? undefined,
       } satisfies SourceObservation;
     }
-    return fetchSource(source);
+    return fetchSource(source, cached);
   }));
   const completedAt = new Date().toISOString();
   const patterns = observedPatterns(sources, completedAt);
