@@ -49,9 +49,9 @@ type Registry = {
   ok: boolean;
   generatedAt: string;
   policy: {
-    secretsExposed: boolean;
-    privateCredentialsReturned: boolean;
-    coreInfrastructureIndependentOfGoogleCloud: boolean;
+    secretsExposed: boolean | null;
+    privateCredentialsReturned: boolean | null;
+    coreInfrastructureIndependentOfGoogleCloud: boolean | null;
   };
   integrations: Integration[];
 };
@@ -396,18 +396,18 @@ export const IntegrationControl: React.FC = () => {
               <div className="text-2xl font-bold text-white mt-1">{registry.integrations.length}</div>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-              <div className="text-xs text-slate-500 uppercase">Credentials exposed</div>
-              <div className="text-2xl font-bold text-emerald-400 mt-1">{registry.policy.secretsExposed ? 'Yes' : 'No'}</div>
+              <div className="text-xs text-slate-500 uppercase">Secret exposure scan</div>
+              <div className="text-2xl font-bold text-amber-300 mt-1">{registry.policy.secretsExposed == null ? 'NOT VERIFIED' : registry.policy.secretsExposed ? 'Reported yes' : 'Reported no · scan evidence NOT VERIFIED'}</div>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-              <div className="text-xs text-slate-500 uppercase">GCP dependency</div>
-              <div className="text-2xl font-bold text-emerald-400 mt-1">{registry.policy.coreInfrastructureIndependentOfGoogleCloud ? 'Optional' : 'Required'}</div>
+              <div className="text-xs text-slate-500 uppercase">Google Cloud dependency</div>
+              <div className="text-2xl font-bold text-amber-300 mt-1">{registry.policy.coreInfrastructureIndependentOfGoogleCloud == null ? 'NOT VERIFIED' : registry.policy.coreInfrastructureIndependentOfGoogleCloud ? 'Reported independent · evidence NOT VERIFIED' : 'Reported dependency · evidence NOT VERIFIED'}</div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {registry.integrations.map((item) => {
-              const active = ['connected', 'configured', 'public-monitoring'].includes(item.status);
+              const active = item.verificationStatus === 'verified';
               return (
                 <div key={item.id} className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 flex items-start justify-between gap-4">
                   <div className="min-w-0">
