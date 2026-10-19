@@ -423,7 +423,7 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
               {
                 step: '04',
                 title: 'Disbursement',
-                desc: 'Proposed payout rails only. Provider availability, fees, transfer timing, and settlement are NOT VERIFIED.'
+                desc: 'Proposed payout rails only. Provider availability, fees, transfer timing, and settlement are NOT VERIFIED.',
                 status: 'Timing NOT VERIFIED'
               }
             ].map((stage) => (
