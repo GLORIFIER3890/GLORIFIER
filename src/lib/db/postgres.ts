@@ -1,6 +1,17 @@
 import { readFileSync } from 'node:fs';
 import { Pool } from 'pg';
 
+function loadDatabaseCa(path: string): string {
+  try {
+    const ca = readFileSync(path, 'utf8');
+    if (!ca.trim()) throw new Error('CA bundle is empty');
+    return ca;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : 'unknown file-read error';
+    throw new Error(`DATABASE_SSL_CA is configured but its CA bundle could not be read at "${path}": ${detail}`);
+  }
+}
+
 let pool: Pool | null = null;
 
 function getDatabaseUrl(): string {
@@ -35,7 +46,7 @@ export function getPostgresPool(): Pool {
       // DATABASE_SSL_CA may point to a trusted CA bundle for private database certificates.
       ssl: sslDisabled ? undefined : process.env.NODE_ENV === 'production' ? {
         rejectUnauthorized: true,
-        ...(process.env.DATABASE_SSL_CA ? { ca: readFileSync(process.env.DATABASE_SSL_CA, 'utf8') } : {}),
+        ...(process.env.DATABASE_SSL_CA ? { ca: loadDatabaseCa(process.env.DATABASE_SSL_CA) } : {}),
       } : undefined,
     });
   }

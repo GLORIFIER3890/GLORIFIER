@@ -59,10 +59,11 @@ jobs:
           # Use a disposable, isolated PostgreSQL service with TLS. Never connect CI to production.
           tls_dir="$RUNNER_TEMP/glorifier-postgres-tls"
           mkdir -p "$tls_dir"
-          openssl req -new -x509 -days 1 -nodes -text \
+          openssl req -x509 -newkey rsa:2048 -sha256 -days 1 -nodes \
             -out "$tls_dir/server.crt" \
             -keyout "$tls_dir/server.key" \
-            -subj "/CN=$postgres"
+            -subj "/CN=$postgres" \
+            -addext "subjectAltName=DNS:$postgres"
           sudo chown 70:70 "$tls_dir/server.crt" "$tls_dir/server.key"
           sudo chmod 644 "$tls_dir/server.crt"
           sudo chmod 600 "$tls_dir/server.key"
@@ -95,6 +96,7 @@ jobs:
 
           docker run --detach --name "$container" --network "$network" --publish 3000:3000 \
             --env PORT=3000 \
+            --env NODE_ENV=production \
             --mount "type=bind,src=$tls_dir/server.crt,dst=/run/secrets/postgres-ca.crt,readonly" \
             --env DATABASE_SSL_CA=/run/secrets/postgres-ca.crt \
             --env DATABASE_URL=postgresql://glorifier_test:glorifier_test_only@"$postgres":5432/glorifier_test \
