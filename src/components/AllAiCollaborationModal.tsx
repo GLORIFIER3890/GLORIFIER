@@ -16,7 +16,7 @@ import {
   TrendingUp,
   Lock
 } from 'lucide-react';
-import { MonetizationPolicy, DataFootprintSource, CouncilConsensusResult, ModelCollaborationParticipant } from '../types';
+import { MonetizationPolicy, DataFootprintSource, CouncilConsensusResult } from '../types';
 
 interface AllAiCollaborationModalProps {
   isOpen: boolean;
@@ -91,63 +91,8 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
       const data: CouncilConsensusResult = await res.json();
       setCouncilResult(data);
     } catch (err) {
-      console.warn('Using client-side multi-model council fallback:', err);
-      // High-grade fallback multi-model consensus
-      const fallbackParticipants: ModelCollaborationParticipant[] = [
-        {
-          modelId: 'gpt-4o',
-          name: 'GPT-4o',
-          provider: 'OpenAI',
-          role: 'Commercial Valuation & Strategic Negotiation',
-          color: 'emerald',
-          badge: 'OpenAI Frontier',
-          status: 'completed',
-          output: `Commercial Valuation Audit: Your 5 active telemetry streams hold an addressable enterprise licensing value of ~$215–$340/month. We advise enforcing a minimum monthly floor of $40.00 and asserting an autonomous +25% counter-offer on high-reputation AI buyer bids.`,
-          perspective: 'Maximizing data yield, contract terms, and counter-offers',
-          keyRecommendation: 'Elevate floor to $40/mo and demand 25% premium on AI pretraining datasets.'
-        },
-        {
-          modelId: 'gemini-3.8-flash',
-          name: 'Gemini 3.8 Flash',
-          provider: 'Google DeepMind',
-          role: 'Differential Privacy & Cryptographic Verification',
-          color: 'teal',
-          badge: 'Google Multimodal',
-          status: 'completed',
-          output: `Differential Privacy & Mathematical Bounds: Under Laplacian noise perturbation at ε = 0.30, mutual information leakage is bounded by e^0.30 ≈ 1.35. Search queries and browsing telemetry remain mathematically un-linkable to physical identity.`,
-          perspective: 'Mathematical entropy, Laplacian perturbation, and quasi-identifier elimination',
-          keyRecommendation: 'Enforce global ε = 0.30 with k-anonymity (k ≥ 50) verified cohorts.'
-        },
-        {
-          modelId: 'llama-3.3',
-          name: 'LLaMA 3.3 (Open Weights)',
-          provider: 'Meta AI / Sovereign Enclave',
-          role: 'Decentralized Sovereignty & Anti-Monopoly Audit',
-          color: 'cyan',
-          badge: 'Open Weights',
-          status: 'completed',
-          output: `Decentralized Autonomy & Open Weights Audit: Prohibit single-vendor telemetry capture. Ensure data licensing contracts include cryptographic zero-knowledge attestation, preventing downstream syndication by broker conglomerates (Acxiom, Meta, Google).`,
-          perspective: 'Eliminating corporate shadow-broker lock-in and enforcing statutory clawbacks',
-          keyRecommendation: 'Dispatch statutory erasure notices to third-party ad brokers immediately.'
-        }
-      ];
-
-      setCouncilResult({
-        agenda: currentTopic,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        participants: fallbackParticipants,
-        unifiedConsensus: `All three frontier artificial intelligence models unanimously endorse a unified sovereign stance: (1) Maintain strict differential privacy with ε = 0.30, (2) License de-identified developer & e-commerce telemetry for vetted frontier AI pretraining at an upgraded $40/mo floor, and (3) Sever all tracking connections to commercial ad-broker syndicates.`,
-        consensusScore: 98,
-        recommendedEpsilon: 0.30,
-        recommendedFloorUsd: 40,
-        actionDirectives: [
-          'Calibrate Differential Privacy Epsilon to ε = 0.30',
-          'Upgrade Minimum Compensation Floor to $40.00 / month',
-          'Authorize Frontier AI Pre-Training Licensing with Zero-PII Guarantees',
-          'Dispatch Automated CCPA & GDPR Statutory Clawback Notices to Shadow Brokers'
-        ]
-      });
-    } finally {
+      console.warn('Council endpoint unavailable; no consensus result was produced.', err);
+    }    } finally {
       setIsConvening(false);
       setActiveStep(0);
     }
@@ -233,7 +178,7 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
           </div>
 
           <div className="text-[11px] text-slate-400 shrink-0 font-mono">
-            4 / 4 AI Models Online
+            AI model availability: NOT VERIFIED
           </div>
         </div>
 
@@ -433,16 +378,16 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                        Unified Council Consensus (Binding)
+                        Council Output · Human Review Required
                       </h4>
                       <p className="text-[11px] text-slate-400 font-mono">
-                        Cryptographically cross-verified across all model nodes
+                        Cryptographic cross-verification: NOT VERIFIED
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono text-slate-400">Consensus Index:</span>
+                    <span className="text-[11px] font-mono text-slate-400">Backend-reported consensus score (not independently verified):</span>
                     <span className="text-xs font-bold font-mono px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                       {councilResult.consensusScore}% Agreement
                     </span>
