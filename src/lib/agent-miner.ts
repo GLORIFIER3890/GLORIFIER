@@ -35,7 +35,7 @@ const providers: MiningProvider[] = [
   { id: 'openrouter', name: 'OpenRouter', kind: 'ai-model', enabled: true, healthy: false, capabilities: ['routing', 'analysis', 'provider-discovery'], lastSeenAt: null },
   { id: 'local', name: 'Authorized local model', kind: 'ai-model', enabled: true, healthy: false, capabilities: ['private-analysis', 'planning'], lastSeenAt: null },
   { id: 'compute-worker', name: 'Authorized compute worker', kind: 'compute-worker', enabled: false, healthy: false, capabilities: ['proof-of-work', 'benchmarking'], lastSeenAt: null },
-  { id: 'market-data', name: 'Public market data', kind: 'market-data', enabled: true, healthy: true, capabilities: ['network-metrics', 'market-observation'], lastSeenAt: new Date().toISOString() }
+  { id: 'market-data', name: 'Public market data', kind: 'market-data', enabled: true, healthy: false, capabilities: ['network-metrics', 'market-observation'], lastSeenAt: null }
 ];
 
 let status: MinerStatus = 'PAUSED';
@@ -68,7 +68,7 @@ export function getAgentMinerSnapshot() {
     name: 'GLORIFIER Agent Miner',
     status,
     mode,
-    cadence: 'continuous-24x7',
+    cadence: daemonTimer ? 'Daemon timer configured; execution is runtime-reported' : 'NOT CONFIGURED — no active daemon timer',
     cyclesCompleted,
     lastCycle,
     providers: providers.map((p) => ({ ...p })),
@@ -84,6 +84,11 @@ export function getAgentMinerSnapshot() {
 
 export function setAgentMinerRunning(running: boolean, requestedMode?: MinerMode) {
   if (requestedMode) mode = requestedMode;
+  if (running && !daemonTimer) {
+    status = 'PAUSED';
+    void persistAgentMinerState(status, mode, computeAuthorized).catch(() => undefined);
+    return { ...getAgentMinerSnapshot(), actionError: 'The background daemon is not configured or running; Agent Miner cannot be marked RUNNING.' };
+  }
   status = running ? 'RUNNING' : 'PAUSED';
   void persistAgentMinerState(status, mode, computeAuthorized).catch(() => undefined);
   return getAgentMinerSnapshot();
