@@ -41,13 +41,16 @@ jobs:
           fi
           model="${MODEL_INPUT:-${NVIDIA_MODEL_SECRET:-nvidia/nemotron-3.5-super-vl-120b-a12b}}"
           body="$(mktemp)"
-          trap 'rm -f "$body"' EXIT
+          request="$(mktemp)"
+          trap 'rm -f "$body" "$request"' EXIT
+          MODEL="$model" node -e 'process.stdout.write(JSON.stringify({model:process.env.MODEL,messages:[{role:"user",content:"Return exactly this token and nothing else: GLORIFIER_RUNTIME_PROBE_OK"}],max_tokens:64,temperature:0,stream:false}))' > "$request"
           status="$(curl --silent --show-error --connect-timeout 10 --max-time 90 \
             -o "$body" -w '%{http_code}' \
             https://integrate.api.nvidia.com/v1/chat/completions \
             -H "Authorization: Bearer ${NVIDIA_API_KEY}" \
             -H 'Content-Type: application/json' \
             -H 'Accept: application/json' \
+            --data-binary "@$request")"
             --data "$(MODEL="$model" node -e 'process.stdout.write(JSON.stringify({model:process.env.MODEL,messages:[{role:"user",content:"Return exactly this token and nothing else: GLORIFIER_RUNTIME_PROBE_OK"}],max_tokens:64,temperature:0,stream:false}))')"
           echo "Provider: NVIDIA NIM"
           echo "HTTP status: $status"
@@ -81,6 +84,7 @@ jobs:
           const text = typeof rawContent === 'string'
             ? rawContent
             : Array.isArray(rawContent)
+              ? rawContent.filter(part => typeof part?.text === 'string').map(part => part.text).join('')
               ? rawContent.filter(part => typeof part?.text === 'string').map(part => part.text).join('\n')
               : '';
           const model = process.env.MODEL;
