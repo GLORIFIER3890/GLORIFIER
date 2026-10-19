@@ -454,7 +454,7 @@ export const PrivacyTechLab: React.FC = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Binary className="w-4 h-4 text-emerald-400" />
-                Zero-Knowledge Attestation (zk-SNARK) Generator
+                Zero-Knowledge Proof Concept Demo · NOT VERIFIED
               </h3>
               <span className="text-xs font-mono text-emerald-400">ZK proof concept · prover implementation NOT VERIFIED</span>
             </div>
