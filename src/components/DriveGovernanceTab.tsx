@@ -123,22 +123,22 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
     setError(null);
     try {
       const manifestPayload = {
-        title: 'DataSovereign AI Governance Manifest',
+        title: 'Drive Metadata Review Manifest · NOT A COMPLIANCE CERTIFICATE',
         generatedAt: new Date().toISOString(),
         userEmail: currentUser?.email,
         totalFilesAudited: files.length,
         highRiskFilesDetected: files.filter(f => f.leakRiskScore >= 70).length,
-        privacyStandard: 'Differential Privacy (Laplace Mechanism) + Zero-Knowledge Proofs',
-        estimatedDataDividendsMonthlyUsd: files.reduce((a, b) => a + b.estimatedYieldUsd, 0),
+        privacyStandard: 'Configured privacy targets only; transformation and proof generation NOT VERIFIED',
+        hypotheticalEstimatedValueMonthlyUsd: files.reduce((a, b) => a + b.estimatedYieldUsd, 0),
         filesAuditLog: files.map(f => ({
           name: f.name,
           category: f.category,
           riskScore: f.leakRiskScore,
           governanceAction: f.governanceAction,
-          privacyLevel: f.differentialPrivacyNoiseLevel,
+          configuredPrivacyTarget: f.differentialPrivacyNoiseLevel,
           sharedExternal: f.shared,
         })),
-        legalNotice: 'Under CCPA § 1798.105 & GDPR Art. 17, consumer telemetry vectors are strictly decoupled from raw underlying assets.',
+        legalNotice: 'This manifest summarizes metadata review and configured settings. It does not certify CCPA/GDPR compliance, data de-identification, or privacy enforcement.',
       };
 
       const result = await createDriveGovernanceManifest(
@@ -205,14 +205,14 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                 <HardDrive className="w-5 h-5" />
               </span>
               <h2 className="text-xl font-bold text-white tracking-tight">
-                Google Drive Footprint Governance & Monetization
+                Google Drive Metadata Review · Monetization NOT VERIFIED
               </h2>
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                Live Drive API v3
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                Drive API integration · live connection NOT VERIFIED
               </span>
             </div>
             <p className="text-sm text-slate-400 max-w-2xl">
-              Audit documents, spreadsheets, presentations, and cloud assets for credential exposures, uncontrolled public link sharing, and commercial monetization telemetry. Raw contents remain securely shielded in your cloud enclave.
+              Review available Drive metadata for configured exposure indicators. This is a heuristic review, not a complete content scan. Data-flow isolation, privacy transformations, and monetization are NOT VERIFIED.
             </p>
           </div>
 
@@ -438,17 +438,17 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                           </div>
                         ) : (
                           <p className="text-[11px] text-slate-400">
-                            Standard workspace asset. No sensitive PII credentials identified.
+                            No configured risk pattern was detected in this metadata review. This does not prove that the file contains no sensitive information.
                           </p>
                         )}
                       </div>
 
                       <div className="text-right shrink-0">
                         <div className="text-xs font-bold text-emerald-400 font-mono">
-                          +${file.estimatedYieldUsd.toFixed(2)}
+                          Est. ${file.estimatedYieldUsd.toFixed(2)} · NOT REVENUE
                         </div>
                         <div className="text-[10px] text-slate-400 mt-0.5">
-                          {file.modifiedTime || 'Recently'}
+                          {file.modifiedTime || 'Modification time unavailable'}
                         </div>
                       </div>
                     </div>
