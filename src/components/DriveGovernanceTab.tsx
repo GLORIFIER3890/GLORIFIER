@@ -129,7 +129,8 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
         totalFilesAudited: files.length,
         highRiskFilesDetected: files.filter(f => f.leakRiskScore >= 70).length,
         privacyStandard: 'Configured privacy targets only; transformation and proof generation NOT VERIFIED',
-        hypotheticalEstimatedValueMonthlyUsd: files.reduce((a, b) => a + b.estimatedYieldUsd, 0),
+        hypotheticalEstimatedValueMonthlyUsd: null,
+        estimatedValueStatus: 'NOT ESTIMATED — no validated buyer quote or valuation model',
         filesAuditLog: files.map(f => ({
           name: f.name,
           category: f.category,
@@ -190,7 +191,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
 
   const highRiskCount = files.filter(f => f.leakRiskScore >= 70).length;
   const externalSharedCount = files.filter(f => f.shared).length;
-  const totalEstMonthlyYield = files.reduce((acc, f) => acc + f.estimatedYieldUsd, 0);
+  const totalEstMonthlyYield: number | null = null;
 
   return (
     <div className="space-y-6">
@@ -257,7 +258,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
             <span className="text-[11px] text-slate-400 font-medium">Hypothetical estimated value · NOT REVENUE</span>
             <div className="text-lg font-bold text-emerald-400 font-mono mt-0.5">
-              ${totalEstMonthlyYield.toFixed(2)}
+              {totalEstMonthlyYield == null ? 'NOT ESTIMATED' : `${totalEstMonthlyYield.toFixed(2)}`}
             </div>
           </div>
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
@@ -445,7 +446,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
 
                       <div className="text-right shrink-0">
                         <div className="text-xs font-bold text-emerald-400 font-mono">
-                          Est. ${file.estimatedYieldUsd.toFixed(2)} · NOT REVENUE
+                          NOT ESTIMATED · NOT REVENUE
                         </div>
                         <div className="text-[10px] text-slate-400 mt-0.5">
                           {file.modifiedTime || 'Modification time unavailable'}
@@ -560,7 +561,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                     <div>
                       <span className="text-slate-400 text-[10px] block uppercase font-bold">Hypothetical estimated value · NOT REVENUE</span>
                       <span className="text-base font-bold text-emerald-400 font-mono">
-                        ${selectedFile.estimatedYieldUsd.toFixed(2)} USD
+                        NOT ESTIMATED — no validated valuation model
                       </span>
                     </div>
 
