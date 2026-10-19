@@ -353,12 +353,12 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
 
             <div className="grid grid-cols-2 gap-3 pt-2">
               <div className="p-3.5 rounded-lg bg-slate-950 border border-slate-800">
-                <div className="text-[10px] uppercase font-bold text-slate-500">Stanford Macro Economics</div>
+                <div className="text-[10px] uppercase font-bold text-slate-500">Example Research Cohort A (illustrative)</div>
                 <div className="text-lg font-bold font-mono text-slate-300 mt-1">No verified subscription</div>
                 <div className="text-[10px] text-slate-400 mt-0.5">E-Commerce cohort stream</div>
               </div>
               <div className="p-3.5 rounded-lg bg-slate-950 border border-slate-800">
-                <div className="text-[10px] uppercase font-bold text-slate-500">MIT CSAIL AI Quality Cohort</div>
+                <div className="text-[10px] uppercase font-bold text-slate-500">Example Research Cohort B (illustrative)</div>
                 <div className="text-lg font-bold font-mono text-slate-300 mt-1">No verified subscription</div>
                 <div className="text-[10px] text-slate-400 mt-0.5">Search & browsing intent stream</div>
               </div>
@@ -445,10 +445,10 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <Activity className="w-4 h-4 text-emerald-400" />
-            Live Data Usage Telemetry Stream & Compensation Log
+            Usage Records · provenance and settlement NOT VERIFIED
           </h3>
           <span className="text-[10px] font-mono text-slate-400">
-            Real-time metering proofs
+            Metering and proof validity NOT VERIFIED
           </span>
         </div>
 
@@ -460,8 +460,8 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
                 <th className="pb-2">Buyer / Recipient</th>
                 <th className="pb-2">Stream</th>
                 <th className="pb-2">Calculation Model</th>
-                <th className="pb-2">Proof Hash</th>
-                <th className="pb-2 text-right">Comp Accrued</th>
+                <th className="pb-2">Proof reference · NOT VERIFIED</th>
+                <th className="pb-2 text-right">Reported amount · NOT VERIFIED</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-mono">
@@ -476,8 +476,8 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
                     </span>
                   </td>
                   <td className="py-2.5 text-slate-500 text-[10px]">{evt.zkProofHash}</td>
-                  <td className="py-2.5 text-right font-bold text-emerald-400">
-                    +${evt.compensationUsd.toFixed(3)}
+                  <td className="py-2.5 text-right font-bold text-amber-300">
+                    ${evt.compensationUsd.toFixed(3)} · NOT VERIFIED
                   </td>
                 </tr>
               ))}
