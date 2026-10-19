@@ -66,7 +66,7 @@ export const PatentDisclosureDossier: React.FC<PatentDisclosureDossierProps> = (
   }>>([
     {
       role: 'assistant',
-      text: `### A.I. Bot Patent Attorney Scientist &bull; Initial Session Briefing\n\n**Credentials:** Registered USPTO Patent Attorney (USPTO Bar) &bull; Principal AI & Cryptography Research Scientist (Ph.D. Computer Science)\n**Jurisdiction:** United States Patent and Trademark Office (USPTO) & Patent Trial and Appeal Board (PTAB)\n**Core Inventions Under Prosecution:**\n1. **Autonomous Multi-Provider AI Orchestrator:** Dynamic capability scoring $C(M_i)$, exponential moving latency dampening, and automated 503 failover.\n2. **Mathematical Differential Privacy Engine:** Calibrated Laplacian noise $Y \\sim \\text{Lap}(\\Delta f / \\varepsilon)$ and zk-SNARK attribute attestation for sovereign data monetization.\n3. **24/7 Autonomous Code Sentinel:** Watchdog diagnostic probe synthesizing unified diffs with protected-path security gating.\n4. **Cryptographic Proof & Settlement:** SHA-256 evidence chain with multi-rail settlement.\n\nSelect a Specialty Prosecution Mode below or ask any question regarding claim scope, 35 U.S.C. § 101 Alice defenses, § 112 mathematical enablement, or prior art differentiation.`,
+      text: `### A.I. Bot Patent Attorney Scientist &bull; Initial Session Briefing\n\n**Notice:** This is AI-generated informational assistance, not a registered patent attorney or a credentialed research scientist. Verify legal advice and credentials independently.\n**Jurisdiction:** United States Patent and Trademark Office (USPTO) & Patent Trial and Appeal Board (PTAB)\n**Core Inventions Under Prosecution:**\n1. **Autonomous Multi-Provider AI Orchestrator:** Dynamic capability scoring $C(M_i)$, exponential moving latency dampening, and automated 503 failover.\n2. **Mathematical Differential Privacy Engine:** Calibrated Laplacian noise $Y \\sim \\text{Lap}(\\Delta f / \\varepsilon)$ and zk-SNARK attribute attestation for sovereign data monetization.\n3. **24/7 Autonomous Code Sentinel:** Watchdog diagnostic probe synthesizing unified diffs with protected-path security gating.\n4. **Cryptographic Proof & Settlement:** SHA-256 evidence chain with multi-rail settlement.\n\nSelect a Specialty Prosecution Mode below or ask any question regarding claim scope, 35 U.S.C. § 101 Alice defenses, § 112 mathematical enablement, or prior art differentiation.`,
       mode: 'claim_prosecution',
       modelUsed: 'Google Gemini 3.8 Flash (DeepMind)',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -408,7 +408,7 @@ generate an interactive patent and legal defense interface displaying system arc
               Patent Disclosure, Claims & Architecture Diagrams
             </h2>
             <p className="text-sm text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              Complete technical specification prepared for review by registered patent attorney. Encompasses autonomous multi-provider AI orchestration with 503 failover, mathematical differential privacy monetization (Laplacian noise & zk-SNARKs), 24/7 continuous self-healing code sentinel, and cryptographically anchored settlement ledgers.
+              Draft technical specification for qualified patent-counsel review. The described capabilities are proposed concepts, not proof of deployed functionality. Provider orchestration, differential-privacy transformation, continuous self-healing, and settlement evidence are NOT VERIFIED.
             </p>
           </div>
 
@@ -1232,16 +1232,16 @@ generate an interactive patent and legal defense interface displaying system arc
                 </p>
                 <ul className="list-disc pl-5 space-y-1.5 text-slate-300">
                   <li>
-                    <strong className="text-white">Dynamic Multi-Provider AI Orchestration:</strong> Continuously computes an objective Capability Score C(M) for each model family, tracks exponential moving average latency and success rates, elects an Executive Leader, and routes requests across a secondary pool seamlessly upon 503 errors.
+                    <strong className="text-white">Proposed Multi-Provider AI Orchestration:</strong> The design describes capability scoring and failover routing. Live scoring, latency measurement, leader election, and successful 503 failover are NOT VERIFIED.
                   </li>
                   <li>
-                    <strong className="text-white">Multi-Tier Mathematical Privacy Transformation:</strong> Calibrated Laplace/Gaussian differential privacy noise injection (Y ~ Lap(Δf / ε)), k-anonymity cohort partitioning, zk-SNARK attribute proofs, and generative synthetic twin modeling.
+                    <strong className="text-white">Proposed Privacy Transformation:</strong> Differential privacy, k-anonymity, zero-knowledge proofs, and synthetic-data processing are described as design concepts; production implementation and validation are NOT VERIFIED.
                   </li>
                   <li>
-                    <strong className="text-white">24/7 Autonomous Code Sentinel & Self-Healing:</strong> Diagnostic internal watchdog probes, multi-model unified diff synthesis (`diff --git`), strict protected-path gatekeeper (blocking `.env`, keys, workflows), and automated sandbox build verification before hot-patch deployment.
+                    <strong className="text-white">Proposed Code Sentinel & Self-Healing:</strong> Monitoring, patch synthesis, protected-path enforcement, sandbox testing, and deployment automation are intended design elements. Continuous operation and enforcement are NOT VERIFIED.
                   </li>
                   <li>
-                    <strong className="text-white">Cryptographic Evidence Preservation & Multi-Rail Settlement:</strong> Immutable SHA-256 hash chains for public brand observations, double-entry accounting ledger, and automated payout disbursement to stablecoins or fiat clearing.
+                    <strong className="text-white">Proposed Evidence & Settlement:</strong> Hashing, ledger reconciliation, and multi-rail payouts are design goals. Immutability, accounting reconciliation, and external settlement are NOT VERIFIED.
                   </li>
                 </ul>
               </section>
@@ -1731,7 +1731,7 @@ generate an interactive patent and legal defense interface displaying system arc
                   className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 text-white font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all shadow-lg shadow-purple-950/50 flex-shrink-0"
                 >
                   <Send className="w-4 h-4" />
-                  <span className="hidden sm:inline">Consult Attorney Scientist</span>
+                  <span className="hidden sm:inline">Ask AI about this draft</span>
                   <span className="sm:hidden">Consult</span>
                 </button>
               </div>
