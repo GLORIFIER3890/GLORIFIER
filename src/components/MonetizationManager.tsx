@@ -81,8 +81,6 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // No validated valuation model or verified revenue baseline is available in this view.
-  const projected: number | null = null;
 
   const runManager = async () => {
     setLoading(true);
@@ -124,7 +122,7 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
           </div>
           <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
             <div className="text-xs text-slate-400">Illustrative projection (not verified revenue)</div>
-            <div className="text-2xl font-bold font-mono text-amber-300">{projected == null ? 'NOT ESTIMATED' : projected.toFixed(2)}</div>
+            <div className="text-2xl font-bold font-mono text-amber-300">NOT ESTIMATED</div>
           </div>
         </div>
       </div>
