@@ -175,7 +175,7 @@ export const PrivacyTechLab: React.FC = () => {
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Differential Privacy guarantees that an adversary inspecting the buyer's query output cannot distinguish whether any single individual was included in the dataset with statistical probability bounded by $e^\epsilon$.
+              When a mechanism is correctly designed, calibrated, and implemented, differential privacy bounds output-distribution ratios for neighboring datasets by $e^\epsilon$. This educational demo does not implement or verify that guarantee.
             </p>
 
             {/* Formula */}
@@ -525,7 +525,7 @@ export const PrivacyTechLab: React.FC = () => {
               Advertisers and lenders do not actually need your raw identity—they only need confirmation that you belong to an accredited segment or demographic.
             </p>
             <p className="text-xs text-slate-400 leading-relaxed">
-              ZK Proofs allow users to monetize premium qualified status without surrendering their identity graph.
+              In principle, a verified zero-knowledge proof can help demonstrate a qualifying attribute without disclosing its witness. This demo does not issue a production proof or establish a monetization opportunity.
             </p>
           </div>
         </div>
