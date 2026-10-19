@@ -127,7 +127,7 @@ export const WorkTogetherWithGptStudio: React.FC<WorkTogetherWithGptStudioProps>
       if (res.ok) {
         const data = await res.json();
         setIs247Enabled(data.enabled);
-        setApplySuccessNotice(data.enabled ? '24/7 GPT Co-Working Autopilot RESUMED' : '24/7 GPT Co-Working Autopilot PAUSED');
+        setApplySuccessNotice(data.enabled ? 'Backend accepted enable request; runtime NOT VERIFIED' : 'Backend accepted pause request; runtime NOT VERIFIED');
       }
     } catch (err) {
       console.warn('Failed to toggle 24/7 co-working:', err);
@@ -435,7 +435,7 @@ ${session.geminiPeerReview}
                     : 'bg-slate-800 border border-slate-700 text-slate-400'
                 }`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${is247Enabled ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'}`} />
-                  {is247Enabled ? '24/7 Autopilot Running' : 'Paused'}
+                  {is247Enabled ? 'Backend reports enabled · runtime NOT VERIFIED' : 'Disabled or paused · runtime NOT VERIFIED'}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -465,7 +465,7 @@ ${session.geminiPeerReview}
               }`}
             >
               <Power className="w-3.5 h-3.5" />
-              <span>{is247Enabled ? 'Pause 24/7 Autopilot' : 'Resume 24/7 Autopilot'}</span>
+              <span>{is247Enabled ? 'Request pause' : 'Request enable'}</span>
             </button>
             <button
               type="button"
@@ -483,7 +483,7 @@ ${session.geminiPeerReview}
           <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/50">
             <span className="text-slate-400 block text-[10px]">Autopilot Status</span>
             <span className="font-mono font-bold text-emerald-400">
-              {is247Enabled ? 'Active (Continuous)' : 'Paused'}
+              {is247Enabled ? 'Backend reports enabled · runtime NOT VERIFIED' : 'Disabled or paused · runtime NOT VERIFIED'}
             </span>
           </div>
           <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/50">
@@ -492,11 +492,11 @@ ${session.geminiPeerReview}
           </div>
           <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/50">
             <span className="text-slate-400 block text-[10px]">Cadence & Heartbeat</span>
-            <span className="font-mono font-bold text-cyan-400">Every 120s (24/7 Daemon)</span>
+            <span className="font-mono font-bold text-cyan-400">Schedule / heartbeat: NOT VERIFIED</span>
           </div>
           <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/50">
             <span className="text-slate-400 block text-[10px]">Consensus Concordance</span>
-            <span className="font-mono font-bold text-amber-400">100% Attestation</span>
+            <span className="font-mono font-bold text-amber-400">Consensus: NOT VERIFIED</span>
           </div>
         </div>
 
@@ -505,7 +505,7 @@ ${session.geminiPeerReview}
           <div className="mt-2 space-y-2 pt-2 border-t border-slate-800 animate-in fade-in">
             <div className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Recent 24/7 Autonomous Co-Working Deliverables (GPT-4o & Gemini):</span>
+              <span>Server-reported deliverables · provider participation NOT independently verified:</span>
             </div>
             <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
               {recent247Deliverables.map((d, i) => (
@@ -521,7 +521,7 @@ ${session.geminiPeerReview}
                   </div>
                   <div className="text-right flex-shrink-0">
                     <span className="text-[10px] text-slate-400 block font-mono">{d.timestamp}</span>
-                    <span className="text-[10px] text-emerald-400 font-bold font-mono">100% Concordance</span>
+                    <span className="text-[10px] text-amber-400 font-bold font-mono">Concordance: NOT VERIFIED</span>
                   </div>
                 </div>
               ))}
