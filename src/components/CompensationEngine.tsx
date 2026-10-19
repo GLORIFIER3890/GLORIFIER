@@ -255,7 +255,7 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Every query an analytical buyer sends against your sanitized data vault drains a fractional amount of your privacy budget $\epsilon$. To preserve your privacy equilibrium, queries requiring lower noise (higher $\epsilon$) are priced exponentially higher.
+              Proposed pricing model only. This panel does not meter real queries, transform a data vault, track a production privacy budget, or charge buyers. Any pricing relationship must be validated against an implemented mechanism and authorized commercial terms.
             </p>
 
             <div className="p-3.5 rounded-lg bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 space-y-2">
@@ -264,7 +264,7 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
                 Price(Q) = BaseRate × [ Sensitivity(Δf) / ε_target ] × ComplexityWeight
               </div>
               <p className="text-[11px] text-slate-400 font-sans">
-                As the buyer requests sharper resolution (smaller noise scale $b = \Delta f / \epsilon$), the user is compensated directly for the privacy loss.
+                Conceptual model: a buyer may pay more for a higher-utility release, but no buyer contract, privacy loss measurement, or compensation is verified here.
               </p>
             </div>
 
@@ -340,25 +340,25 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Layers className="w-4 h-4 text-emerald-400" />
-                Cohort Subscription & Continuous Streaming Pacing
+                Hypothetical Cohort Subscription Model · NOT VERIFIED
               </h3>
               <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                Predictable Recurring Yield
+                Revenue NOT VERIFIED
               </span>
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Institutional economic and epidemiology researchers require continuous stream feeds rather than ad-hoc queries. Users who opt into certified research cohorts earn stable monthly recurring royalties.
+              Some research use cases may prefer continuous data feeds. Actual buyer demand, certified cohorts, subscriptions, and recurring royalties are NOT VERIFIED.
             </p>
 
             <div className="grid grid-cols-2 gap-3 pt-2">
               <div className="p-3.5 rounded-lg bg-slate-950 border border-slate-800">
-                <div className="text-[10px] uppercase font-bold text-slate-500">Stanford Macro Economics</div>
+                <div className="text-[10px] uppercase font-bold text-slate-500">Example Research Cohort A (illustrative)</div>
                 <div className="text-lg font-bold font-mono text-slate-300 mt-1">No verified subscription</div>
                 <div className="text-[10px] text-slate-400 mt-0.5">E-Commerce cohort stream</div>
               </div>
               <div className="p-3.5 rounded-lg bg-slate-950 border border-slate-800">
-                <div className="text-[10px] uppercase font-bold text-slate-500">MIT CSAIL AI Quality Cohort</div>
+                <div className="text-[10px] uppercase font-bold text-slate-500">Example Research Cohort B (illustrative)</div>
                 <div className="text-lg font-bold font-mono text-slate-300 mt-1">No verified subscription</div>
                 <div className="text-[10px] text-slate-400 mt-0.5">Search & browsing intent stream</div>
               </div>
@@ -392,10 +392,10 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <Zap className="w-4 h-4 text-emerald-400" />
-              Automated Payment Clearing & Micro-Settlement Architecture
+              Proposed Payment Clearing & Micro-Settlement Design · NOT VERIFIED
             </h3>
             <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-              Zero-Gas Micro-Payouts
+              Settlement timing and fees NOT VERIFIED
             </span>
           </div>
 
@@ -405,26 +405,26 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
               {
                 step: '01',
                 title: 'Usage Metering',
-                desc: 'Cryptographic API gateway meters query execution, Laplace noise parameter, and model weights.',
-                status: 'Sub-second event'
+                desc: 'Proposed design: a gateway would meter query execution, privacy parameters, and model weights. Live metering is NOT VERIFIED.',
+                status: 'Timing NOT VERIFIED'
               },
               {
                 step: '02',
                 title: 'State Channel Escrow',
-                desc: 'Buyer pre-funds smart contract escrow. Micropayments sign off-chain balance proofs without gas.',
-                status: 'Instant off-chain'
+                desc: 'Proposed design: buyer-funded escrow and off-chain balance proofs. Contract deployment, funding, and settlement are NOT VERIFIED.',
+                status: 'Timing NOT VERIFIED'
               },
               {
                 step: '03',
                 title: 'Batch Rollup',
-                desc: 'Aggregates thousands of micro-royalties into a daily ZK-Rollup root hash committed on-chain.',
-                status: 'Every 24 hours'
+                desc: 'Proposed design: aggregate eligible records into a rollup commitment. Batch frequency, proof generation, and on-chain commitment are NOT VERIFIED.',
+                status: 'Schedule NOT VERIFIED'
               },
               {
                 step: '04',
                 title: 'Disbursement',
-                desc: 'User liquidates via Solana USDC (instant, 0-fee), Stripe Connect, or direct ACH bank wire.',
-                status: 'Instant / Same-day'
+                desc: 'Proposed payout rails only. Provider availability, fees, transfer timing, and settlement are NOT VERIFIED.'
+                status: 'Timing NOT VERIFIED'
               }
             ].map((stage) => (
               <div key={stage.step} className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
@@ -445,10 +445,10 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <Activity className="w-4 h-4 text-emerald-400" />
-            Live Data Usage Telemetry Stream & Compensation Log
+            Usage Records · provenance and settlement NOT VERIFIED
           </h3>
           <span className="text-[10px] font-mono text-slate-400">
-            Real-time metering proofs
+            Metering and proof validity NOT VERIFIED
           </span>
         </div>
 
@@ -460,8 +460,8 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
                 <th className="pb-2">Buyer / Recipient</th>
                 <th className="pb-2">Stream</th>
                 <th className="pb-2">Calculation Model</th>
-                <th className="pb-2">Proof Hash</th>
-                <th className="pb-2 text-right">Comp Accrued</th>
+                <th className="pb-2">Proof reference · NOT VERIFIED</th>
+                <th className="pb-2 text-right">Reported amount · NOT VERIFIED</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-mono">
@@ -476,8 +476,8 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
                     </span>
                   </td>
                   <td className="py-2.5 text-slate-500 text-[10px]">{evt.zkProofHash}</td>
-                  <td className="py-2.5 text-right font-bold text-emerald-400">
-                    +${evt.compensationUsd.toFixed(3)}
+                  <td className="py-2.5 text-right font-bold text-amber-300">
+                    ${evt.compensationUsd.toFixed(3)} · NOT VERIFIED
                   </td>
                 </tr>
               ))}

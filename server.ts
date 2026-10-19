@@ -532,7 +532,7 @@ app.get('/auth/broker/callback', async (req: Request, res: Response) => {
 // Global Synthesis & Collaboration Fabric
 app.get('/api/collaboration/status', async (_req: Request, res: Response) => {
   try {
-    res.json({ ok: true, providers: await getGlobalCollaborationStatus(), policy: { minimumScope: true, secretsExposed: false, humanApprovalForConsequentialActions: true, auditViaConnectionRegistry: true } });
+    res.json({ ok: true, providers: await getGlobalCollaborationStatus(), policy: { minimumScope: true, secretsExposed: null, humanApprovalForConsequentialActions: true, auditViaConnectionRegistry: true, secretScanStatus: 'NOT VERIFIED' } });
   } catch (error: any) {
     res.status(503).json({ error: 'Collaboration registry unavailable', details: error?.message });
   }
@@ -642,9 +642,9 @@ app.get('/api/integrations', (_req: Request, res: Response) => {
     ok: true,
     generatedAt: new Date().toISOString(),
     policy: {
-      secretsExposed: false,
-      privateCredentialsReturned: false,
-      coreInfrastructureIndependentOfGoogleCloud: true
+      secretsExposed: null, 
+      privateCredentialsReturned: null, 
+      coreInfrastructureIndependentOfGoogleCloud: null
     },
     integrations: integrationStatus.map((item: any) => ({ ...item, ...classifyIntegration(item) }))
   });
@@ -1185,10 +1185,11 @@ async function handlePatentAttorneyScientistRequest(req: Request, res: Response)
     const chosenModel = model || 'gemini-3.8-flash';
 
     let systemInstruction = `You are an AI research assistant helping draft and analyze patent-related materials for GLORIFIER AI and DataSovereign Technologies.
+You are not a lawyer, patent attorney, USPTO-registered practitioner, or credentialed research scientist. Do not claim professional credentials, attorney-client relationship, legal representation, guaranteed patentability, or legal outcomes. Analyze possible arguments and counterarguments, clearly state uncertainty, do not invent case citations or technical evidence, and distinguish user-provided facts, proposed concepts, assumptions, and matters requiring qualified patent-counsel review.
 You are not a lawyer, patent attorney, USPTO-registered practitioner, or credentialed research scientist. Do not claim professional credentials, attorney-client relationship, legal representation, guaranteed patentability, or legal outcomes. Clearly distinguish user-provided facts, proposed technical concepts, assumptions, and items requiring qualified patent-counsel review.
 
 Your core statutory and technical responsibilities:
-- 35 U.S.C. § 101 Subject-Matter Eligibility: Defend computer software, autonomous multi-model failover, differential privacy, and self-healing systems under the Alice/Mayo two-step framework. Provide concrete technical improvement arguments under MPEP § 2106, citing Federal Circuit precedent (Enfish, LLC v. Microsoft Corp., Berkheimer v. HP Inc., McRO v. Bandai Namco, DDR Holdings v. Hotels.com).
+- 35 U.S.C. § 101 Subject-Matter Eligibility: Analyze possible arguments and risks under the Alice/Mayo two-step framework; do not represent eligibility as established without a fact-specific legal review. Provide concrete technical improvement arguments under MPEP § 2106, citing Federal Circuit precedent (Enfish, LLC v. Microsoft Corp., Berkheimer v. HP Inc., McRO v. Bandai Namco, DDR Holdings v. Hotels.com).
 - 35 U.S.C. § 112 Written Description & Enablement: Formulate mathematical proofs, differential privacy bounds (Laplace mechanism Y ~ Lap(Δf / ε)), quasi-identifier entropy metrics, zk-SNARK constraint systems, and algorithm pseudo-code ensuring a POSITA (Person Having Ordinary Skill in the Art) can make and use the invention without undue experimentation.
 - Patent Claim Drafting & Prosecution: Engineering broad independent claims (Systems, Methods, and Computer-Readable Media) and defensible dependent claims with pristine antecedent basis, avoiding means-plus-function traps (35 U.S.C. § 112(f)).
 - Prior Art Differentiation: Rigorously distinguish the present invention over conventional data aggregators, passive APM tools (e.g. Datadog, Splunk), and ad-tech tracking brokers.
@@ -2891,7 +2892,7 @@ app.get('/api/monetization/sprint', async (req: Request, res: Response) => {
 });
 
 app.get('/api/global-collaboration/status', async (_req: Request, res: Response) => {
-  try { return res.json({ok:true,status:'ACTIVE',version:'GCR-1.0',providers:await getGlobalCollaborationStatus(),policy:getGlobalCollaborationPolicy()}); }
+  try { return res.json({ok:true,status:'CONFIGURED · live execution NOT VERIFIED',version:'GCR-1.0',providers:await getGlobalCollaborationStatus(),policy:getGlobalCollaborationPolicy()}); }
   catch (error) { return apiError(res,503,'Global collaboration status unavailable',error); }
 });
 
@@ -3678,7 +3679,11 @@ app.post('/api/agent-miner/control', requireOwner, (req: Request, res: Response)
   try {
     const running = Boolean(req.body?.running);
     const mode = req.body?.mode === 'authorized-compute' ? 'authorized-compute' : 'intelligence';
-    return res.json({ ok: true, miner: setAgentMinerRunning(running, mode) });
+    const miner = setAgentMinerRunning(running, mode);
+    if ('actionError' in miner && miner.actionError) {
+      return res.status(503).json({ ok: false, error: miner.actionError, miner });
+    }
+    return res.json({ ok: true, miner });
   } catch (error) { return apiError(res, 400, 'Unable to change Agent Miner state', error); }
 });
 

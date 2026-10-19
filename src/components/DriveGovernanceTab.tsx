@@ -27,7 +27,7 @@ import { User } from 'firebase/auth';
 import { getAccessToken } from '../lib/firebase';
 import { 
   listDriveFiles, 
-  analyzeDriveFileForSovereignty, 
+  classifyDriveMetadataForReview, 
   createDriveGovernanceManifest, 
   deleteDriveFile 
 } from '../services/driveService';
@@ -77,7 +77,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
         return;
       }
 
-      const analyzed = rawFiles.map(analyzeDriveFileForSovereignty);
+      const analyzed = rawFiles.map(classifyDriveMetadataForReview);
       setFiles(analyzed);
 
 
@@ -123,26 +123,27 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
     setError(null);
     try {
       const manifestPayload = {
-        title: 'DataSovereign AI Governance Manifest',
+        title: 'Drive Metadata Review Manifest · NOT A COMPLIANCE CERTIFICATE',
         generatedAt: new Date().toISOString(),
         userEmail: currentUser?.email,
-        totalFilesAudited: files.length,
-        highRiskFilesDetected: files.filter(f => f.leakRiskScore >= 70).length,
-        privacyStandard: 'Differential Privacy (Laplace Mechanism) + Zero-Knowledge Proofs',
-        estimatedDataDividendsMonthlyUsd: files.reduce((a, b) => a + b.estimatedYieldUsd, 0),
-        filesAuditLog: files.map(f => ({
+        totalFilesMetadataReviewed: files.length,
+        heuristicHighRiskFlags: files.filter(f => f.leakRiskScore >= 70).length,
+        privacyStandard: 'Configured privacy targets only; transformation and proof generation NOT VERIFIED',
+        hypotheticalEstimatedValueMonthlyUsd: null,
+        estimatedValueStatus: 'NOT ESTIMATED — no validated buyer quote or valuation model',
+        filesMetadataReviewLog: files.map(f => ({
           name: f.name,
           category: f.category,
           riskScore: f.leakRiskScore,
           governanceAction: f.governanceAction,
-          privacyLevel: f.differentialPrivacyNoiseLevel,
+          configuredPrivacyTarget: f.differentialPrivacyNoiseLevel,
           sharedExternal: f.shared,
         })),
-        legalNotice: 'Under CCPA § 1798.105 & GDPR Art. 17, consumer telemetry vectors are strictly decoupled from raw underlying assets.',
+        legalNotice: 'This manifest summarizes metadata review and configured settings. It does not certify CCPA/GDPR compliance, data de-identification, or privacy enforcement.',
       };
 
       const result = await createDriveGovernanceManifest(
-        `DataSovereign-Audit-Manifest-${Date.now().toString().slice(-4)}.json`,
+        `Drive-Metadata-Review-Manifest-${Date.now().toString().slice(-4)}.json`,
         manifestPayload
       );
 
@@ -190,7 +191,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
 
   const highRiskCount = files.filter(f => f.leakRiskScore >= 70).length;
   const externalSharedCount = files.filter(f => f.shared).length;
-  const totalEstMonthlyYield = files.reduce((acc, f) => acc + f.estimatedYieldUsd, 0);
+  
 
   return (
     <div className="space-y-6">
@@ -205,14 +206,14 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                 <HardDrive className="w-5 h-5" />
               </span>
               <h2 className="text-xl font-bold text-white tracking-tight">
-                Google Drive Footprint Governance & Monetization
+                Google Drive Metadata Review · Monetization NOT VERIFIED
               </h2>
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                Live Drive API v3
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                Drive API integration · live connection NOT VERIFIED
               </span>
             </div>
             <p className="text-sm text-slate-400 max-w-2xl">
-              Audit documents, spreadsheets, presentations, and cloud assets for credential exposures, uncontrolled public link sharing, and commercial monetization telemetry. Raw contents remain securely shielded in your cloud enclave.
+              Review available Drive metadata for configured exposure indicators. This is a heuristic review, not a complete content scan. Data-flow isolation, privacy transformations, and monetization are NOT VERIFIED.
             </p>
           </div>
 
@@ -233,7 +234,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                   className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-2 border border-slate-700 transition-colors disabled:opacity-50"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${loading ? 'animate-spin' : ''}`} />
-                  <span>{loading ? 'Auditing Drive...' : 'Audit Files'}</span>
+                  <span>{loading ? 'Loading Drive metadata…' : 'Review File Metadata'}</span>
                 </button>
                 <button
                   onClick={() => setExportManifestConfirmOpen(true)}
@@ -241,7 +242,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                   className="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold flex items-center gap-2 shadow-md transition-colors disabled:opacity-50"
                 >
                   <FilePlus2 className="w-3.5 h-3.5" />
-                  <span>{exporting ? 'Exporting...' : 'Save Audit Manifest'}</span>
+                  <span>{exporting ? 'Exporting…' : 'Save Metadata Review Manifest'}</span>
                 </button>
               </div>
             )}
@@ -251,17 +252,17 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
         {/* Live Metrics Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-800/80">
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-            <span className="text-[11px] text-slate-400 font-medium">Audited Cloud Files</span>
+            <span className="text-[11px] text-slate-400 font-medium">Drive metadata records loaded</span>
             <div className="text-lg font-bold text-white font-mono mt-0.5">{files.length}</div>
           </div>
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-            <span className="text-[11px] text-slate-400 font-medium">Est. Monthly Drive Yield</span>
+            <span className="text-[11px] text-slate-400 font-medium">Valuation estimate · NOT AVAILABLE</span>
             <div className="text-lg font-bold text-emerald-400 font-mono mt-0.5">
-              ${totalEstMonthlyYield.toFixed(2)}
+              NOT ESTIMATED
             </div>
           </div>
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-            <span className="text-[11px] text-slate-400 font-medium">High Exposure Risk</span>
+            <span className="text-[11px] text-slate-400 font-medium">Heuristic high-exposure flags</span>
             <div className={`text-lg font-bold font-mono mt-0.5 ${highRiskCount > 0 ? 'text-amber-400' : 'text-slate-300'}`}>
               {highRiskCount} Files
             </div>
@@ -301,7 +302,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
         <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-            <span>Created Governance Audit Manifest: <strong>{exportSuccessLink.name}</strong></span>
+            <span>Created metadata review manifest: <strong>{exportSuccessLink.name}</strong></span>
           </div>
           {exportSuccessLink.link && (
             <a 
@@ -326,7 +327,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
           <div className="space-y-1">
             <h3 className="text-base font-bold text-white">Google Drive Access Authorization Required</h3>
             <p className="text-xs text-slate-400 max-w-md mx-auto">
-              Connect your Google account with official Drive scopes to audit stored documents, detect shadow shared links, and govern your cloud storage footprint.
+              Connect your Google account to review available file metadata and Drive-reported sharing fields. This screen does not scan full file contents or apply privacy transformations.
             </p>
           </div>
           <button
@@ -438,17 +439,17 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                           </div>
                         ) : (
                           <p className="text-[11px] text-slate-400">
-                            Standard workspace asset. No sensitive PII credentials identified.
+                            No configured risk pattern was detected in this metadata review. This does not prove that the file contains no sensitive information.
                           </p>
                         )}
                       </div>
 
                       <div className="text-right shrink-0">
                         <div className="text-xs font-bold text-emerald-400 font-mono">
-                          +${file.estimatedYieldUsd.toFixed(2)}
+                          NOT ESTIMATED · NOT REVENUE
                         </div>
                         <div className="text-[10px] text-slate-400 mt-0.5">
-                          {file.modifiedTime || 'Recently'}
+                          {file.modifiedTime || 'Modification time unavailable'}
                         </div>
                       </div>
                     </div>
@@ -498,7 +499,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
             <div className="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-4">
               <h4 className="text-sm font-bold text-white flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-cyan-400" />
-                <span>File Privacy & Dividend Inspector</span>
+                <span>File Metadata Review · no privacy transformation or revenue verified</span>
               </h4>
 
               {selectedFile ? (
@@ -516,7 +517,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                       </span>
                     </div>
                     <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Leak Risk Score</span>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Heuristic exposure score · not a security assessment</span>
                       <span className={`font-mono font-bold mt-0.5 block text-xs ${
                         selectedFile.leakRiskScore >= 70 ? 'text-rose-400' :
                         selectedFile.leakRiskScore >= 40 ? 'text-amber-400' : 'text-emerald-400'
@@ -528,7 +529,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
 
                   <div>
                     <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">
-                      Telemetry Anonymization Noise
+                      Privacy transform status · NOT VERIFIED
                     </span>
                     <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 font-mono text-cyan-300 text-[11px] mt-1">
                       {selectedFile.differentialPrivacyNoiseLevel}
@@ -537,7 +538,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
 
                   <div>
                     <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">
-                      Detected Exposure Vectors
+                      Heuristic exposure indicators
                     </span>
                     {selectedFile.sensitiveSignals.length > 0 ? (
                       <div className="mt-1 space-y-1">
@@ -558,9 +559,10 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
 
                   <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
                     <div>
+                      <span className="text-slate-400 text-[10px] block uppercase font-bold">Valuation estimate · NOT AVAILABLE</span>
                       <span className="text-slate-400 text-[10px] block uppercase font-bold">Hypothetical estimated value · NOT REVENUE</span>
                       <span className="text-base font-bold text-emerald-400 font-mono">
-                        ${selectedFile.estimatedYieldUsd.toFixed(2)} USD
+                        NOT ESTIMATED — no validated valuation model
                       </span>
                     </div>
 

@@ -86,9 +86,9 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
 
           <div className="flex items-center gap-4 bg-slate-950 px-4 py-2.5 rounded-lg border border-slate-800">
             <div>
-              <div className="text-[10px] uppercase font-semibold text-slate-400">Active grant records</div>
+              <div className="text-[10px] uppercase font-semibold text-slate-400">Records marked active locally</div>
               <div className="text-sm font-bold font-mono text-emerald-400">
-                {activeGrantsCount} Grants
+                {activeGrantsCount} Records
               </div>
             </div>
             <div className="w-px h-8 bg-slate-800"></div>
@@ -156,6 +156,8 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
                       {grant.category.toUpperCase()}
                     </span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                      Configured protection target: {grant.protectionTech} · NOT VERIFIED
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
                       Claimed technique: {grant.protectionTech} (not independently verified)
                     </span>
@@ -164,7 +166,7 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                     </span>
                     {grant.epsilonLevel && (
                       <span className="text-[10px] font-mono text-emerald-300">
-                        ε = {grant.epsilonLevel}
+                        Configured ε target = {grant.epsilonLevel} · enforcement NOT VERIFIED
                       </span>
                     )}
                   </div>
@@ -175,13 +177,13 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                   </div>
 
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    <strong>Licensed Purpose:</strong> {grant.purpose}
+                    <strong>Recorded purpose (not proof of a license):</strong> {grant.purpose}
                   </p>
 
                   {/* Granular Shared Fields */}
                   <div className="pt-2">
                     <div className="text-[10px] uppercase font-bold text-slate-500 mb-1.5">
-                      Granular Data Point Attributes Shared:
+                      Recorded/configured fields · actual sharing NOT VERIFIED:
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {grant.sharedFields.map((field, idx) => (
@@ -200,6 +202,9 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                 {/* Right Section: Retention TTL, Financials & Actions */}
                 <div className="flex flex-col items-end gap-3 self-start lg:self-auto shrink-0">
                   <div className="text-right">
+                    <div className="text-[10px] uppercase font-bold text-slate-400">Recorded yield / query count</div>
+                    <div className="text-lg font-bold font-mono text-amber-300">NOT VERIFIED</div>
+                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">No independently verified usage or payment evidence is attached.</div>
                     <div className="text-[10px] uppercase font-bold text-slate-400">Total Accrued Yield</div>
                     <div className="text-sm font-bold font-mono text-amber-300">
                       NOT VERIFIED
@@ -215,6 +220,7 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
                   {/* TTL Countdown Badge */}
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono bg-slate-950 border border-slate-800 text-slate-300">
                     <Clock className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Stored TTL: {isActive ? `${grant.ttlHoursRemaining}h` : 'marked expired'} · provider expiry NOT VERIFIED</span>
                     <span>{effectiveStatus === 'active' ? `Expires: ${new Date(grant.expiresAt).toLocaleString()}` : effectiveStatus === 'unknown' ? 'Expiry: NOT VERIFIED' : `Grant: ${effectiveStatus.toUpperCase()}`}</span>
                   </div>
 
@@ -252,6 +258,8 @@ export const DataControlDashboard: React.FC<DataControlDashboardProps> = ({
 
               {/* Footer bar */}
               <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                <div>Recorded grant date: {grant.grantedAt} · recorded expiry: {grant.expiresAt} · provider status NOT VERIFIED</div>
+                <div className="text-slate-400 font-semibold">Stored rate description · NOT VERIFIED: {grant.rateDescription}</div>
                 <div>Recorded grant: {grant.grantedAt} &bull; Recorded expiry: {grant.expiresAt}</div>
                 <div className="text-slate-400 font-semibold">Illustrative rate only — payment not verified</div>
               </div>

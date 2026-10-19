@@ -93,9 +93,10 @@ const INITIAL_NODES: ModelNodeConfig[] = [
   {
     id: 'patent-attorney-scientist',
     name: 'AI Patent Research Assistant (not a lawyer)',
+    provider: 'Local AI research role · provider/credentials NOT VERIFIED',
     provider: 'USPTO Bar & AI Research Core',
     role: 'Patent Prosecution, Claim Engineering & Scientific Enablement',
-    specialization: '35 U.S.C. § 101 Alice/Mayo technical character briefs, § 112 mathematical enablement, prior art differentiation & USPTO claim drafting',
+    specialization: 'Patent-draft research support only; legal accuracy and patentability NOT VERIFIED',
     badge: 'USPTO / AI Scientist',
     weight: 20,
     enabled: true,
@@ -210,6 +211,18 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
     }
   };
 
+  // Apply only numeric suggestions actually returned by the backend.
+  const handleApplyCouncilDirectives = () => {
+    if (
+      !councilResult ||
+      typeof councilResult.recommendedEpsilon !== 'number' ||
+      !Number.isFinite(councilResult.recommendedEpsilon) ||
+      typeof councilResult.recommendedFloorUsd !== 'number' ||
+      !Number.isFinite(councilResult.recommendedFloorUsd)
+    ) {
+      setStatusFeedback('No numeric recommendations were returned. No policy values were changed.');
+      return;
+    }
   // Apply council recommendations only when both numeric values are present and valid.
   // A missing recommendation must never silently overwrite the current policy.
   const handleApplyCouncilDirectives = () => {
@@ -238,6 +251,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
       aiModel: 'all-models',
       autoNegotiateHighBids: true
     });
+    setStatusFeedback('Backend-returned policy suggestions were applied locally. Provider consensus and production enforcement are NOT VERIFIED.');
     setStatusFeedback(`Policy update requested from backend-returned council values: ε = ${epsilon}, floor = ${monthlyFloorUsd}/mo. Persistence and enforcement are NOT VERIFIED.`);
   };
 
@@ -649,13 +663,14 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                         Backend-returned Council Result · NOT independently verified
                       </h4>
                       <p className="text-xs text-slate-400 font-mono">
-                        Backend-reported score: <span className="text-amber-400 font-bold">{councilResult.consensusScore}% · NOT independently verified</span>
+                        Backend-reported score: <span className="text-amber-400 font-bold">{typeof councilResult.consensusScore === 'number' ? `${councilResult.consensusScore}% · NOT independently verified` : 'NOT MEASURED'}</span>
                       </p>
                     </div>
                   </div>
 
                   <button
                     type="button"
+                    disabled={!councilResult || typeof councilResult.recommendedEpsilon !== 'number' || typeof councilResult.recommendedFloorUsd !== 'number'}
                     onClick={handleApplyCouncilDirectives}
                     className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-colors flex items-center gap-2 shadow-md cursor-pointer"
                   >

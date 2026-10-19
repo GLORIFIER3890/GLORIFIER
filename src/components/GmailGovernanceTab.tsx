@@ -17,7 +17,7 @@ import { getAccessToken } from '../lib/firebase';
 import { 
   listGmailMessages, 
   getGmailMessage, 
-  analyzeEmailForSovereignMonetization,
+  classifyEmailMetadataForGovernanceReview,
   sendGmailMessage 
 } from '../services/gmailService';
 import { GmailAnalysisItem } from '../types';
@@ -36,11 +36,11 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<GmailAnalysisItem | null>(null);
 
-  // Gmail access is read-only in this dashboard view.
+  // Gmail reads use metadata and snippets; email sending is a separate confirmed action.
   const [composeOpen, setComposeOpen] = useState(false);
   const [recipient, setRecipient] = useState('');
   const [subject, setSubject] = useState('Data Governance Notice: Sovereign Privacy Rights');
-  const [body, setBody] = useState('Greetings,\n\nIn accordance with CCPA/GDPR personal data rights, this inbox is managed via an AI Data Sovereign Gateway. All consumer profile telemetry is scrubbed and synthesized before licensing.\n\nVerified via DataSovereign AI.');
+  const [body, setBody] = useState('Hello,\n\nWe are reviewing our data-governance practices. No claim is made here that data has been anonymized, scrubbed, synthesized, licensed, or independently verified. Please contact us with any privacy or data-rights questions.\n\nThis message is informational and is not a certification of CCPA/GDPR compliance.');
   const [confirmSendOpen, setConfirmSendOpen] = useState(false);
   const [sendSuccess, setSendSuccess] = useState(false);
 
@@ -71,7 +71,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
       );
 
       const validSummaries = fetchedSummaries.filter((s): s is NonNullable<typeof s> => s !== null);
-      const analyzed = validSummaries.map(analyzeEmailForSovereignMonetization);
+      const analyzed = validSummaries.map(classifyEmailMetadataForGovernanceReview);
       setMessages(analyzed);
 
     } catch (err: any) {
@@ -104,7 +104,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
                 Gmail Data Governance
               </h2>
               <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                READ-ONLY WORKSPACE VIEW
+                GMAIL METADATA REVIEW · SEND REQUIRES CONFIRMATION
               </span>
             </div>
             <p className="text-sm text-slate-400 max-w-2xl">
@@ -221,7 +221,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
                   onClick={fetchEmails}
                   className="px-3 py-1.5 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 text-xs font-semibold"
                 >
-                  Scan Inbox Now
+                  Load Recent Message Metadata
                 </button>
               </div>
             ) : (
@@ -253,7 +253,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
 
                       <div className="text-right shrink-0">
                         <div className="text-xs font-bold text-emerald-400 font-mono">
-                          +${item.estimatedYieldUsd.toFixed(2)}
+                          NOT ESTIMATED · NOT REVENUE
                         </div>
                         <span className="text-[10px] text-slate-400">{item.date}</span>
                       </div>
@@ -264,7 +264,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
                         <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                         <span>Action: {item.governanceAction}</span>
                       </span>
-                      <span className="text-cyan-400 font-mono font-medium">Safe for Buyer Aggregates</span>
+                      <span className="text-amber-300 font-mono font-medium">Buyer use / privacy safety NOT VERIFIED</span>
                     </div>
                   </div>
                 ))}
@@ -277,13 +277,13 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
             <div className="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-4">
               <h4 className="text-sm font-bold text-white flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-emerald-400" />
-                <span>Sanitization & Token Inspector</span>
+                <span>Message Metadata Inspector · no sanitization performed</span>
               </h4>
 
               {selectedItem ? (
                 <div className="space-y-3 text-xs">
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Sender (Masked)</span>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Sender metadata (not masked)</span>
                     <span className="text-slate-200 font-mono mt-0.5 block break-all">{selectedItem.sender}</span>
                   </div>
 
@@ -293,23 +293,23 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
                   </div>
 
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Synthesized Market Insight</span>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Local heuristic summary · NOT VERIFIED</span>
                     <p className="text-slate-300 mt-1 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px] leading-relaxed">
                       {selectedItem.extractedInsights}
                     </p>
                   </div>
 
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Calculated Compensation</span>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Hypothetical estimated value · NOT REVENUE</span>
                     <div className="text-base font-bold text-emerald-400 font-mono mt-1">
-                      ${selectedItem.estimatedYieldUsd.toFixed(2)} USD
+                      NOT ESTIMATED — no validated buyer quote or valuation model
                     </div>
                   </div>
 
                   <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] space-y-1">
                     <div className="font-semibold flex items-center gap-1.5">
                       <Lock className="w-3.5 h-3.5" />
-                      <span>Zero-Raw Leak Contract</span>
+                      <span>Data-flow policy · NOT VERIFIED</span>
                     </div>
                     <p className="text-[10px] text-emerald-400/80">
                       Only data explicitly authorized by the connected Google account is shown here. No claim of anonymization, licensing, or compensation is made unless separately verified.

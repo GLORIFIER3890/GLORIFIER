@@ -102,7 +102,7 @@ export const GlobalCollaborationDashboard: React.FC = () => {
   const resolved = caseRows.filter(c => c.stage === 'RESOLVED').length;
   const awaitingAuth = caseRows.filter(c => c.stage === 'AUTHORIZATION_PENDING').length;
   const evidencePending = caseRows.filter(c => c.stage === 'EVIDENCE_PENDING').length;
-  const verifiedRevenue = revenue?.verifiedRevenue ?? revenue?.revenue ?? revenue?.summary?.verifiedRevenue ?? 0;
+  const verifiedRevenue = revenue?.verifiedRevenue ?? revenue?.summary?.verifiedRevenue ?? null;
 
   return (
     <section className="space-y-4">
@@ -133,11 +133,11 @@ export const GlobalCollaborationDashboard: React.FC = () => {
       )}
 
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
-        <StatCard icon={Activity} label="Status" value={status?.status || 'ACTIVE'} detail={status?.version || 'GCR-1.0'} />
+        <StatCard icon={Activity} label="Status" value={status?.status || 'NOT OBSERVABLE'} detail={status?.version || 'GCR-1.0'} />
         <StatCard icon={Eye} label="Evidence" value={evidencePending} detail="Pending verification" />
         <StatCard icon={ShieldCheck} label="Approval" value={awaitingAuth} detail="Human gate" />
-        <StatCard icon={CheckCircle2} label="Resolved" value={resolved} detail="Acceptance + settlement" />
-        <StatCard icon={WalletCards} label="Verified revenue" value={String(verifiedRevenue)} detail="External evidence" />
+        <StatCard icon={CheckCircle2} label="Resolved" value={resolved} detail="Stage label; acceptance and settlement evidence required" />
+        <StatCard icon={WalletCards} label="Verified revenue" value={verifiedRevenue == null ? 'NOT OBSERVABLE' : String(verifiedRevenue)} detail="External evidence" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -179,11 +179,12 @@ export const GlobalCollaborationDashboard: React.FC = () => {
       </div>
 
       <div className="grid gap-3 lg:grid-cols-3">
-        <Section title="24/7 Discovery" icon={Activity}>
+        <Section title="Opportunity Discovery · daemon status reported" icon={Activity}>
           <div className="space-y-2 p-4 text-xs text-slate-400">
-            <div className="flex justify-between"><span>Continuous</span><span className="text-emerald-400">Enabled</span></div>
-            <div className="flex justify-between"><span>Sources</span><span>{discovery?.sourcesScanned ?? '—'}</span></div>
-            <div className="flex justify-between"><span>Observed</span><span>{discovery?.findingsObserved ?? '—'}</span></div>
+            <div className="flex justify-between"><span>Daemon timer</span><span>{!discovery ? 'NOT OBSERVABLE' : discovery.daemon?.running ? 'Reported running' : 'Not running'}</span></div>
+            <div className="flex justify-between"><span>Current cycle</span><span>{discovery?.daemon?.cycleRunning ? 'Reported running' : 'No cycle reported'}</span></div>
+            <div className="flex justify-between"><span>Last run</span><span>{discovery?.freshness?.latestRunAt ? new Date(discovery.freshness.latestRunAt).toLocaleString() : 'NOT OBSERVABLE'}</span></div>
+            <p className="pt-1 text-[10px]">Process uptime, automatic recovery, and continuous availability are NOT independently verified.</p>
           </div>
         </Section>
         <Section title="Evidence" icon={Eye}>

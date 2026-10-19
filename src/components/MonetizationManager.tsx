@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Bot, BrainCircuit, DollarSign, Gauge, Play, ShieldCheck, TrendingUp, Wallet } from 'lucide-react';
 import { MonetizationPolicy, SovereignStats } from '../types';
 import type { User } from 'firebase/auth';
@@ -81,10 +81,6 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const projected = useMemo(() => {
-    const multiplier = policy.brokerMode === 'autonomous-maximize' ? 1.35 : policy.brokerMode === 'balanced-protective' ? 1.15 : 0.9;
-    return Math.max(0, stats.monthlyPacingUsd * multiplier);
-  }, [policy.brokerMode, stats.monthlyPacingUsd]);
 
   const runManager = async () => {
     setLoading(true);
@@ -119,15 +115,14 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-widest">
               <Bot className="w-4 h-4" /> AI Bot Monetization Manager
             </div>
-            <h2 className="mt-2 text-2xl font-bold text-white">Autonomous Yield Operations</h2>
+            <h2 className="mt-2 text-2xl font-bold text-white">Monetization Analysis & Policy Controls</h2>
             <p className="mt-2 max-w-3xl text-sm text-slate-400">
-              An AI control layer that analyzes yield opportunities, privacy constraints and compensation strategy.
-              It can recommend actions, but policy changes remain under your control.
+              AI-assisted analysis of possible business models and configured policy settings. No buyer demand, privacy enforcement, autonomous execution, or revenue is established by this panel.
             </p>
           </div>
           <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
             <div className="text-xs text-slate-400">Illustrative projection (not verified revenue)</div>
-            <div className="text-2xl font-bold font-mono text-emerald-400">{projected.toFixed(2)}</div>
+            <div className="text-2xl font-bold font-mono text-amber-300">NOT ESTIMATED</div>
           </div>
         </div>
       </div>
@@ -136,7 +131,7 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <div className="text-xs font-bold uppercase tracking-widest text-emerald-400">Real-money subscriptions</div>
+            <div className="text-xs font-bold uppercase tracking-widest text-emerald-400">PayPal subscriptions · server confirmation required</div>
             <h3 className="mt-1 text-xl font-bold text-white">GLORIFIER Plans</h3>
             <p className="mt-1 text-sm text-slate-400">Payments are processed by PayPal. Access becomes active only after the server confirms a completed PayPal capture.</p>
           </div>
@@ -158,7 +153,7 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
             <button onClick={() => startCheckout('business')} disabled={checkoutLoading !== null} className="mt-4 w-full rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50">{checkoutLoading === 'business' ? 'Opening PayPal...' : 'Subscribe Business'}</button>
           </div>
         </div>
-        {subscription && <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-sm text-emerald-200">Active record: {subscription.plan_id} · {subscription.status}{subscription.expires_at ? ' · renews/expires ' + new Date(subscription.expires_at).toLocaleDateString() : ''}</div>}
+        {subscription && <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-sm text-emerald-200">Server-reported subscription record: {subscription.plan_id} · {subscription.status}{subscription.expires_at ? ' · renews/expires ' + new Date(subscription.expires_at).toLocaleDateString() : ''}</div>}
         {paymentMessage && <div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-sm text-amber-200">{paymentMessage}</div>}
       </div>
 
@@ -218,10 +213,10 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
           >
             <option value="strict-sovereign">Strict Sovereign</option>
             <option value="balanced-protective">Balanced Protective</option>
-            <option value="autonomous-maximize">Autonomous Maximize</option>
+            <option value="autonomous-maximize">Maximize target · runtime NOT VERIFIED</option>
           </select>
 
-          <label className="mt-5 block text-xs text-slate-400">Minimum monthly floor</label>
+          <label className="mt-5 block text-xs text-slate-400">Proposed minimum monthly floor · not a buyer offer</label>
           <input
             type="number"
             min="0"
@@ -236,7 +231,7 @@ export const MonetizationManager: React.FC<MonetizationManagerProps> = ({ policy
               checked={policy.autoNegotiateHighBids}
               onChange={(event) => onUpdatePolicy({ autoNegotiateHighBids: event.target.checked })}
             />
-            Enable AI high-bid negotiation
+            Set AI high-bid negotiation preference · execution NOT VERIFIED
           </label>
 
           <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">

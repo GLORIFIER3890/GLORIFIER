@@ -5,7 +5,7 @@ import { registerCurrentDevice, getCurrentDevice, revokeCurrentDevice, type Glor
 export const MobileDeviceControl: React.FC = () => {
   const [device, setDevice] = useState<GlorifierDeviceSnapshot | null>(null);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'connected' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'registered' | 'error'>('idle');
   const [message, setMessage] = useState('');
 
   const sync = async () => {
@@ -14,7 +14,7 @@ export const MobileDeviceControl: React.FC = () => {
     try {
       const result = await registerCurrentDevice();
       setDevice(result.device);
-      setStatus('connected');
+      setStatus('registered');
       setMessage('Android device registered with authenticated GLORIFIER control.');
     } catch (error) {
       setStatus('error');
@@ -30,7 +30,7 @@ export const MobileDeviceControl: React.FC = () => {
         const result = await getCurrentDevice();
         if (result.device) {
           setDevice(result.device);
-          setStatus('connected');
+          setStatus('registered');
         }
       } catch {
         // A first-time device has no record yet.
@@ -65,8 +65,8 @@ export const MobileDeviceControl: React.FC = () => {
             Device metadata is sent only after Firebase authentication and remains scoped to your GLORIFIER identity.
           </p>
         </div>
-        <span className={`text-[10px] font-mono uppercase ${status === 'connected' ? 'text-emerald-300' : status === 'error' ? 'text-amber-300' : 'text-slate-500'}`}>
-          {status === 'connected' ? 'Connected' : status === 'error' ? 'Attention' : 'Not connected'}
+        <span className={`text-[10px] font-mono uppercase ${status === 'registered' ? 'text-emerald-300' : status === 'error' ? 'text-amber-300' : 'text-slate-500'}`}>
+          {status === 'registered' ? 'Registered · live connection NOT VERIFIED' : status === 'error' ? 'Attention' : 'Not registered'}
         </span>
       </div>
 

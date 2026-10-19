@@ -19,7 +19,8 @@ export function getGlobalCollaborationPolicy() {
     },
     objective:
       'DISCOVER → CONNECT → VERIFY → QUALIFY → AUTHORIZE → EXECUTE → DELIVER → ACCEPT → SETTLE → RESOLVE → LEARN → REPEAT',
-    continuous: true,
+    continuous: false,
+    continuousOperation: 'NOT VERIFIED — this orchestrator runs on demand; a persistent global collaboration daemon is not established here.',
     global: true,
     coordinator: 'GLORIFIER AI CEO',
     participants: [

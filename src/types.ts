@@ -35,8 +35,8 @@ export interface DriveAnalysisItem {
   category: 'Documents & Research' | 'Spreadsheets & Finance' | 'Presentations & Strategy' | 'Code & Architecture' | 'Media & Creative' | 'Archival & Other';
   leakRiskScore: number; // 0 - 100
   sensitiveSignals: string[];
-  governanceAction: 'Differential Privacy Scrub' | 'ZK-Proof Vector Index' | 'Strict Enclave Lockdown' | 'Safe Public Commons';
-  estimatedYieldUsd: number;
+  governanceAction: 'NOT VERIFIED — no privacy transformation applied';
+  estimatedYieldUsd: number | null;
   differentialPrivacyNoiseLevel: string;
 }
 
@@ -56,8 +56,8 @@ export interface GmailAnalysisItem {
   date: string;
   category: 'Receipt/Commerce' | 'Travel/Itinerary' | 'Newsletter/Research' | 'Work/Collaboration';
   extractedInsights: string;
-  governanceAction: 'Anonymized & Tokenized' | 'Direct Private Shield' | 'Synthetic Profiled';
-  estimatedYieldUsd: number;
+  governanceAction: 'NOT VERIFIED — no privacy transformation applied';
+  estimatedYieldUsd: number | null;
 }
 
 export interface DataSampleRecord {
