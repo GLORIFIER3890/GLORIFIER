@@ -1,8 +1,18 @@
 import { readFileSync } from 'node:fs';
 
 const scientistPath = 'src/lib/governance/geas-architecture-scientist.ts';
-const scientist = readFileSync(scientistPath, 'utf8');
 const failures: string[] = [];
+let scientist: string;
+try {
+  scientist = readFileSync(scientistPath, 'utf8');
+} catch (error) {
+  const detail = error instanceof Error ? error.message : String(error);
+  process.stderr.write(JSON.stringify({
+    valid: false,
+    failures: [`unable to read required GEAS source file (${scientistPath}): ${detail}`],
+  }, null, 2) + '\n');
+  process.exit(1);
+}
 
 function requirePattern(pattern: RegExp, message: string) {
   if (!pattern.test(scientist)) failures.push(message);
