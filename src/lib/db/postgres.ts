@@ -22,12 +22,16 @@ export function getPostgresPool(): Pool {
     // TLS remains enabled by default in production. The explicit disable switch is
     // intended only for isolated local/test databases that do not provide TLS.
     const sslDisabled = process.env.DATABASE_SSL === 'disable';
+    if (sslDisabled && process.env.NODE_ENV === 'production') {
+      throw new Error('DATABASE_SSL=disable is not permitted in production');
+    }
     pool = new Pool({
       connectionString: getDatabaseUrl(),
       max: Number(process.env.DB_POOL_MAX || 5),
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
-      ssl: sslDisabled ? undefined : process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+      // Production TLS must validate the server certificate to prevent MITM attacks.
+      ssl: sslDisabled ? undefined : process.env.NODE_ENV === 'production' ? { rejectUnauthorized: true } : undefined,
     });
   }
   return pool;
