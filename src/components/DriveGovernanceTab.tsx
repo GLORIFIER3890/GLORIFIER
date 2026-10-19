@@ -36,6 +36,7 @@ import { DriveAnalysisItem } from '../types';
 interface DriveGovernanceTabProps {
   currentUser: User | null;
   onLogin: () => void;
+  onAddEarnings: (amountUsd: number, description: string) => void;
 }
 
 export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
