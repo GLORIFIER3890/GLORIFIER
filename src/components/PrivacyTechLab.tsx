@@ -456,11 +456,11 @@ export const PrivacyTechLab: React.FC = () => {
                 <Binary className="w-4 h-4 text-emerald-400" />
                 Zero-Knowledge Attestation (zk-SNARK) Generator
               </h3>
-              <span className="text-xs font-mono text-emerald-400">Groth16 / Plonk Prover</span>
+              <span className="text-xs font-mono text-emerald-400">ZK proof concept · prover implementation NOT VERIFIED</span>
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Prove a mathematical statement (e.g. "I am over 21 years old", "My credit score exceeds 700", "I reside in California") with 100% cryptographic certainty without disclosing your date of birth, credit report, or street address.
+              A properly implemented zero-knowledge proof can establish a defined statement without revealing the witness. This panel is a demonstration; no production Groth16/Plonk proof, circuit audit, or cryptographic verification is established here.
             </p>
 
             {/* ZKP Inputs */}
