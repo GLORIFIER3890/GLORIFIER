@@ -68,7 +68,7 @@ export const PatentDisclosureDossier: React.FC<PatentDisclosureDossierProps> = (
       role: 'assistant',
       text: `### AI Patent Research Assistant · Draft Session Briefing\n\n**Notice:** This is AI-generated informational assistance, not a registered patent attorney or a credentialed research scientist. Verify legal advice and credentials independently.\n**Jurisdiction:** United States Patent and Trademark Office (USPTO) & Patent Trial and Appeal Board (PTAB)\n**Proposed technical concepts for possible patent review:**\n1. **Autonomous Multi-Provider AI Orchestrator:** Dynamic capability scoring $C(M_i)$, exponential moving latency dampening, and automated 503 failover.\n2. **Mathematical Differential Privacy Engine:** Calibrated Laplacian noise $Y \\sim \\text{Lap}(\\Delta f / \\varepsilon)$ and zk-SNARK attribute attestation for sovereign data monetization.\n3. **24/7 Autonomous Code Sentinel:** Watchdog diagnostic probe synthesizing unified diffs with protected-path security gating.\n4. **Cryptographic Proof & Settlement:** SHA-256 evidence chain with multi-rail settlement.\n\nSelect a Specialty Prosecution Mode below or ask any question regarding claim scope, 35 U.S.C. § 101 Alice defenses, § 112 mathematical enablement, or prior art differentiation.`,
       mode: 'claim_prosecution',
-      modelUsed: 'Google Gemini 3.8 Flash (DeepMind)',
+      modelUsed: 'No provider request has been made',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -108,7 +108,7 @@ ${m.text}
     const url = URL.createObjectURL(blob);
     const element = document.createElement('a');
     element.href = url;
-    element.download = `PATENT_ATTORNEY_SCIENTIST_OPINION_${Date.now()}.md`;
+    element.download = `PATENT_RESEARCH_ASSISTANT_DRAFT_${Date.now()}.md`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -398,7 +398,7 @@ generate an interactive patent and legal defense interface displaying system arc
                 <Scale className="w-3.5 h-3.5" /> Formal Patent Disclosure
               </span>
               <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono">
-                USPTO &bull; 35 U.S.C. § 101 / § 112 Ready
+                Draft legal references · patentability and filing readiness NOT VERIFIED
               </span>
               <span className="px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-mono">
                 20 Claims Drafted
@@ -443,7 +443,7 @@ generate an interactive patent and legal defense interface displaying system arc
         {[
           { id: 'diagrams', label: 'Architecture Diagrams (FIG. 1 - 5)', icon: Layers, count: '5 Figures' },
           { id: 'claims', label: 'Proposed Claims (1 - 20)', icon: Scale, count: '20 Claims' },
-          { id: 'spec', label: 'Complete USPTO Specification', icon: FileText, count: '12 Sections' },
+          { id: 'spec', label: 'Draft Specification · Not Filed', icon: FileText, count: '12 Sections' },
           { id: 'alice101', label: '35 U.S.C. § 101 Defense Brief', icon: ShieldCheck, count: 'Step 2B' },
           { id: 'attorney_ai', label: 'AI Patent Research Assistant (not a lawyer)', icon: Sparkles, count: 'AI research assistance · credentials NOT VERIFIED' },
         ].map((tab) => {
@@ -517,7 +517,7 @@ generate an interactive patent and legal defense interface displaying system arc
                   {selectedFigure === 5 && 'FIG. 5 — Cryptographic Evidence Preservation, Brand Web Monitoring & Multi-Rail Settlement'}
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Reference numerals 100–550 conforming to formal USPTO and PCT drawing standards.
+                  Illustrative reference numerals 100–550; formal USPTO/PCT drawing compliance NOT VERIFIED.
                 </p>
               </div>
 
@@ -1176,7 +1176,7 @@ generate an interactive patent and legal defense interface displaying system arc
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <FileText className="w-4 h-4 text-emerald-400" />
-                  USPTO Patent Specification (Full Text)
+                  Draft Patent Specification · Filing status NOT VERIFIED
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
                   Conforming to 37 CFR § 1.77 (Standard arrangement for patent applications).
@@ -1395,10 +1395,10 @@ generate an interactive patent and legal defense interface displaying system arc
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-lg font-bold text-white tracking-tight">
-                      A.I. Bot: Patent Attorney & Chief IP Research Scientist
+                      AI Patent Research Assistant (not a lawyer)
                     </h3>
                     <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30 text-[10px] font-mono font-semibold uppercase">
-                      USPTO Bar &bull; Ph.D. AI / Crypto
+                      Credentials NOT VERIFIED · not a lawyer
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-0.5">
