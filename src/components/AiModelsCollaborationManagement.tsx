@@ -92,7 +92,7 @@ const INITIAL_NODES: ModelNodeConfig[] = [
   },
   {
     id: 'patent-attorney-scientist',
-    name: 'A.I. Bot Patent Attorney Scientist',
+    name: 'AI Patent Research Assistant (not a lawyer)',
     provider: 'USPTO Bar & AI Research Core',
     role: 'Patent Prosecution, Claim Engineering & Scientific Enablement',
     specialization: '35 U.S.C. § 101 Alice/Mayo technical character briefs, § 112 mathematical enablement, prior art differentiation & USPTO claim drafting',
