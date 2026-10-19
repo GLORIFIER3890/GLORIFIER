@@ -222,7 +222,7 @@ ${session.geminiPeerReview}
       aiModel: 'consensus' as any,
       autoNegotiateHighBids: true
     });
-    setApplySuccessNotice('Consensus directives applied! Global floor updated to $40/mo and ε calibrated to 0.30.');
+    setApplySuccessNotice('Configured policy values updated locally. Production enforcement and provider consensus are NOT VERIFIED.');
   };
 
   const handleRunCoWorking = async (overridePrompt?: string, overrideCode?: string) => {
@@ -389,7 +389,7 @@ ${session.geminiPeerReview}
             <button
               onClick={handleApplyDirectives}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 font-semibold text-xs transition-colors"
-              title="Apply consensus parameters (Floor $40/mo, Epsilon 0.30) to live app policy"
+              title="Apply proposed policy values; provider consensus and production enforcement are NOT VERIFIED"
             >
               <CheckCircle2 className="w-4 h-4" /> Apply Directives to Policy
             </button>
