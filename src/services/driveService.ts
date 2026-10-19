@@ -62,7 +62,7 @@ export async function listDriveFiles(pageSize = 25, query = ''): Promise<ListDri
 /**
  * Metadata-only heuristic classification. This does not read file contents, apply privacy transformations, or estimate revenue.
  */
-export function analyzeDriveFileForSovereignty(file: DriveApiFile): DriveAnalysisItem {
+export function classifyDriveMetadataForReview(file: DriveApiFile): DriveAnalysisItem {
   const nameLower = file.name.toLowerCase();
   const mime = file.mimeType.toLowerCase();
   let category: DriveAnalysisItem['category'] = 'Documents & Research';
