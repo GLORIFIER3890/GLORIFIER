@@ -1848,15 +1848,22 @@ app.get('/api/ai/work-247-gpt', (_req: Request, res: Response) => {
 });
 
 app.post('/api/ai/work-247-gpt/toggle', (req: Request, res: Response) => {
-  const { enabled } = req.body;
-  if (typeof enabled === 'boolean') {
-    gpt247State.enabled = enabled;
-  } else {
-    gpt247State.enabled = !gpt247State.enabled;
+  const { enabled } = req.body || {};
+  if (enabled === true) {
+    return res.status(501).json({
+      success: false,
+      enabled: false,
+      status: 'NOT VERIFIED',
+      error: 'Cannot enable continuous co-working: no real background executor is configured.',
+      cyclesCompleted: gpt247State.cyclesCompleted,
+      lastCycleAt: gpt247State.lastCycleAt
+    });
   }
-  res.json({
+  gpt247State.enabled = false;
+  return res.json({
     success: true,
-    enabled: gpt247State.enabled,
+    enabled: false,
+    status: 'DISABLED · runtime NOT VERIFIED',
     cyclesCompleted: gpt247State.cyclesCompleted,
     lastCycleAt: gpt247State.lastCycleAt
   });
