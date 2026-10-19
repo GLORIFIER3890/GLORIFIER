@@ -608,10 +608,10 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
             <div className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 text-[11px] text-slate-400 space-y-2">
               <span className="font-semibold text-slate-300 flex items-center gap-1.5">
                 <Lock className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Drive Enclave Zero-Raw Guarantee</span>
+                <span>Drive Data Handling · NOT VERIFIED</span>
               </span>
               <p>
-                Files stored on Google Drive are analyzed for high-level statistical indices only. Raw binary payloads, client contracts, and documents never leave your authenticated browser session.
+                Do not assume files stay in the browser or that only statistical indices are processed. Actual upload, processing, and provider data flows depend on the active integration and are NOT VERIFIED by this panel.
               </p>
             </div>
           </div>
