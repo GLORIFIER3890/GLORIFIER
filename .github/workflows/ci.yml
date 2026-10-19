@@ -85,6 +85,9 @@ jobs:
       - name: Type-check
         run: npm run lint
 
+      - name: Opportunity discovery commercial qualification regression tests
+        run: npm run test:opportunity-discovery
+
       - name: Shared UUID helper regression tests
         run: npm run test:new-id
 
