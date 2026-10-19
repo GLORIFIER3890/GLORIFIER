@@ -293,14 +293,14 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
                   </div>
 
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Synthesized Market Insight</span>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Local heuristic summary · NOT VERIFIED</span>
                     <p className="text-slate-300 mt-1 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px] leading-relaxed">
                       {selectedItem.extractedInsights}
                     </p>
                   </div>
 
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Calculated Compensation</span>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Hypothetical estimated value · NOT REVENUE</span>
                     <div className="text-base font-bold text-emerald-400 font-mono mt-1">
                       ${selectedItem.estimatedYieldUsd.toFixed(2)} USD · estimated only, NOT REVENUE
                     </div>
