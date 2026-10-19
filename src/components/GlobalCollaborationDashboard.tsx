@@ -102,7 +102,7 @@ export const GlobalCollaborationDashboard: React.FC = () => {
   const resolved = caseRows.filter(c => c.stage === 'RESOLVED').length;
   const awaitingAuth = caseRows.filter(c => c.stage === 'AUTHORIZATION_PENDING').length;
   const evidencePending = caseRows.filter(c => c.stage === 'EVIDENCE_PENDING').length;
-  const verifiedRevenue = revenue?.verifiedRevenue ?? revenue?.revenue ?? revenue?.summary?.verifiedRevenue ?? null;
+  const verifiedRevenue = revenue?.verifiedRevenue ?? revenue?.summary?.verifiedRevenue ?? null;
 
   return (
     <section className="space-y-4">
