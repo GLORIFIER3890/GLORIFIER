@@ -40,7 +40,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
   const [composeOpen, setComposeOpen] = useState(false);
   const [recipient, setRecipient] = useState('');
   const [subject, setSubject] = useState('Data Governance Notice: Sovereign Privacy Rights');
-  const [body, setBody] = useState('Greetings,\n\nIn accordance with CCPA/GDPR personal data rights, this inbox is managed via an AI Data Sovereign Gateway. All consumer profile telemetry is scrubbed and synthesized before licensing.\n\nVerified via DataSovereign AI.');
+  const [body, setBody] = useState('Hello,\n\nWe are reviewing our data-governance practices. No claim is made here that data has been anonymized, scrubbed, synthesized, licensed, or independently verified. Please contact us with any privacy or data-rights questions.\n\nThis message is informational and is not a certification of CCPA/GDPR compliance.');
   const [confirmSendOpen, setConfirmSendOpen] = useState(false);
   const [sendSuccess, setSendSuccess] = useState(false);
 
@@ -253,7 +253,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
 
                       <div className="text-right shrink-0">
                         <div className="text-xs font-bold text-emerald-400 font-mono">
-                          +${item.estimatedYieldUsd.toFixed(2)}
+                          Est. ${item.estimatedYieldUsd.toFixed(2)} · NOT REVENUE
                         </div>
                         <span className="text-[10px] text-slate-400">{item.date}</span>
                       </div>
@@ -264,7 +264,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
                         <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                         <span>Action: {item.governanceAction}</span>
                       </span>
-                      <span className="text-cyan-400 font-mono font-medium">Safe for Buyer Aggregates</span>
+                      <span className="text-amber-300 font-mono font-medium">Buyer use / privacy safety NOT VERIFIED</span>
                     </div>
                   </div>
                 ))}
@@ -302,7 +302,7 @@ export const GmailGovernanceTab: React.FC<GmailGovernanceTabProps> = ({
                   <div>
                     <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Calculated Compensation</span>
                     <div className="text-base font-bold text-emerald-400 font-mono mt-1">
-                      ${selectedItem.estimatedYieldUsd.toFixed(2)} USD
+                      ${selectedItem.estimatedYieldUsd.toFixed(2)} USD · estimated only, NOT REVENUE
                     </div>
                   </div>
 
