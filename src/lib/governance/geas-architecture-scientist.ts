@@ -1,4 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import { getPostgresPool } from '../db/postgres';
 import { GLORIFIER_ARCHITECTURE_MODEL } from './glorifier-architecture';
 
@@ -52,9 +54,24 @@ export interface SourceObservation {
   etag?: string | null;
   lastModified?: string | null;
   reusedCachedObservation?: boolean;
+  revalidatedNotModified?: boolean;
   evidenceExcerpt: string | null;
   evidenceStatus: EvidenceStatus;
   error?: string;
+}
+
+export interface CachedSourceObservation {
+  observed_at: string;
+  ok: boolean;
+  status: number | null;
+  content_hash: string | null;
+  evidence_excerpt: string | null;
+  evidence_status: EvidenceStatus;
+  error?: string | null;
+  final_url?: string | null;
+  etag?: string | null;
+  last_modified?: string | null;
+  source_url?: string | null;
 }
 
 export interface ArchitecturePattern {
@@ -606,6 +623,39 @@ export function shouldReuseSourceObservation(input: {
   const nowMs = input.nowMs ?? Date.now();
   if (!input.ok && isSourceObservationDue(FAILED_SOURCE_RETRY_HOURS, input.observedAt, nowMs)) return false;
   return !isSourceObservationDue(input.cadenceHours, input.observedAt, nowMs);
+}
+
+export function buildConditionalRequestHeaders(
+  configuredUrl: string,
+  cached?: CachedSourceObservation | null,
+): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (!cached || cached.source_url !== configuredUrl || !cached.ok || !cached.content_hash) return headers;
+  if (cached.etag?.trim()) headers['If-None-Match'] = cached.etag;
+  if (cached.last_modified?.trim()) headers['If-Modified-Since'] = cached.last_modified;
+  return headers;
+}
+
+export function reuseNotModifiedSourceObservation(
+  source: Pick<ArchitectureSource, 'id' | 'url'>,
+  cached: CachedSourceObservation | null | undefined,
+  response: { finalUrl: string; etag: string | null; lastModified: string | null },
+  observedAt: string,
+): SourceObservation | null {
+  if (!cached || cached.source_url !== source.url || !cached.ok || !cached.content_hash) return null;
+  return {
+    sourceId: source.id,
+    ok: true,
+    status: 304,
+    contentHash: cached.content_hash,
+    observedAt,
+    finalUrl: response.finalUrl,
+    etag: response.etag ?? cached.etag ?? null,
+    lastModified: response.lastModified ?? cached.last_modified ?? null,
+    revalidatedNotModified: true,
+    evidenceExcerpt: cached.evidence_excerpt,
+    evidenceStatus: cached.evidence_status,
+  };
 }
 
 function extractEvidence(body: string, keywords: string[]) {
