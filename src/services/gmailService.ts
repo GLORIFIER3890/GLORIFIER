@@ -89,7 +89,8 @@ export async function getGmailMessage(messageId: string): Promise<GmailMessageSu
 }
 
 /**
- * Categorize and synthesize privacy-preserving insight from an email message
+ * Categorize Gmail metadata using local keyword heuristics only.
+ * This function does not anonymize, tokenize, transform, license, or value email data.
  */
 export function analyzeEmailForSovereignMonetization(msg: GmailMessageSummary): GmailAnalysisItem {
   const lowerSnippet = msg.snippet.toLowerCase();
@@ -97,70 +98,42 @@ export function analyzeEmailForSovereignMonetization(msg: GmailMessageSummary): 
   const lowerSubject = msg.subject.toLowerCase();
 
   let category: GmailAnalysisItem['category'] = 'Newsletter/Research';
-  let governanceAction: GmailAnalysisItem['governanceAction'] = 'Anonymized & Tokenized';
-  let estimatedYieldUsd = 0.08;
-  let insights = 'Aggregated consumer sentiment & domain topic clustering';
-
   if (
-    lowerSnippet.includes('order') ||
-    lowerSnippet.includes('receipt') ||
-    lowerSnippet.includes('payment') ||
-    lowerSnippet.includes('total') ||
-    lowerSubject.includes('order') ||
-    lowerSubject.includes('invoice') ||
-    lowerSender.includes('store') ||
-    lowerSender.includes('amazon')
+    lowerSnippet.includes('order') || lowerSnippet.includes('receipt') ||
+    lowerSnippet.includes('payment') || lowerSnippet.includes('total') ||
+    lowerSubject.includes('order') || lowerSubject.includes('invoice') ||
+    lowerSender.includes('store') || lowerSender.includes('amazon')
   ) {
     category = 'Receipt/Commerce';
-    governanceAction = 'Anonymized & Tokenized';
-    estimatedYieldUsd = 0.35;
-    insights = 'Consumer purchase basket aggregate & pricing trend indicator (ZK-Proof: Total spent bucketed)';
   } else if (
-    lowerSnippet.includes('flight') ||
-    lowerSnippet.includes('hotel') ||
-    lowerSnippet.includes('booking') ||
-    lowerSnippet.includes('reservation') ||
-    lowerSubject.includes('airline') ||
-    lowerSubject.includes('trip')
+    lowerSnippet.includes('flight') || lowerSnippet.includes('hotel') ||
+    lowerSnippet.includes('booking') || lowerSnippet.includes('reservation') ||
+    lowerSubject.includes('airline') || lowerSubject.includes('trip')
   ) {
     category = 'Travel/Itinerary';
-    governanceAction = 'Synthetic Profiled';
-    estimatedYieldUsd = 0.45;
-    insights = 'Mobility corridors and hospitality tier analytics with Laplace noise (ε=0.3)';
   } else if (
-    lowerSnippet.includes('invitation') ||
-    lowerSnippet.includes('calendar') ||
-    lowerSnippet.includes('project') ||
-    lowerSubject.includes('sync') ||
+    lowerSnippet.includes('invitation') || lowerSnippet.includes('calendar') ||
+    lowerSnippet.includes('project') || lowerSubject.includes('sync') ||
     lowerSubject.includes('meeting')
   ) {
     category = 'Work/Collaboration';
-    governanceAction = 'Direct Private Shield';
-    estimatedYieldUsd = 0.05;
-    insights = 'Internal collaboration volume indicator; personal details scrubbed with k=100 suppression';
-  } else {
-    category = 'Newsletter/Research';
-    governanceAction = 'Anonymized & Tokenized';
-    estimatedYieldUsd = 0.15;
-    insights = 'Industry digest topic affinity index (AI, Fintech, Systems)';
   }
 
-  // Format date cleanly
-  const formattedDate = msg.date ? new Date(msg.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent';
-
-  // Sanitize sender to avoid raw leak
+  const formattedDate = msg.date
+    ? new Date(msg.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : 'Date unavailable';
   const senderMatch = msg.sender.match(/<([^>]+)>/);
-  const cleanSender = senderMatch ? senderMatch[1] : msg.sender;
+  const displaySender = senderMatch ? senderMatch[1] : msg.sender;
 
   return {
     id: msg.id,
     snippet: msg.snippet,
-    sender: cleanSender,
+    sender: displaySender,
     date: formattedDate,
     category,
-    extractedInsights: insights,
-    governanceAction,
-    estimatedYieldUsd,
+    extractedInsights: 'Local keyword category only. No anonymization, tokenization, differential privacy, zero-knowledge proof, licensing, or compensation was performed.',
+    governanceAction: 'NOT VERIFIED — no privacy transformation applied',
+    estimatedYieldUsd: null,
   };
 }
 
