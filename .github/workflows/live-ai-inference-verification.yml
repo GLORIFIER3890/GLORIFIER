@@ -48,7 +48,7 @@ jobs:
             -H "Authorization: Bearer ${NVIDIA_API_KEY}" \
             -H 'Content-Type: application/json' \
             -H 'Accept: application/json' \
-            --data "$(MODEL="$model" node -e 'process.stdout.write(JSON.stringify({model:process.env.MODEL,messages:[{role:"user",content:"Reply with exactly GLORIFIER_RUNTIME_PROBE_OK"}],max_tokens:32,temperature:0,stream:false}))')")"
+            --data "$(MODEL="$model" node -e 'process.stdout.write(JSON.stringify({model:process.env.MODEL,messages:[{role:"user",content:"Return exactly this token and nothing else: GLORIFIER_RUNTIME_PROBE_OK"}],max_tokens:64,temperature:0,stream:false}))')"
           echo "Provider: NVIDIA NIM"
           echo "HTTP status: $status"
           if [[ "$status" != "200" ]]; then
@@ -68,11 +68,37 @@ jobs:
           fi
           MODEL="$model" node - "$body" <<'NODE'
           const fs = require('node:fs');
-          const data = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-          const text = data?.choices?.[0]?.message?.content;
+          let data;
+          try {
+            data = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          } catch {
+            console.error('::error::NVIDIA returned HTTP 200 with a non-JSON response; response body omitted.');
+            process.exit(1);
+          }
+          const choice = Array.isArray(data?.choices) ? data.choices[0] : undefined;
+          const message = choice?.message;
+          const rawContent = message?.content;
+          const text = typeof rawContent === 'string'
+            ? rawContent
+            : Array.isArray(rawContent)
+              ? rawContent.filter(part => typeof part?.text === 'string').map(part => part.text).join('\n')
+              : '';
           const model = process.env.MODEL;
-          if (typeof text !== 'string' || !text.includes('GLORIFIER_RUNTIME_PROBE_OK')) {
-            console.error('::error::Provider returned HTTP 200 but did not return the required inference probe marker.');
+          if (!text.includes('GLORIFIER_RUNTIME_PROBE_OK')) {
+            // Safe response-shape diagnostics only: do not print generated content or request headers.
+            console.error('::error::NVIDIA returned HTTP 200, but the inference probe marker was absent.');
+            console.error(JSON.stringify({
+              diagnostic: 'marker_missing',
+              model,
+              choicesCount: Array.isArray(data?.choices) ? data.choices.length : 0,
+              finishReason: choice?.finish_reason ?? null,
+              messageRole: message?.role ?? null,
+              contentType: rawContent === null ? 'null' : Array.isArray(rawContent) ? 'array' : typeof rawContent,
+              contentLength: text.length,
+              refusalPresent: typeof message?.refusal === 'string' && message.refusal.length > 0,
+              errorType: typeof data?.error?.type === 'string' ? data.error.type : null,
+              errorCode: typeof data?.error?.code === 'string' || typeof data?.error?.code === 'number' ? data.error.code : null
+            }, null, 2));
             process.exit(1);
           }
           console.log(JSON.stringify({
