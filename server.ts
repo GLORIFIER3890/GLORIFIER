@@ -1895,7 +1895,7 @@ app.post('/api/sentinel/crud', async (req: Request, res: Response) => {
         model: assignedBot || 'OpenAI GPT-4o'
       };
       serverSentinelLogs.unshift(newLog);
-      return res.json({ success: true, message: 'Error watch probe registered successfully', log: newLog });
+      return res.json({ success: true, message: 'Watch request recorded in process memory; monitoring was not started.', log: newLog });
     }
 
     if (action === 'update' || action === 'edit') {
@@ -1904,12 +1904,12 @@ app.post('/api/sentinel/crud', async (req: Request, res: Response) => {
         id: `log-crud-${Date.now()}`,
         timestamp,
         action: 'EDIT',
-        details: `Error [${errorId}] updated: Patch diff recalibrated and assigned to ${assignedBot || 'Dual-Consensus-Healer'}.`,
+        details: `Update request for error [${errorId}] recorded only; no patch was modified or applied.`,
         errorId,
         model: 'Dual-Consensus-Healer'
       };
       serverSentinelLogs.unshift(editLog);
-      return res.json({ success: true, message: 'Error patch modified and updated', log: editLog });
+      return res.json({ success: true, message: 'Update request recorded only; no patch was modified.', log: editLog });
     }
 
     if (action === 'delete') {
@@ -1918,12 +1918,12 @@ app.post('/api/sentinel/crud', async (req: Request, res: Response) => {
         id: `log-crud-${Date.now()}`,
         timestamp,
         action: 'DELETE',
-        details: `Error [${errorId}] deleted from active alert registry and quarantined to audit archive.`,
+        details: `Delete request for error [${errorId}] recorded only; no underlying issue record was deleted.`,
         errorId,
         model: 'GPT-Sentinel'
       };
       serverSentinelLogs.unshift(deleteLog);
-      return res.json({ success: true, message: 'Error log purged from active monitoring registry', log: deleteLog });
+      return res.json({ success: true, message: 'Delete request recorded only; no monitoring registry record was deleted.', log: deleteLog });
     }
 
     if (action === 'autofix') {
