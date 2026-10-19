@@ -51,7 +51,7 @@ export function isPotentialPaidWork(finding: DiscoveryFinding): boolean {
   if (/\b(in-game|game currency|silver reward|simulated reward|bounty system|bounty platform|reward distribution|bounty infrastructure|funded bounty program)\b/i.test(text)) return false;
   const explicitPaidSignal = /(?:\$\s?\d+(?:[,.]\d{2})?|\b\d+(?:\.\d+)?\s?(?:usd|usdc|usdt|eth|btc)\b|\b(?:paid bounty|cash reward|funded bounty|reward of|bounty reward)\b)/i.test(text);
   const workSignal = /\b(issue|bug|fix|implement|feature|task|bounty|pull request|pr)\b/i.test(finding.title + ' ' + finding.description);
-  return explicitPaidSignal && workSignal && (finding.category.toLowerCase().includes('bounty') || finding.category.toLowerCase().includes('developer-work'));
+  return explicitPaidSignal && workSignal && (/bount(?:y|ies)/i.test(finding.category) || finding.category.toLowerCase().includes('developer-work'));
 }
 
 function extractFindings(source: DiscoverySource, payload: any): DiscoveryFinding[] {
