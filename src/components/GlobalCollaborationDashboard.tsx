@@ -102,7 +102,7 @@ export const GlobalCollaborationDashboard: React.FC = () => {
   const resolved = caseRows.filter(c => c.stage === 'RESOLVED').length;
   const awaitingAuth = caseRows.filter(c => c.stage === 'AUTHORIZATION_PENDING').length;
   const evidencePending = caseRows.filter(c => c.stage === 'EVIDENCE_PENDING').length;
-  const verifiedRevenue = revenue?.verifiedRevenue ?? revenue?.revenue ?? revenue?.summary?.verifiedRevenue ?? 0;
+  const verifiedRevenue = revenue?.verifiedRevenue ?? revenue?.revenue ?? revenue?.summary?.verifiedRevenue ?? null;
 
   return (
     <section className="space-y-4">
@@ -133,11 +133,11 @@ export const GlobalCollaborationDashboard: React.FC = () => {
       )}
 
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
-        <StatCard icon={Activity} label="Status" value={status?.status || 'ACTIVE'} detail={status?.version || 'GCR-1.0'} />
+        <StatCard icon={Activity} label="Status" value={status?.status || 'NOT OBSERVABLE'} detail={status?.version || 'GCR-1.0'} />
         <StatCard icon={Eye} label="Evidence" value={evidencePending} detail="Pending verification" />
         <StatCard icon={ShieldCheck} label="Approval" value={awaitingAuth} detail="Human gate" />
-        <StatCard icon={CheckCircle2} label="Resolved" value={resolved} detail="Acceptance + settlement" />
-        <StatCard icon={WalletCards} label="Verified revenue" value={String(verifiedRevenue)} detail="External evidence" />
+        <StatCard icon={CheckCircle2} label="Resolved" value={resolved} detail="Stage label; acceptance and settlement evidence required" />
+        <StatCard icon={WalletCards} label="Verified revenue" value={verifiedRevenue == null ? 'NOT OBSERVABLE' : String(verifiedRevenue)} detail="External evidence" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
