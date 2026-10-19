@@ -85,8 +85,8 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
   },
   'yield-focused': {
     level: 'yield-focused',
-    title: 'Maximized Yield & Growth',
-    badge: 'Tier II: Differential Bastion',
+    title: 'Hypothetical Yield Scenario',
+    badge: 'Tier II · scenario only',
     tagline: 'Illustrative revenue scenario; buyer demand and automated negotiation are NOT VERIFIED',
     epsilon: 0.55,
     privacyTier: 'Tier II (Differential Bastion)',
@@ -100,7 +100,7 @@ const OPTIMIZATION_PRESETS: Record<RiskToleranceLevel, OptimizationPreset> = {
     allowActuarial: false,
     rationale: 'The displayed monthly amount is a hypothetical projection, not a quote, offer, contract, or earned revenue. Automated counter-offers, privacy protections, and restrictions on targeting or actuarial use are NOT VERIFIED.',
     mathematicalGuarantee: 'For ε = 0.55, e^ε ≈ 1.733. This does not establish k-anonymity; no cohort-size or implementation verification is available here.',
-    recommendedFor: 'Power users aiming to maximize digital asset monetization while maintaining non-identifiability.'
+    recommendedFor: 'Users comparing a hypothetical revenue scenario; no income or privacy outcome is guaranteed.'
   }
 };
 
