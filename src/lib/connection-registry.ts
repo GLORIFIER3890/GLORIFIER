@@ -125,14 +125,13 @@ export async function verifyConnection(id: string, actor = 'connection-manager')
   await initializeConnectionRegistry();
   const connection = await getConnection(id);
   if (!connection) return null;
-  const now = new Date().toISOString();
-  // Verification must never grant authorization. Authorization remains an explicit human-approved state.
+  // This endpoint only reviews the registry record; no provider challenge or health check is performed.
   const status = connection.status;
   const r = await getPostgresPool().query(
-    'UPDATE connection_registry SET status=$2,last_verified_at=$3,updated_at=NOW() WHERE id=$1 RETURNING *',
-    [id,status,now]
+    'UPDATE connection_registry SET status=$2,last_verified_at=NULL,updated_at=NOW() WHERE id=$1 RETURNING *',
+    [id,status]
   );
-  await recordConnectionEvent(id,'verified',actor,{status});
+  await recordConnectionEvent(id,'registry_record_reviewed',actor,{status,providerConnectivityTested:false,verified:false});
   return mapConnection(r.rows[0]);
 }
 
