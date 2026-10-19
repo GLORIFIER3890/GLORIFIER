@@ -1674,9 +1674,12 @@ ${codeSnippet || '// No code snippet provided'}`;
       errorCode,
       gptAnalysis: gptText,
       geminiAnalysis: geminiText,
-      collaborativeFixProposal: 'Implement Multi-Model Dynamic Circuit Breaker with immediate failover across OpenAI GPT-4o and Gemini Flash-Lite.',
+      collaborativeFixProposal: 'Provider analysis only. No executable patch was generated or safety-tested.',
       patchDiff: unifiedPatch,
-      collaboratingModels: ['OpenAI GPT-4o', 'Google Gemini 3.8 Flash', 'Sovereign Enclave Core'],
+      collaboratingModels: [
+        ...(gptText ? ['OpenAI GPT-4o'] : []),
+        ...(geminiText ? ['Google Gemini 3.8 Flash'] : [])
+      ],
       verifiedSafe: false,
       safetyStatus: 'NOT VERIFIED — provider analysis is not a patch safety test',
       timestamp: new Date().toISOString()
