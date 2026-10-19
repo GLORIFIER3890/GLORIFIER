@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { Pool } from 'pg';
 
 let pool: Pool | null = null;
@@ -31,7 +32,11 @@ export function getPostgresPool(): Pool {
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
       // Production TLS must validate the server certificate to prevent MITM attacks.
-      ssl: sslDisabled ? undefined : process.env.NODE_ENV === 'production' ? { rejectUnauthorized: true } : undefined,
+      // DATABASE_SSL_CA may point to a trusted CA bundle for private database certificates.
+      ssl: sslDisabled ? undefined : process.env.NODE_ENV === 'production' ? {
+        rejectUnauthorized: true,
+        ...(process.env.DATABASE_SSL_CA ? { ca: readFileSync(process.env.DATABASE_SSL_CA, 'utf8') } : {}),
+      } : undefined,
     });
   }
   return pool;
