@@ -170,9 +170,9 @@ ${m.text}
           ...prev,
           {
             role: 'assistant',
-            text: `### AI Patent Research Assistant (not a lawyer) &bull; Legal & Scientific Assessment\n\n**Applicable Statutes:** 35 U.S.C. §§ 101, 102, 103, 112\n\n#### 1. Statutory Evaluation under Alice Step 2B\nUnder *Enfish, LLC v. Microsoft Corp.* and *Berkheimer v. HP Inc.*, the claimed multi-provider AI orchestrator avoids abstract idea categorization because Claim 1 specifies an unconventional technical improvement to distributed computing: continuous capability scoring $C(M_i)$ coupled with instant 503 HTTP failover rerouting without session termination.\n\n#### 2. Mathematical Enablement under § 112(a)\nThe differential privacy specification is mathematically rigorous and non-speculative: Laplacian noise scale $b = \\Delta f / \\varepsilon$ bounds privacy leakage strictly to $e^\\varepsilon$, satisfying the *In re Wands* standard for undue experimentation.\n\n#### 3. Recommended Action\nMaintain the current three independent claim pillars (System 1, Method 11, Medium 19) and file continuation applications covering zero-knowledge zk-SNARK cohort partitioning.`,
+            text: 'NOT VERIFIED — the provider returned no usable content. No legal analysis or patentability recommendation was generated. Retry with an authorized provider and consult qualified patent counsel.',
             mode: specialtyMode,
-            modelUsed: aiModel,
+            modelUsed: 'No usable provider response',
             timestamp: asstTimestamp
           }
         ]);
@@ -182,8 +182,9 @@ ${m.text}
         ...prev,
         {
           role: 'assistant',
-          text: `### AI Patent Research Assistant (not a lawyer) &bull; Advisory Memo\n\nUnder 35 U.S.C. § 101 and § 112, the GLORIFIER AI application embodies patentable subject matter by tethering all monetization workflows to concrete algorithmic transformations (Laplacian perturbation $Y \\sim \\text{Lap}(\\Delta f / \\varepsilon)$) and autonomous code self-healing that cannot be mentally executed. The claim hierarchy (Claims 1–20) establishes a strong defensive perimeter against prior art APMs and generic ad brokers.`,
+          text: 'NOT VERIFIED — the provider request failed. No fallback legal opinion was fabricated. Retry when an authorized provider is available and obtain qualified patent-counsel review.',
           mode: specialtyMode,
+          modelUsed: 'Provider request failed',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
