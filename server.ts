@@ -3678,7 +3678,11 @@ app.post('/api/agent-miner/control', requireOwner, (req: Request, res: Response)
   try {
     const running = Boolean(req.body?.running);
     const mode = req.body?.mode === 'authorized-compute' ? 'authorized-compute' : 'intelligence';
-    return res.json({ ok: true, miner: setAgentMinerRunning(running, mode) });
+    const miner = setAgentMinerRunning(running, mode);
+    if ('actionError' in miner && miner.actionError) {
+      return res.status(503).json({ ok: false, error: miner.actionError, miner });
+    }
+    return res.json({ ok: true, miner });
   } catch (error) { return apiError(res, 400, 'Unable to change Agent Miner state', error); }
 });
 
