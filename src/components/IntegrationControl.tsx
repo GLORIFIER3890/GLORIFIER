@@ -57,14 +57,21 @@ type Registry = {
 };
 
 const statusLabel: Record<string, string> = {
-  connected: 'Connected',
-  configured: 'Configured',
-  ready: 'Ready',
-  available: 'Available',
-  'public-monitoring': 'Public monitoring',
+  connected: 'Connection status reported · evidence required',
+  authorized: 'Authorization recorded · live session NOT VERIFIED',
+  active: 'Registered · runtime NOT VERIFIED',
+  configured: 'Configured · not verified',
+  ready: 'Ready for setup · not connected',
+  available: 'Available integration option · not connected',
+  'public-monitoring': 'Public endpoint monitoring only',
   planned: 'Planned',
   optional: 'Optional',
-  'needs-config': 'Needs configuration'
+  'needs-config': 'Needs configuration',
+  pending_authorization: 'Authorization pending',
+  degraded: 'Degraded · source evidence required',
+  revoked: 'Marked revoked · provider revocation NOT VERIFIED',
+  expired: 'Marked expired · provider status NOT VERIFIED',
+  disabled: 'Disabled in registry'
 };
 
 export const IntegrationControl: React.FC = () => {
@@ -245,7 +252,7 @@ export const IntegrationControl: React.FC = () => {
         </div>
         {alpacaStatus.length > 0 && <div className="mt-3 space-y-2">
           {alpacaStatus.map((item: any) => <div key={item.id} className="border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs">
-            <div className="text-emerald-300 font-semibold">Authorized · {item.environment}</div>
+            <div className="text-emerald-300 font-semibold">Authorization recorded · {item.environment}; live session NOT VERIFIED</div>
             <div className="text-slate-400 mt-1">Read-only: yes · Trading: disabled · Fund movement: disabled · Account: {item.accountRef || 'not observed'}</div>
           </div>)}
         </div>}
@@ -275,7 +282,7 @@ export const IntegrationControl: React.FC = () => {
               <div key={provider.id} className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-semibold text-white">{provider.name}</span>
-                  <span className="text-[10px] rounded-full px-2 py-1 bg-slate-800 text-slate-300">{provider.authorized ? 'Authorized' : 'Discovered / permission-gated'}</span>
+                  <span className="text-[10px] rounded-full px-2 py-1 bg-slate-800 text-slate-300">{provider.authorized ? 'Authorization recorded · live session NOT VERIFIED' : 'Discovered / permission-gated'}</span>
                 </div>
                 <div className="text-[10px] text-slate-500 uppercase mt-2">{provider.category}</div>
                 <div className="flex flex-wrap gap-1 mt-3">{provider.capabilities.map((cap) => <span key={cap} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-400">{cap}</span>)}</div>
