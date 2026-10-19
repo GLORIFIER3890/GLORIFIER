@@ -55,7 +55,7 @@ export const AgentNetworkDashboard: React.FC = () => {
     );
   }, [agents, query]);
 
-  const statusLabel = (status: string) => status === 'active' || status === 'authorized' ? 'Connected' : status === 'discovered' ? 'Discoverable' : status;
+  const statusLabel = (status: string) => status === 'active' ? 'Registered · live connection NOT VERIFIED' : status === 'authorized' ? 'Authorization record · live session NOT VERIFIED' : status === 'discovered' ? 'Discoverable · not connected' : status;
 
   return (
     <section className="space-y-6">
@@ -107,8 +107,8 @@ export const AgentNetworkDashboard: React.FC = () => {
               <span className="font-mono text-slate-600">{agent.protocol}</span>
             </div>
             {agent.reasons?.length ? <p className="mt-2 text-[10px] text-slate-600">{agent.reasons.join(' · ')}</p> : null}
-            <button className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-md border border-slate-800 py-2 text-xs text-slate-300 hover:bg-slate-900">
-              <Handshake className="h-3.5 w-3.5" /> Request governed collaboration <ArrowRight className="h-3.5 w-3.5" />
+            <button type="button" disabled title="Governed collaboration request is not implemented in this screen" className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-md border border-slate-800 py-2 text-xs text-slate-500 opacity-70 cursor-not-allowed">
+              <Handshake className="h-3.5 w-3.5" /> Collaboration request unavailable
             </button>
           </article>
         ))}
