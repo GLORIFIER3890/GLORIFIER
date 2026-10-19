@@ -256,7 +256,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
             <div className="text-lg font-bold text-white font-mono mt-0.5">{files.length}</div>
           </div>
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-            <span className="text-[11px] text-slate-400 font-medium">Hypothetical estimated value · NOT REVENUE</span>
+            <span className="text-[11px] text-slate-400 font-medium">Valuation estimate · NOT AVAILABLE</span>
             <div className="text-lg font-bold text-emerald-400 font-mono mt-0.5">
               {totalEstMonthlyYield == null ? 'NOT ESTIMATED' : `${totalEstMonthlyYield.toFixed(2)}`}
             </div>
@@ -499,7 +499,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
             <div className="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-4">
               <h4 className="text-sm font-bold text-white flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-cyan-400" />
-                <span>File Privacy & Dividend Inspector</span>
+                <span>File Metadata Review · no privacy transformation or revenue verified</span>
               </h4>
 
               {selectedFile ? (
@@ -559,7 +559,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
 
                   <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
                     <div>
-                      <span className="text-slate-400 text-[10px] block uppercase font-bold">Hypothetical estimated value · NOT REVENUE</span>
+                      <span className="text-slate-400 text-[10px] block uppercase font-bold">Valuation estimate · NOT AVAILABLE</span>
                       <span className="text-base font-bold text-emerald-400 font-mono">
                         NOT ESTIMATED — no validated valuation model
                       </span>
