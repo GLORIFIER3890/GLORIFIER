@@ -332,7 +332,7 @@ export default function App() {
       if (!response.ok) throw new Error('Connection registry unavailable');
       const registry = await response.json();
       const authorizedIds = new Set((registry.connections || []).filter((x: any) => x.status === 'authorized').map((x: any) => x.id));
-      setAccounts(prev => prev.map(a => authorizedIds.has(a.id) ? ({ ...a, authStatus: 'authenticated', syncStatus: 'synced', lastAttestedAt: 'Just now' }) : a));
+      setAccounts(prev => prev.map(a => authorizedIds.has(a.id) ? ({ ...a, authStatus: 'authorized-in-registry-only', syncStatus: 'not-verified', lastAttestedAt: 'NOT VERIFIED — registry authorization is not a live account session' }) : a));
       void recordGovernedAction('account-authentication-sync', { authorizedConnectionIds: Array.from(authorizedIds) });
     } catch (error) {
       console.error('Account authentication sync failed:', error);

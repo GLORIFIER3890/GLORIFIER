@@ -166,9 +166,9 @@ export interface CouncilConsensusResult {
   timestamp: string;
   participants: ModelCollaborationParticipant[];
   unifiedConsensus: string;
-  consensusScore: number; // 0 - 100
-  recommendedEpsilon: number;
-  recommendedFloorUsd: number;
+  consensusScore: number | null; // null until an explicit score is returned
+  recommendedEpsilon: number | null;
+  recommendedFloorUsd: number | null;
   actionDirectives: string[];
 }
 

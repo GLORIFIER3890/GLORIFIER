@@ -1,5 +1,3 @@
-import { listAgentCards, AgentCard } from './agent-runtime';
-import { aiCeoPolicy } from './ai-ceo';
 import { globalProviders, getGlobalCollaborationStatus } from './global-collaboration';
 import { getLatestIntelligenceReport } from './intelligence';
 
@@ -9,7 +7,7 @@ export interface InternetNode {
   category: 'production' | 'staging' | 'repository' | 'ecosystem' | 'telemetry';
   url: string;
   status: 'configured' | 'reachable' | 'standby' | 'external';
-  lastPingAt: string;
+  lastPingAt: string | null;
   metadata?: Record<string, unknown>;
 }
 
@@ -19,7 +17,7 @@ export interface SynchronizedAgent {
   role: string;
   tier: 'orchestrator' | 'reasoning' | 'engineering' | 'code-fleet' | 'specialist';
   status: 'active' | 'synchronized' | 'ready' | 'configured';
-  lastHeartbeat: string;
+  lastHeartbeat: string | null;
   capabilities: string[];
   consensusContribution: string;
 }
@@ -27,7 +25,7 @@ export interface SynchronizedAgent {
 export interface GlobalSyncManifest {
   id: string;
   synchronizedAt: string;
-  consensusScore: number;
+  consensusScore: number | null;
   executiveSynthesis: string;
   operatingPrinciple: string;
   governanceAttestation: {
@@ -44,7 +42,7 @@ export interface GlobalSyncManifest {
     capabilities: string[];
   }>;
   prioritizedDirectives: string[];
-  evidenceDigestSha256: string;
+  evidenceDigestSha256: string | null;
 }
 
 // Canonical internet endpoints for GLORIFIER fleet
@@ -55,7 +53,7 @@ export const canonicalInternetNodes: InternetNode[] = [
     category: 'production',
     url: 'https://glorifier-artificial-intelligence-production.up.railway.app',
     status: 'configured',
-    lastPingAt: new Date().toISOString()
+    lastPingAt: null
   },
   {
     id: 'vercel-edge',
@@ -63,7 +61,7 @@ export const canonicalInternetNodes: InternetNode[] = [
     category: 'production',
     url: 'https://glorifier-303lllgzc-glorifier.vercel.app',
     status: 'configured',
-    lastPingAt: new Date().toISOString()
+    lastPingAt: null
   },
   {
     id: 'github-origin',
@@ -71,15 +69,15 @@ export const canonicalInternetNodes: InternetNode[] = [
     category: 'repository',
     url: 'https://github.com/GLORIFIER7/GLORIFIER',
     status: 'configured',
-    lastPingAt: new Date().toISOString()
+    lastPingAt: null
   },
   {
     id: 'huggingface-hub',
     name: 'Hugging Face AI Ecosystem',
     category: 'ecosystem',
     url: 'https://huggingface.co/',
-    status: 'reachable',
-    lastPingAt: new Date().toISOString()
+    status: 'configured',
+    lastPingAt: null
   },
   {
     id: 'meta-ai-openweights',
@@ -87,13 +85,13 @@ export const canonicalInternetNodes: InternetNode[] = [
     category: 'ecosystem',
     url: 'https://developers.facebook.com/',
     status: 'reachable',
-    lastPingAt: new Date().toISOString()
+    lastPingAt: null
   }
 ];
 
 let latestManifest: GlobalSyncManifest | null = null;
 
-async function computeSha256(text: string): Promise<string> {
+async function computeSha256(text: string): Promise<string | null> {
   if (typeof crypto !== 'undefined' && crypto.subtle) {
     try {
       const buffer = new TextEncoder().encode(text);
@@ -102,16 +100,10 @@ async function computeSha256(text: string): Promise<string> {
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
     } catch {
-      // fallback if subtle unavailable
+      return null;
     }
   }
-  // deterministic lightweight string hash fallback
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    hash = ((hash << 5) - hash) + text.charCodeAt(i);
-    hash |= 0;
-  }
-  return `digest-${Math.abs(hash).toString(16)}-${Date.now().toString(16)}`;
+  return null;
 }
 
 export async function performGlobalGlorifierSync(deps?: {
@@ -119,8 +111,7 @@ export async function performGlobalGlorifierSync(deps?: {
 }): Promise<GlobalSyncManifest> {
   const timestamp = new Date().toISOString();
   
-  // 1. Gather all registered AI agent cards and enrich with synchronized state
-  const baseCards = listAgentCards();
+  // Registry entries are not evidence that an agent executed or sent a heartbeat.
   const agents: SynchronizedAgent[] = [
     {
       id: 'ai-ceo',
@@ -128,9 +119,9 @@ export async function performGlobalGlorifierSync(deps?: {
       role: 'Executive Orchestrator',
       tier: 'orchestrator',
       status: 'configured',
-      lastHeartbeat: timestamp,
+      lastHeartbeat: null,
       capabilities: ['delegate', 'prioritize', 'synthesize', 'govern'],
-      consensusContribution: 'Synchronizing multi-agent reasoning, internet telemetry, and evidence verification under Human Owner authority.'
+      consensusContribution: 'Configured role description only; no execution, heartbeat, or consensus evidence is attached.'
     },
     {
       id: 'gpt-4o',
@@ -138,9 +129,9 @@ export async function performGlobalGlorifierSync(deps?: {
       role: 'Frontier Strategy & Reasoning Architect',
       tier: 'reasoning',
       status: 'configured',
-      lastHeartbeat: timestamp,
+      lastHeartbeat: null,
       capabilities: ['commercial-valuation', 'contract-negotiation', 'counter-offers', 'code-review'],
-      consensusContribution: 'Provides reasoning and strategy analysis when authorized; no standing commercial directive is asserted.'
+      consensusContribution: 'Configured role description only; provider invocation and output are NOT VERIFIED.'
     },
     {
       id: 'gemini-3.8-flash',
@@ -148,9 +139,9 @@ export async function performGlobalGlorifierSync(deps?: {
       role: 'Multimodal Research & Differential Privacy Co-Pilot',
       tier: 'engineering',
       status: 'configured',
-      lastHeartbeat: timestamp,
+      lastHeartbeat: null,
       capabilities: ['cryptographic-bounds', 'laplace-perturbation', 'zero-downtime-failover', 'multimodal-audit'],
-      consensusContribution: 'Provides multimodal research and engineering analysis when authorized; numerical privacy claims require explicit evidence.'
+      consensusContribution: 'Configured role description only; provider invocation and privacy enforcement are NOT VERIFIED.'
     },
     {
       id: 'codex-fleet',
@@ -158,9 +149,9 @@ export async function performGlobalGlorifierSync(deps?: {
       role: 'Autonomous QA, Continuous Refactoring & Healing',
       tier: 'code-fleet',
       status: 'configured',
-      lastHeartbeat: timestamp,
+      lastHeartbeat: null,
       capabilities: ['continuous-improvement', 'self-healing', 'type-checking', 'ci-cd-safeguards'],
-      consensusContribution: 'Performs repository QA and refactoring workflows; deployment health must be verified from live CI/deployment evidence.'
+      consensusContribution: 'Configured role description only; coding runs and deployment health are NOT VERIFIED.'
     },
     {
       id: 'patent-attorney-scientist',
@@ -168,9 +159,9 @@ export async function performGlobalGlorifierSync(deps?: {
       role: 'Patent Prosecution & Scientific Enablement',
       tier: 'specialist',
       status: 'configured',
-      lastHeartbeat: timestamp,
+      lastHeartbeat: null,
       capabilities: ['35-usc-101-defense', '35-usc-112-enablement', 'claim-prosecution', 'prior-art-differentiation'],
-      consensusContribution: 'Provides patent and scientific research support; legal conclusions require qualified human review.'
+      consensusContribution: 'Configured role description only; no research execution or legal review is verified.'
     },
     {
       id: 'compliance-scientist',
@@ -178,9 +169,9 @@ export async function performGlobalGlorifierSync(deps?: {
       role: 'Regulatory Privacy & Statutory Enforcement',
       tier: 'specialist',
       status: 'configured',
-      lastHeartbeat: timestamp,
+      lastHeartbeat: null,
       capabilities: ['gdpr-art-17-erasure', 'ccpa-sb-362-clawbacks', 'eu-ai-act-class-1', 'hipaa-expert-determination'],
-      consensusContribution: 'Provides compliance and privacy research support; jurisdiction-specific conclusions require source-backed review.'
+      consensusContribution: 'Configured role description only; no compliance audit or runtime privacy enforcement is verified.'
     }
   ];
 
@@ -195,22 +186,12 @@ export async function performGlobalGlorifierSync(deps?: {
   // 3. Ingest latest internet intelligence signals
   const intel = await getLatestIntelligenceReport().catch(() => null);
   const evidenceCount = intel?.evidenceCount || 0;
-  const sourceCount = intel?.sourceCount || 0;
 
   // 4. Generate multi-model synthesis verdict if model runner is provided
-  let executiveSynthesis = `GLORIFIER has a registry of ${agents.length} configured agent roles and ${canonicalInternetNodes.length} configured infrastructure references. Provider authorization, live reachability, and evidence-backed health remain separate states and are not inferred from registry presence.`;
-
-  if (deps?.runSynthesisModel) {
-    const prompt = `Synthesize current global status of GLORIFIER across the internet:
-Agents: ${agents.map(a => `${a.name} (${a.role})`).join(', ')}
-Internet Nodes: ${canonicalInternetNodes.map(n => `${n.name}: ${n.url}`).join(', ')}
-Evidence items: ${evidenceCount} from ${sourceCount} sources.
-Return a concise 2-sentence executive summary emphasizing cross-agent consensus and operational health.`;
-    const modelResult = await deps.runSynthesisModel('gemini', prompt).catch(() => null);
-    if (modelResult?.text) {
-      executiveSynthesis = modelResult.text.trim();
-    }
-  }
+  // Do not substitute model-generated narrative for operational evidence.
+  // Keep the optional dependency parameter for API compatibility, but do not use it.
+  void deps;
+  const executiveSynthesis = `Registry contains ${agents.length} configured agent roles and ${canonicalInternetNodes.length} configured infrastructure references. Live provider execution, agent consensus, endpoint reachability, and production health are NOT VERIFIED by this manifest.`;
 
   // 5. Prioritized directives aligned with AI CEO and Human Governance
   const prioritizedDirectives = [
@@ -227,12 +208,13 @@ Return a concise 2-sentence executive summary emphasizing cross-agent consensus 
     evidenceCount
   });
 
+  // This digest covers registry metadata only, not external evidence or system health.
   const evidenceDigestSha256 = await computeSha256(rawDigest);
 
   const manifest: GlobalSyncManifest = {
     id: `sync-manifest-${Date.now()}`,
     synchronizedAt: timestamp,
-    consensusScore: 0,
+    consensusScore: null,
     executiveSynthesis,
     operatingPrinciple: 'Agents operate. Agents collaborate. Evidence proves. AI synthesizes. Humans govern.',
     governanceAttestation: {

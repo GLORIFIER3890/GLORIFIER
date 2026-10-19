@@ -41,8 +41,8 @@ export interface ModelNodeConfig {
   badge: string;
   weight: number; // 0 to 100% influence in consensus
   enabled: boolean;
-  status: 'online' | 'busy' | 'standby';
-  latencyMs: number;
+  status: 'not-verified';
+  latencyMs: number | null;
   color: 'emerald' | 'teal' | 'cyan' | 'purple' | 'amber';
   privacyBoundary: 'Zero-Knowledge Enclave' | 'Statutory PII Redaction' | 'Cryptographic Perturbation' | 'Sovereign Core Arbitrator';
 }
@@ -57,8 +57,8 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     badge: 'OpenAI Flagship',
     weight: 35,
     enabled: true,
-    status: 'online',
-    latencyMs: 142,
+    status: 'not-verified',
+    latencyMs: null,
     color: 'emerald',
     privacyBoundary: 'Zero-Knowledge Enclave'
   },
@@ -71,8 +71,8 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     badge: 'DeepMind Core',
     weight: 35,
     enabled: true,
-    status: 'online',
-    latencyMs: 98,
+    status: 'not-verified',
+    latencyMs: null,
     color: 'teal',
     privacyBoundary: 'Cryptographic Perturbation'
   },
@@ -85,8 +85,8 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     badge: 'Open Weights',
     weight: 20,
     enabled: true,
-    status: 'online',
-    latencyMs: 115,
+    status: 'not-verified',
+    latencyMs: null,
     color: 'cyan',
     privacyBoundary: 'Statutory PII Redaction'
   },
@@ -99,8 +99,8 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     badge: 'USPTO / AI Scientist',
     weight: 20,
     enabled: true,
-    status: 'online',
-    latencyMs: 104,
+    status: 'not-verified',
+    latencyMs: null,
     color: 'purple',
     privacyBoundary: 'Zero-Knowledge Enclave'
   },
@@ -113,8 +113,8 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     badge: 'CIPP / Privacy Ph.D.',
     weight: 20,
     enabled: true,
-    status: 'online',
-    latencyMs: 92,
+    status: 'not-verified',
+    latencyMs: null,
     color: 'amber',
     privacyBoundary: 'Statutory PII Redaction'
   },
@@ -127,8 +127,8 @@ const INITIAL_NODES: ModelNodeConfig[] = [
     badge: 'Autonomous Protocol',
     weight: 10,
     enabled: true,
-    status: 'online',
-    latencyMs: 12,
+    status: 'not-verified',
+    latencyMs: null,
     color: 'emerald',
     privacyBoundary: 'Sovereign Core Arbitrator'
   }
@@ -200,7 +200,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: CouncilConsensusResult = await res.json();
       setCouncilResult(data);
-      setStatusFeedback('Multi-model deliberation completed with cryptographically attested consensus.');
+      setStatusFeedback('Backend returned a council result. Provider participation, consensus accuracy, and cryptographic attestation are NOT independently verified.');
     } catch (err) {
       console.warn('Backend council call, assembling resilient enclave consensus:', err);
       setCouncilResult(null);
@@ -243,7 +243,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                 </h2>
                 <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
-                  SOVEREIGN COUNCIL ACTIVE
+                  COUNCIL CONFIGURATION · LIVE STATUS NOT VERIFIED
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-3xl leading-relaxed">
@@ -254,7 +254,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
 
           <div className="flex items-center gap-3 shrink-0">
             <div className="px-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-              <div className="text-[11px] text-slate-400 font-mono uppercase">Active Nodes</div>
+              <div className="text-[11px] text-slate-400 font-mono uppercase">Enabled Configurations</div>
               <div className="text-lg font-bold text-emerald-400 font-mono">{activeNodeCount} / {nodes.length}</div>
             </div>
             <div className="px-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
@@ -290,7 +290,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
             }`}
           >
             <Cpu className="w-3.5 h-3.5" />
-            Model Fleet ({activeNodeCount} Active)
+            Model Configurations ({activeNodeCount} Enabled)
           </button>
 
           <button
@@ -356,7 +356,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                 type="button"
                 onClick={() => {
                   setNodes(prev => prev.map(n => ({ ...n, enabled: true })));
-                  setStatusFeedback('All AI models enabled for full collaborative governance.');
+                  setStatusFeedback('All model configurations enabled for future requests; live provider activity is NOT VERIFIED.');
                 }}
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
               >
@@ -487,7 +487,7 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                   Initiate Multi-Model Deliberation Council
                 </h3>
                 <p className="text-xs text-slate-400 mt-1">
-                  Broadcast an agenda to all {activeNodeCount} active models. Each model analyzes the topic through its specialized domain and synthesizes a binding agreement.
+                  Submit an agenda with {activeNodeCount} enabled model IDs to the backend. Actual provider participation and agreement are NOT VERIFIED until responses are recorded.
                 </p>
               </div>
 
@@ -627,10 +627,10 @@ export const AiModelsCollaborationManagement: React.FC<AiModelsCollaborationMana
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-                        Binding Multi-Model Consensus Agreement
+                        Backend-returned Council Result · NOT independently verified
                       </h4>
                       <p className="text-xs text-slate-400 font-mono">
-                        Consensus Score: <span className="text-emerald-400 font-bold">{councilResult.consensusScore}% Agreement</span>
+                        Backend-reported score: <span className="text-amber-400 font-bold">{councilResult.consensusScore}% · NOT independently verified</span>
                       </p>
                     </div>
                   </div>

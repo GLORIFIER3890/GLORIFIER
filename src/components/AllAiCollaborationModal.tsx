@@ -16,7 +16,7 @@ import {
   TrendingUp,
   Lock
 } from 'lucide-react';
-import { MonetizationPolicy, DataFootprintSource, CouncilConsensusResult, ModelCollaborationParticipant } from '../types';
+import { MonetizationPolicy, DataFootprintSource, CouncilConsensusResult } from '../types';
 
 interface AllAiCollaborationModalProps {
   isOpen: boolean;
@@ -71,10 +71,7 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
     setCouncilResult(null);
     setActiveStep(1);
 
-    // Step 1: Broadcasting to models
-    setTimeout(() => setActiveStep(2), 700);
-    // Step 2: Cross-model deliberation
-    setTimeout(() => setActiveStep(3), 1400);
+    // Progress reflects the request lifecycle only; provider participation is not inferred.
 
     try {
       const res = await fetch('/api/ai/council', {
@@ -88,65 +85,33 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: CouncilConsensusResult = await res.json();
-      setCouncilResult(data);
+      const raw = await res.json();
+      const participants = Array.isArray(raw.participants)
+        ? raw.participants.map((p: any, index: number) => ({
+            modelId: String(p.model || p.id || p.provider || `participant-${index + 1}`),
+            name: String(p.title || p.model || p.provider || 'Unnamed participant'),
+            provider: String(p.provider || 'Provider not reported'),
+            role: String(p.title || 'Specialist perspective'),
+            color: 'cyan',
+            badge: String(p.status || 'Response returned'),
+            status: 'completed' as const,
+            output: String(p.output || 'No output returned.'),
+            perspective: String(p.output || 'No perspective returned.')
+          }))
+        : [];
+      const normalized: CouncilConsensusResult = {
+        agenda: String(raw.agenda || currentTopic),
+        timestamp: String(raw.timestamp || new Date().toISOString()),
+        participants,
+        unifiedConsensus: String(raw.synthesis?.output || 'No synthesis was returned. Multiple responses do not by themselves establish consensus.'),
+        consensusScore: typeof raw.consensusScore === 'number' ? raw.consensusScore : null,
+        recommendedEpsilon: typeof raw.recommendedEpsilon === 'number' ? raw.recommendedEpsilon : null,
+        recommendedFloorUsd: typeof raw.recommendedFloorUsd === 'number' ? raw.recommendedFloorUsd : null,
+        actionDirectives: Array.isArray(raw.actionDirectives) ? raw.actionDirectives.filter((x: unknown): x is string => typeof x === 'string') : []
+      };
+      setCouncilResult(normalized);
     } catch (err) {
-      console.warn('Using client-side multi-model council fallback:', err);
-      // High-grade fallback multi-model consensus
-      const fallbackParticipants: ModelCollaborationParticipant[] = [
-        {
-          modelId: 'gpt-4o',
-          name: 'GPT-4o',
-          provider: 'OpenAI',
-          role: 'Commercial Valuation & Strategic Negotiation',
-          color: 'emerald',
-          badge: 'OpenAI Frontier',
-          status: 'completed',
-          output: `Commercial Valuation Audit: Your 5 active telemetry streams hold an addressable enterprise licensing value of ~$215–$340/month. We advise enforcing a minimum monthly floor of $40.00 and asserting an autonomous +25% counter-offer on high-reputation AI buyer bids.`,
-          perspective: 'Maximizing data yield, contract terms, and counter-offers',
-          keyRecommendation: 'Elevate floor to $40/mo and demand 25% premium on AI pretraining datasets.'
-        },
-        {
-          modelId: 'gemini-3.8-flash',
-          name: 'Gemini 3.8 Flash',
-          provider: 'Google DeepMind',
-          role: 'Differential Privacy & Cryptographic Verification',
-          color: 'teal',
-          badge: 'Google Multimodal',
-          status: 'completed',
-          output: `Differential Privacy & Mathematical Bounds: Under Laplacian noise perturbation at ε = 0.30, mutual information leakage is bounded by e^0.30 ≈ 1.35. Search queries and browsing telemetry remain mathematically un-linkable to physical identity.`,
-          perspective: 'Mathematical entropy, Laplacian perturbation, and quasi-identifier elimination',
-          keyRecommendation: 'Enforce global ε = 0.30 with k-anonymity (k ≥ 50) verified cohorts.'
-        },
-        {
-          modelId: 'llama-3.3',
-          name: 'LLaMA 3.3 (Open Weights)',
-          provider: 'Meta AI / Sovereign Enclave',
-          role: 'Decentralized Sovereignty & Anti-Monopoly Audit',
-          color: 'cyan',
-          badge: 'Open Weights',
-          status: 'completed',
-          output: `Decentralized Autonomy & Open Weights Audit: Prohibit single-vendor telemetry capture. Ensure data licensing contracts include cryptographic zero-knowledge attestation, preventing downstream syndication by broker conglomerates (Acxiom, Meta, Google).`,
-          perspective: 'Eliminating corporate shadow-broker lock-in and enforcing statutory clawbacks',
-          keyRecommendation: 'Dispatch statutory erasure notices to third-party ad brokers immediately.'
-        }
-      ];
-
-      setCouncilResult({
-        agenda: currentTopic,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        participants: fallbackParticipants,
-        unifiedConsensus: `All three frontier artificial intelligence models unanimously endorse a unified sovereign stance: (1) Maintain strict differential privacy with ε = 0.30, (2) License de-identified developer & e-commerce telemetry for vetted frontier AI pretraining at an upgraded $40/mo floor, and (3) Sever all tracking connections to commercial ad-broker syndicates.`,
-        consensusScore: 98,
-        recommendedEpsilon: 0.30,
-        recommendedFloorUsd: 40,
-        actionDirectives: [
-          'Calibrate Differential Privacy Epsilon to ε = 0.30',
-          'Upgrade Minimum Compensation Floor to $40.00 / month',
-          'Authorize Frontier AI Pre-Training Licensing with Zero-PII Guarantees',
-          'Dispatch Automated CCPA & GDPR Statutory Clawback Notices to Shadow Brokers'
-        ]
-      });
+      console.warn('Council endpoint unavailable; no consensus result was produced.', err);
     } finally {
       setIsConvening(false);
       setActiveStep(0);
@@ -154,14 +119,20 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
   };
 
   const handleApply = () => {
-    if (!councilResult) return;
+    if (
+      !councilResult ||
+      typeof councilResult.recommendedEpsilon !== 'number' ||
+      !Number.isFinite(councilResult.recommendedEpsilon) ||
+      typeof councilResult.recommendedFloorUsd !== 'number' ||
+      !Number.isFinite(councilResult.recommendedFloorUsd)
+    ) return;
     onApplyDirectives(
       {
         globalEpsilon: councilResult.recommendedEpsilon,
         minimumMonthlyFloorUsd: councilResult.recommendedFloorUsd,
         autoNegotiateHighBids: true
       },
-      `Council Directives Applied: ε = ${councilResult.recommendedEpsilon}, Floor = $${councilResult.recommendedFloorUsd}/mo (Approved unanimously by GPT-4o, Gemini 3.8 Flash, and LLaMA 3.3).`
+      `Council response received: ε = ${councilResult.recommendedEpsilon}, Floor = ${councilResult.recommendedFloorUsd}/mo. Provider participation, consensus, and production enforcement are NOT independently verified.`
     );
     onClose();
   };
@@ -233,7 +204,7 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
           </div>
 
           <div className="text-[11px] text-slate-400 shrink-0 font-mono">
-            4 / 4 AI Models Online
+            AI model availability: NOT VERIFIED
           </div>
         </div>
 
@@ -324,9 +295,9 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-emerald-400 flex items-center gap-2">
                   <Cpu className="w-4 h-4 animate-spin" />
-                  Synchronizing multi-model cryptographic enclave...
+                  Council endpoint request in progress
                 </span>
-                <span className="text-slate-400">Step {activeStep} of 3</span>
+                <span className="text-slate-400">Request pending · provider stages NOT VERIFIED</span>
               </div>
               <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
                 <div 
@@ -335,9 +306,7 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
                 />
               </div>
               <p className="text-[11px] text-slate-400">
-                {activeStep === 1 && 'Querying OpenAI GPT-4o for commercial data valuation & counter-negotiation...'}
-                {activeStep === 2 && 'Executing Google Gemini 3.8 Flash differential privacy bound & Laplacian verification...'}
-                {activeStep === 3 && 'Synthesizing Meta LLaMA open-weights decentralized sovereignty audit into final consensus...'}
+                Request lifecycle only. Provider execution, model participation, and consensus are NOT VERIFIED.
               </p>
             </div>
           )}
@@ -433,24 +402,24 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                        Unified Council Consensus (Binding)
+                        Council Output · Human Review Required
                       </h4>
                       <p className="text-[11px] text-slate-400 font-mono">
-                        Cryptographically cross-verified across all model nodes
+                        Cryptographic cross-verification: NOT VERIFIED
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono text-slate-400">Consensus Index:</span>
+                    <span className="text-[11px] font-mono text-slate-400">Backend-reported consensus score (not independently verified):</span>
                     <span className="text-xs font-bold font-mono px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                      {councilResult.consensusScore}% Agreement
+                      {typeof councilResult.consensusScore === 'number' ? `${councilResult.consensusScore}% backend-reported · not independently verified` : 'NOT MEASURED'}
                     </span>
                   </div>
                 </div>
 
                 <p className="text-xs text-slate-200 mt-3 leading-relaxed">
-                  {councilResult.unifiedConsensus}
+                  {councilResult.unifiedConsensus || 'No synthesis was returned.'}
                 </p>
 
                 {/* Calibrated Metrics */}
@@ -458,25 +427,25 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
                   <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-center">
                     <div className="text-[10px] text-slate-400 font-mono">Recommended ε</div>
                     <div className="text-sm font-bold text-emerald-400 font-mono mt-0.5">
-                      ε = {councilResult.recommendedEpsilon}
+                      {typeof councilResult.recommendedEpsilon === 'number' ? `ε = ${councilResult.recommendedEpsilon}` : 'NOT RETURNED'}
                     </div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-center">
                     <div className="text-[10px] text-slate-400 font-mono">Recommended Floor</div>
                     <div className="text-sm font-bold text-teal-400 font-mono mt-0.5">
-                      ${councilResult.recommendedFloorUsd}/mo
+                      {typeof councilResult.recommendedFloorUsd === 'number' ? `${councilResult.recommendedFloorUsd}/mo · backend-reported` : 'NOT RETURNED'}
                     </div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-center">
                     <div className="text-[10px] text-slate-400 font-mono">Pre-Training AI</div>
                     <div className="text-sm font-bold text-cyan-400 font-mono mt-0.5">
-                      Authorized (Zero PII)
+                      NOT VERIFIED
                     </div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-center">
                     <div className="text-[10px] text-slate-400 font-mono">Shadow Brokers</div>
                     <div className="text-sm font-bold text-rose-400 font-mono mt-0.5">
-                      Quarantined
+                      NOT VERIFIED
                     </div>
                   </div>
                 </div>
@@ -504,7 +473,7 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
         <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/80 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>OpenAI, Google DeepMind, and Meta open weights acting in unison</span>
+            <span>Provider participation, consensus, and production enforcement are NOT VERIFIED unless explicit evidence is returned.</span>
           </div>
 
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
@@ -515,7 +484,7 @@ export const AllAiCollaborationModal: React.FC<AllAiCollaborationModalProps> = (
             >
               Close
             </button>
-            {councilResult && (
+            {councilResult && typeof councilResult.recommendedEpsilon === 'number' && Number.isFinite(councilResult.recommendedEpsilon) && typeof councilResult.recommendedFloorUsd === 'number' && Number.isFinite(councilResult.recommendedFloorUsd) && (
               <button
                 type="button"
                 id="adopt-council-consensus-btn"
