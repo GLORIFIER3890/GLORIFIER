@@ -132,11 +132,9 @@ export async function captureCheckout(customerReference: string, orderId: string
        ON CONFLICT (customer_reference) DO UPDATE SET plan_id=EXCLUDED.plan_id, monthly_limit=EXCLUDED.monthly_limit, used=0, period_start=CURRENT_DATE, updated_at=NOW()`,
       [customerReference, plan.id, plan.monthlyAiCredits],
     );
-    await client.query('COMMIT');
-
-    // PayPal's completed capture is authoritative payment evidence. Only after
-    // PayPal confirms the capture do we write verified revenue to the GLORIFIER
-    // ledger. Checkout creation and AI estimates never create verified revenue.
+    // Keep subscription activation, credits, and the verified revenue ledger
+    // in one database transaction. Otherwise a ledger write failure after COMMIT
+    // could leave an active subscription that cannot be safely retried.
     const captureId = String(capture?.id || orderId);
     const revenueEvent = await recordRevenueEvent({
       eventId: "paypal:capture:" + captureId,
@@ -154,7 +152,9 @@ export async function captureCheckout(customerReference: string, orderId: string
         evidence: 'paypal-completed-capture',
         verified: true,
       },
-    });
+    }, client);
+
+    await client.query('COMMIT');
 
     return {
       active: true,
