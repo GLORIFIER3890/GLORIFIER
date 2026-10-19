@@ -2891,7 +2891,7 @@ app.get('/api/monetization/sprint', async (req: Request, res: Response) => {
 });
 
 app.get('/api/global-collaboration/status', async (_req: Request, res: Response) => {
-  try { return res.json({ok:true,status:'ACTIVE',version:'GCR-1.0',providers:await getGlobalCollaborationStatus(),policy:getGlobalCollaborationPolicy()}); }
+  try { return res.json({ok:true,status:'CONFIGURED · live execution NOT VERIFIED',version:'GCR-1.1',providers:await getGlobalCollaborationStatus(),policy:getGlobalCollaborationPolicy()}); }
   catch (error) { return apiError(res,503,'Global collaboration status unavailable',error); }
 });
 
