@@ -9,7 +9,7 @@ export interface InternetNode {
   category: 'production' | 'staging' | 'repository' | 'ecosystem' | 'telemetry';
   url: string;
   status: 'configured' | 'reachable' | 'standby' | 'external';
-  lastPingAt: string;
+  lastPingAt: string | null;
   metadata?: Record<string, unknown>;
 }
 
@@ -27,7 +27,7 @@ export interface SynchronizedAgent {
 export interface GlobalSyncManifest {
   id: string;
   synchronizedAt: string;
-  consensusScore: number;
+  consensusScore: number | null;
   executiveSynthesis: string;
   operatingPrinciple: string;
   governanceAttestation: {
@@ -55,7 +55,7 @@ export const canonicalInternetNodes: InternetNode[] = [
     category: 'production',
     url: 'https://glorifier-artificial-intelligence-production.up.railway.app',
     status: 'configured',
-    lastPingAt: new Date().toISOString()
+    lastPingAt: null
   },
   {
     id: 'vercel-edge',
@@ -78,8 +78,8 @@ export const canonicalInternetNodes: InternetNode[] = [
     name: 'Hugging Face AI Ecosystem',
     category: 'ecosystem',
     url: 'https://huggingface.co/',
-    status: 'reachable',
-    lastPingAt: new Date().toISOString()
+    status: 'configured',
+    lastPingAt: null
   },
   {
     id: 'meta-ai-openweights',
@@ -94,24 +94,14 @@ export const canonicalInternetNodes: InternetNode[] = [
 let latestManifest: GlobalSyncManifest | null = null;
 
 async function computeSha256(text: string): Promise<string> {
-  if (typeof crypto !== 'undefined' && crypto.subtle) {
-    try {
-      const buffer = new TextEncoder().encode(text);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-      return Array.from(new Uint8Array(hashBuffer))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-    } catch {
-      // fallback if subtle unavailable
-    }
+  if (typeof crypto === 'undefined' || !crypto.subtle) {
+    throw new Error('SHA-256 unavailable: Web Crypto is required; no substitute digest will be labeled SHA-256.');
   }
-  // deterministic lightweight string hash fallback
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    hash = ((hash << 5) - hash) + text.charCodeAt(i);
-    hash |= 0;
-  }
-  return `digest-${Math.abs(hash).toString(16)}-${Date.now().toString(16)}`;
+  const buffer = new TextEncoder().encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 export async function performGlobalGlorifierSync(deps?: {
@@ -197,20 +187,9 @@ export async function performGlobalGlorifierSync(deps?: {
   const evidenceCount = intel?.evidenceCount || 0;
   const sourceCount = intel?.sourceCount || 0;
 
-  // 4. Generate multi-model synthesis verdict if model runner is provided
-  let executiveSynthesis = `GLORIFIER has a registry of ${agents.length} configured agent roles and ${canonicalInternetNodes.length} configured infrastructure references. Provider authorization, live reachability, and evidence-backed health remain separate states and are not inferred from registry presence.`;
-
-  if (deps?.runSynthesisModel) {
-    const prompt = `Synthesize current global status of GLORIFIER across the internet:
-Agents: ${agents.map(a => `${a.name} (${a.role})`).join(', ')}
-Internet Nodes: ${canonicalInternetNodes.map(n => `${n.name}: ${n.url}`).join(', ')}
-Evidence items: ${evidenceCount} from ${sourceCount} sources.
-Return a concise 2-sentence executive summary emphasizing cross-agent consensus and operational health.`;
-    const modelResult = await deps.runSynthesisModel('gemini', prompt).catch(() => null);
-    if (modelResult?.text) {
-      executiveSynthesis = modelResult.text.trim();
-    }
-  }
+  // 4. Use evidence-bounded synthesis only. Model-generated claims are not accepted
+  // as operational evidence and cannot establish consensus or live health.
+  const executiveSynthesis = `Registry contains ${agents.length} configured agent roles and ${canonicalInternetNodes.length} configured infrastructure references. Latest intelligence reports ${evidenceCount} evidence items from ${sourceCount} sources; live provider health, cross-agent consensus, and production uptime are NOT VERIFIED by this manifest.`
 
   // 5. Prioritized directives aligned with AI CEO and Human Governance
   const prioritizedDirectives = [
@@ -232,7 +211,7 @@ Return a concise 2-sentence executive summary emphasizing cross-agent consensus 
   const manifest: GlobalSyncManifest = {
     id: `sync-manifest-${Date.now()}`,
     synchronizedAt: timestamp,
-    consensusScore: 0,
+    consensusScore: null,
     executiveSynthesis,
     operatingPrinciple: 'Agents operate. Agents collaborate. Evidence proves. AI synthesizes. Humans govern.',
     governanceAttestation: {
