@@ -161,7 +161,7 @@ export const AICeoControl: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">
-                Synchronized at: {new Date(manifest.synchronizedAt).toLocaleString()} • Manifest ID: {manifest.id}
+                Manifest generated at: {new Date(manifest.synchronizedAt).toLocaleString()} • Manifest ID: {manifest.id}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -184,7 +184,7 @@ export const AICeoControl: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                 <Cpu className="h-4 w-4 text-cyan-400" />
-                Synchronized AI Agent Fleet ({manifest.agents.length} Active Nodes)
+                Registered AI Agent Roles ({manifest.agents.length}; execution NOT VERIFIED)
               </h4>
             </div>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -217,7 +217,7 @@ export const AICeoControl: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                 <Globe className="h-4 w-4 text-emerald-400" />
-                Synchronized Internet & Infrastructure Footprints ({manifest.internetNodes.length} Nodes)
+                Registered Infrastructure References ({manifest.internetNodes.length}; live health NOT VERIFIED)
               </h4>
             </div>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -239,7 +239,7 @@ export const AICeoControl: React.FC = () => {
                   </a>
                   <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
                     <span>Category: {node.category}</span>
-                    <span>Synced: Just now</span>
+                    <span>Live health: NOT VERIFIED</span>
                   </div>
                 </div>
               ))}
