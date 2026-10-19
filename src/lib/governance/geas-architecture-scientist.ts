@@ -240,7 +240,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'enterprise-architecture',
     url: 'https://learn.microsoft.com/en-us/azure/architecture/',
     patternIds: ['cross-cutting-cloud-controls'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'aws-well-architected',
@@ -248,7 +248,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'cloud',
     url: 'https://aws.amazon.com/architecture/well-architected/',
     patternIds: ['cross-cutting-cloud-controls', 'durable-agent-execution'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'google-architecture',
@@ -256,7 +256,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'cloud',
     url: 'https://docs.cloud.google.com/architecture/',
     patternIds: ['federated-data-access'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'nist-ai-rmf',
@@ -264,7 +264,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'ai',
     url: 'https://www.nist.gov/itl/ai-risk-management-framework',
     patternIds: ['ai-lifecycle-risk'],
-    cadenceHours: 168,
+    cadenceHours: 720,
   },
   {
     id: 'nist-ai-agents',
@@ -272,7 +272,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'ai',
     url: 'https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative',
     patternIds: ['agent-identity-delegation'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'nist-csf',
@@ -280,7 +280,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'cybersecurity',
     url: 'https://www.nist.gov/cyberframework',
     patternIds: ['identity-risk-controls'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'nist-ssdf',
@@ -288,7 +288,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'software',
     url: 'https://csrc.nist.gov/Projects/ssdf',
     patternIds: ['software-supply-chain'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'opentelemetry-semconv',
@@ -296,7 +296,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'observability',
     url: 'https://opentelemetry.io/docs/concepts/semantic-conventions/',
     patternIds: ['vendor-neutral-telemetry', 'evidence-minimization'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'finops-focus',
@@ -304,7 +304,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'finops',
     url: 'https://focus.finops.org/',
     patternIds: ['cost-outcome-accounting'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'cncf-kyverno',
@@ -312,7 +312,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'platform-engineering',
     url: 'https://www.cncf.io/projects/kyverno/',
     patternIds: ['policy-as-code'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'cncf-dapr-agents',
@@ -320,7 +320,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'reliability',
     url: 'https://www.cncf.io/projects/dapr/',
     patternIds: ['durable-agent-execution'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'etsi-eni',
@@ -328,7 +328,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'networking',
     url: 'https://www.etsi.org/technical-groups/eni/',
     patternIds: ['federated-continuum', 'intent-closed-loop'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'ietf-rfcs',
@@ -336,7 +336,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'integration',
     url: 'https://www.ietf.org/process/rfcs/',
     patternIds: ['protocol-neutral-interoperability'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'nist-iot',
@@ -384,7 +384,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'cybersecurity',
     url: 'https://genai.owasp.org/resource/agent-control-standard-acs/',
     patternIds: ['runtime-agent-controls'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'mitre-atlas',
@@ -392,7 +392,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'cybersecurity',
     url: 'https://atlas.mitre.org/',
     patternIds: ['adversarial-ai-controls'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'nist-token-protection',
@@ -400,7 +400,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'cybersecurity',
     url: 'https://www.nist.gov/publications/protecting-tokens-and-assertions-forgery-theft-and-misuse-implementation',
     patternIds: ['token-lifecycle-protection'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'otel-genai-agents',
@@ -408,7 +408,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'observability',
     url: 'https://github.com/open-telemetry/semantic-conventions-genai',
     patternIds: ['genai-agent-telemetry'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'finops-focus-1-4',
@@ -416,7 +416,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'finops',
     url: 'https://focus.finops.org/docs/specification/v1-4/',
     patternIds: ['cost-outcome-accounting'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   {
     id: 'nist-zero-trust',
@@ -432,7 +432,7 @@ const SOURCES: ArchitectureSource[] = [
     domain: 'data',
     url: 'https://csrc.nist.gov/pubs/ir/8536/final',
     patternIds: ['provenance-graph'],
-    cadenceHours: 168,
+    cadenceHours: 336,
   },
   { id: 'opengroup-togaf', authority: 'The Open Group', domain: 'enterprise-architecture', url: 'https://www.opengroup.org/togaf', patternIds: ['enterprise-architecture-traceability'], cadenceHours: 336 },
   { id: 'ietf-oauth-security', authority: 'IETF', domain: 'cybersecurity', url: 'https://datatracker.ietf.org/doc/html/rfc9700', patternIds: ['oauth-security-best-practice'], cadenceHours: 336 },
