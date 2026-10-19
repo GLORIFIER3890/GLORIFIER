@@ -52,7 +52,7 @@ export const PatentDisclosureDossier: React.FC<PatentDisclosureDossierProps> = (
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
   const [selectedClaimFilter, setSelectedClaimFilter] = useState<'all' | 'independent' | 'dependent'>('all');
   
-  // A.I. Bot Patent Attorney Scientist State
+  // AI Patent Research Assistant (not a lawyer) State
   const [specialtyMode, setSpecialtyMode] = useState<PatentSpecialtyMode>('claim_prosecution');
   const [aiModel, setAiModel] = useState<'gemini-3.8-flash' | 'gpt-4o' | 'consensus'>('gemini-3.8-flash');
   const [includeFigContext, setIncludeFigContext] = useState(true);
@@ -66,10 +66,10 @@ export const PatentDisclosureDossier: React.FC<PatentDisclosureDossierProps> = (
   }>>([
     {
       role: 'assistant',
-      text: `### A.I. Bot Patent Attorney Scientist &bull; Initial Session Briefing\n\n**Credentials:** Registered USPTO Patent Attorney (USPTO Bar) &bull; Principal AI & Cryptography Research Scientist (Ph.D. Computer Science)\n**Jurisdiction:** United States Patent and Trademark Office (USPTO) & Patent Trial and Appeal Board (PTAB)\n**Core Inventions Under Prosecution:**\n1. **Autonomous Multi-Provider AI Orchestrator:** Dynamic capability scoring $C(M_i)$, exponential moving latency dampening, and automated 503 failover.\n2. **Mathematical Differential Privacy Engine:** Calibrated Laplacian noise $Y \\sim \\text{Lap}(\\Delta f / \\varepsilon)$ and zk-SNARK attribute attestation for sovereign data monetization.\n3. **24/7 Autonomous Code Sentinel:** Watchdog diagnostic probe synthesizing unified diffs with protected-path security gating.\n4. **Cryptographic Proof & Settlement:** SHA-256 evidence chain with multi-rail settlement.\n\nSelect a Specialty Prosecution Mode below or ask any question regarding claim scope, 35 U.S.C. § 101 Alice defenses, § 112 mathematical enablement, or prior art differentiation.`,
+      text: `### AI Patent Research Assistant · Draft Session Briefing\n\n**Notice:** This is AI-generated informational assistance, not a registered patent attorney or a credentialed research scientist. Verify legal advice and credentials independently.\n**Jurisdiction:** United States Patent and Trademark Office (USPTO) & Patent Trial and Appeal Board (PTAB)\n**Proposed technical concepts for possible patent review:**\n1. **Autonomous Multi-Provider AI Orchestrator:** Dynamic capability scoring $C(M_i)$, exponential moving latency dampening, and automated 503 failover.\n2. **Mathematical Differential Privacy Engine:** Calibrated Laplacian noise $Y \\sim \\text{Lap}(\\Delta f / \\varepsilon)$ and zk-SNARK attribute attestation for sovereign data monetization.\n3. **24/7 Autonomous Code Sentinel:** Watchdog diagnostic probe synthesizing unified diffs with protected-path security gating.\n4. **Cryptographic Proof & Settlement:** SHA-256 evidence chain with multi-rail settlement.\n\nSelect a Specialty Prosecution Mode below or ask any question regarding claim scope, 35 U.S.C. § 101 Alice defenses, § 112 mathematical enablement, or prior art differentiation.`,
       mode: 'claim_prosecution',
-      modelUsed: 'Google Gemini 3.8 Flash (DeepMind)',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      modelUsed: 'No provider request has been made',
+      timestamp: 'SAMPLE · NOT VERIFIED'
     }
   ]);
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -84,7 +84,7 @@ export const PatentDisclosureDossier: React.FC<PatentDisclosureDossierProps> = (
   const handleDownloadSpec = () => {
     const element = document.createElement('a');
     element.href = '/PATENT_DISCLOSURE_SPECIFICATION.md';
-    element.download = 'GLORIFIER_AI_PATENT_SPECIFICATION_USPTO.md';
+    element.download = 'GLORIFIER_AI_PATENT_SPECIFICATION_DRAFT_NOT_FILED.md';
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -92,9 +92,9 @@ export const PatentDisclosureDossier: React.FC<PatentDisclosureDossierProps> = (
 
   // Export consultation brief as markdown
   const handleExportConsultation = () => {
-    const threadContent = `# GLORIFIER AI — A.I. BOT PATENT ATTORNEY SCIENTIST CONSULTATION BRIEF
+    const threadContent = `# GLORIFIER AI — PATENT RESEARCH ASSISTANT CONSULTATION BRIEF
 **Generated:** ${new Date().toISOString()}
-**Counsel:** Registered USPTO Patent Attorney & Chief AI Research Scientist
+**Important:** AI-generated research assistance only; not a lawyer, patent attorney, or credentialed research scientist. Obtain review from qualified patent counsel.
 **Specialty Mode:** ${specialtyMode}
 **Underlying Engine:** ${aiModel}
 
@@ -108,7 +108,7 @@ ${m.text}
     const url = URL.createObjectURL(blob);
     const element = document.createElement('a');
     element.href = url;
-    element.download = `PATENT_ATTORNEY_SCIENTIST_OPINION_${Date.now()}.md`;
+    element.download = `PATENT_RESEARCH_ASSISTANT_DRAFT_${Date.now()}.md`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -120,7 +120,7 @@ ${m.text}
     setAiHistory([
       {
         role: 'assistant',
-        text: `### A.I. Bot Patent Attorney Scientist &bull; Session Reset\n\nReady for new patent consultation. Current active specialty: **${specialtyMode.replace(/_/g, ' ').toUpperCase()}** on engine **${aiModel}**.`,
+        text: `### AI Patent Research Assistant &bull; Session Reset\n\nReady for new patent consultation. Current active specialty: **${specialtyMode.replace(/_/g, ' ').toUpperCase()}** on engine **${aiModel}**.`,
         mode: specialtyMode,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
@@ -170,9 +170,9 @@ ${m.text}
           ...prev,
           {
             role: 'assistant',
-            text: `### A.I. Bot Patent Attorney Scientist &bull; Legal & Scientific Assessment\n\n**Applicable Statutes:** 35 U.S.C. §§ 101, 102, 103, 112\n\n#### 1. Statutory Evaluation under Alice Step 2B\nUnder *Enfish, LLC v. Microsoft Corp.* and *Berkheimer v. HP Inc.*, the claimed multi-provider AI orchestrator avoids abstract idea categorization because Claim 1 specifies an unconventional technical improvement to distributed computing: continuous capability scoring $C(M_i)$ coupled with instant 503 HTTP failover rerouting without session termination.\n\n#### 2. Mathematical Enablement under § 112(a)\nThe differential privacy specification is mathematically rigorous and non-speculative: Laplacian noise scale $b = \\Delta f / \\varepsilon$ bounds privacy leakage strictly to $e^\\varepsilon$, satisfying the *In re Wands* standard for undue experimentation.\n\n#### 3. Recommended Action\nMaintain the current three independent claim pillars (System 1, Method 11, Medium 19) and file continuation applications covering zero-knowledge zk-SNARK cohort partitioning.`,
+            text: 'NOT VERIFIED — the provider returned no usable content. No legal analysis or patentability recommendation was generated. Retry with an authorized provider and consult qualified patent counsel.',
             mode: specialtyMode,
-            modelUsed: aiModel,
+            modelUsed: 'No usable provider response',
             timestamp: asstTimestamp
           }
         ]);
@@ -182,8 +182,9 @@ ${m.text}
         ...prev,
         {
           role: 'assistant',
-          text: `### A.I. Bot Patent Attorney Scientist &bull; Advisory Memo\n\nUnder 35 U.S.C. § 101 and § 112, the GLORIFIER AI application embodies patentable subject matter by tethering all monetization workflows to concrete algorithmic transformations (Laplacian perturbation $Y \\sim \\text{Lap}(\\Delta f / \\varepsilon)$) and autonomous code self-healing that cannot be mentally executed. The claim hierarchy (Claims 1–20) establishes a strong defensive perimeter against prior art APMs and generic ad brokers.`,
+          text: 'NOT VERIFIED — the provider request failed. No fallback legal opinion was fabricated. Retry when an authorized provider is available and obtain qualified patent-counsel review.',
           mode: specialtyMode,
+          modelUsed: 'Provider request failed',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -395,10 +396,10 @@ generate an interactive patent and legal defense interface displaying system arc
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                <Scale className="w-3.5 h-3.5" /> Formal Patent Disclosure
+                <Scale className="w-3.5 h-3.5" /> Draft Patent Disclosure
               </span>
               <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono">
-                USPTO &bull; 35 U.S.C. § 101 / § 112 Ready
+                Draft legal references · patentability and filing readiness NOT VERIFIED
               </span>
               <span className="px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-mono">
                 20 Claims Drafted
@@ -408,7 +409,7 @@ generate an interactive patent and legal defense interface displaying system arc
               Patent Disclosure, Claims & Architecture Diagrams
             </h2>
             <p className="text-sm text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              Complete technical specification prepared for review by registered patent attorney. Encompasses autonomous multi-provider AI orchestration with 503 failover, mathematical differential privacy monetization (Laplacian noise & zk-SNARKs), 24/7 continuous self-healing code sentinel, and cryptographically anchored settlement ledgers.
+              Draft technical specification for qualified patent-counsel review. The described capabilities are proposed concepts, not proof of deployed functionality. Provider orchestration, differential-privacy transformation, continuous self-healing, and settlement evidence are NOT VERIFIED.
             </p>
           </div>
 
@@ -443,9 +444,9 @@ generate an interactive patent and legal defense interface displaying system arc
         {[
           { id: 'diagrams', label: 'Architecture Diagrams (FIG. 1 - 5)', icon: Layers, count: '5 Figures' },
           { id: 'claims', label: 'Proposed Claims (1 - 20)', icon: Scale, count: '20 Claims' },
-          { id: 'spec', label: 'Complete USPTO Specification', icon: FileText, count: '12 Sections' },
+          { id: 'spec', label: 'Draft Specification · Not Filed', icon: FileText, count: '12 Sections' },
           { id: 'alice101', label: '35 U.S.C. § 101 Defense Brief', icon: ShieldCheck, count: 'Step 2B' },
-          { id: 'attorney_ai', label: 'A.I. Bot Patent Attorney Scientist', icon: Sparkles, count: 'USPTO & AI Ph.D.' },
+          { id: 'attorney_ai', label: 'AI Patent Research Assistant (not a lawyer)', icon: Sparkles, count: 'AI research assistance · credentials NOT VERIFIED' },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeSubTab === tab.id;
@@ -480,7 +481,7 @@ generate an interactive patent and legal defense interface displaying system arc
               { num: 1, title: 'FIG. 1: Network Topology & System Architecture', subtitle: 'Global System Topology (100-152)' },
               { num: 2, title: 'FIG. 2: Sovereign Privacy Monetization Pipeline', subtitle: 'Laplace Noise & zk-Proofs (200-240)' },
               { num: 3, title: 'FIG. 3: Multi-Provider AI Orchestration', subtitle: 'Dynamic Executive Election (300-350)' },
-              { num: 4, title: 'FIG. 4: 24/7 Autonomous Code Sentinel', subtitle: 'Closed-Loop Self-Healing (400-450)' },
+              { num: 4, title: 'FIG. 4: Proposed Code Sentinel · NOT VERIFIED', subtitle: 'Closed-Loop Self-Healing (400-450)' },
               { num: 5, title: 'FIG. 5: Evidence & Multi-Rail Settlement', subtitle: 'Cryptographic Ledger (500-550)' }
             ].map((fig) => (
               <button
@@ -513,11 +514,11 @@ generate an interactive patent and legal defense interface displaying system arc
                   {selectedFigure === 1 && 'FIG. 1 — End-to-End Distributed System Architecture & Network Topology'}
                   {selectedFigure === 2 && 'FIG. 2 — Multi-Tier Sovereign Data Monetization & Privacy Transformation Pipeline'}
                   {selectedFigure === 3 && 'FIG. 3 — Multi-Provider AI Orchestrator with Executive Election & 503 Failover'}
-                  {selectedFigure === 4 && 'FIG. 4 — 24/7 Autonomous Code Sentinel & Closed-Loop Self-Healing Pipeline'}
+                  {selectedFigure === 4 && 'FIG. 4 — Proposed Code Sentinel & Self-Healing Concept · NOT VERIFIED'}
                   {selectedFigure === 5 && 'FIG. 5 — Cryptographic Evidence Preservation, Brand Web Monitoring & Multi-Rail Settlement'}
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Reference numerals 100–550 conforming to formal USPTO and PCT drawing standards.
+                  Illustrative reference numerals 100–550; formal USPTO/PCT drawing compliance NOT VERIFIED.
                 </p>
               </div>
 
@@ -594,12 +595,12 @@ generate an interactive patent and legal defense interface displaying system arc
                   <text x="470" y="290" textAnchor="middle" fill="#c4b5fd" fontSize="9">Executive Leader Election Algorithm</text>
 
                   <rect x="350" y="310" width="240" height="60" rx="6" fill="#1e293b" stroke="#f59e0b" />
-                  <text x="470" y="330" textAnchor="middle" fill="#fef3c7" fontSize="10" fontWeight="bold">24/7 AI Code Sentinel 118</text>
+                  <text x="470" y="330" textAnchor="middle" fill="#fef3c7" fontSize="10" fontWeight="bold">Proposed AI Code Sentinel 118 · NOT VERIFIED</text>
                   <text x="470" y="345" textAnchor="middle" fill="#fcd34d" fontSize="9">Diagnostic Watchdog &bull; Unified Diff Synthesis</text>
                   <text x="470" y="360" textAnchor="middle" fill="#fcd34d" fontSize="9">Protected-Path Gate &bull; Build Test Verifier</text>
 
                   <rect x="350" y="380" width="240" height="55" rx="6" fill="#1e293b" stroke="#ec4899" />
-                  <text x="470" y="400" textAnchor="middle" fill="#fce7f3" fontSize="10" fontWeight="bold">Verified Settlement Ledger 120</text>
+                  <text x="470" y="400" textAnchor="middle" fill="#fce7f3" fontSize="10" fontWeight="bold">Proposed Settlement Ledger 120 · NOT VERIFIED</text>
                   <text x="470" y="415" textAnchor="middle" fill="#f472b6" fontSize="9">HMAC Webhooks &bull; Multi-Rail Disbursements</text>
                   <text x="470" y="428" textAnchor="middle" fill="#f472b6" fontSize="8">Cryptographic SHA-256 Audit Trail</text>
 
@@ -701,7 +702,7 @@ generate an interactive patent and legal defense interface displaying system arc
 
                   {/* Step 3: Verified Data Release & Monetization */}
                   <rect x="700" y="70" width="180" height="420" rx="10" fill="#0f172a" stroke="#10b981" strokeWidth="2" />
-                  <text x="790" y="98" textAnchor="middle" fill="#34d399" fontSize="11" fontWeight="bold">VERIFIED RELEASES 250</text>
+                  <text x="790" y="98" textAnchor="middle" fill="#34d399" fontSize="11" fontWeight="bold">ILLUSTRATIVE RELEASES 250 · NOT VERIFIED</text>
                   <rect x="715" y="125" width="150" height="65" rx="6" fill="#1e293b" />
                   <text x="790" y="148" textAnchor="middle" fill="#a7f3d0" fontSize="10" fontWeight="bold">Differentially Private Feed</text>
                   <text x="790" y="165" textAnchor="middle" fill="#6ee7b7" fontSize="9">Per-Query Micro-Yield</text>
@@ -807,7 +808,7 @@ generate an interactive patent and legal defense interface displaying system arc
                 <svg viewBox="0 0 920 540" className="w-full max-w-4xl h-auto font-sans" xmlns="http://www.w3.org/2000/svg">
                   <rect width="920" height="540" fill="#090d16" />
                   <text x="460" y="30" textAnchor="middle" fill="#94a3b8" fontSize="14" fontWeight="bold" fontFamily="monospace">
-                    FIG. 4 — 24/7 AUTONOMOUS CODE SENTINEL & CLOSED-LOOP SELF-HEALING (400)
+                    FIG. 4 — PROPOSED CODE SENTINEL & SELF-HEALING CONCEPT (400) · NOT VERIFIED
                   </text>
 
                   {/* Step 1: Watchdog Probes 402 */}
@@ -952,7 +953,7 @@ generate an interactive patent and legal defense interface displaying system arc
 
                   {/* Center: Data Monetization Transaction Reconciliation 520 */}
                   <rect x="310" y="70" width="260" height="420" rx="10" fill="#0f172a" stroke="#10b981" strokeWidth="2" />
-                  <text x="440" y="98" textAnchor="middle" fill="#34d399" fontSize="11" fontWeight="bold">VERIFIED SETTLEMENT LEDGER 520</text>
+                  <text x="440" y="98" textAnchor="middle" fill="#34d399" fontSize="11" fontWeight="bold">PROPOSED SETTLEMENT LEDGER 520 · NOT VERIFIED</text>
 
                   <rect x="325" y="120" width="230" height="70" rx="6" fill="#1e293b" />
                   <text x="440" y="142" textAnchor="middle" fill="#a7f3d0" fontSize="10" fontWeight="bold">Buyer Payment Webhook Ingestion</text>
@@ -1022,8 +1023,8 @@ generate an interactive patent and legal defense interface displaying system arc
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">110:</span> Central Sovereign Engine</div>
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">114:</span> Mathematical Privacy Engine</div>
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">116:</span> AI Orchestration Gateway</div>
-                    <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">118:</span> 24/7 AI Code Sentinel</div>
-                    <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">120:</span> Verified Settlement Ledger</div>
+                    <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">118:</span> Proposed AI Code Sentinel · NOT VERIFIED</div>
+                    <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">120:</span> Proposed Settlement Ledger · NOT VERIFIED</div>
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">130/140:</span> External Buyers & AI Providers</div>
                   </>
                 )}
@@ -1062,7 +1063,7 @@ generate an interactive patent and legal defense interface displaying system arc
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">500:</span> Evidence & Settlement Architecture</div>
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">504:</span> SHA-256 Observation Hasher</div>
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">506:</span> Tamper-Evident Audit Ledger</div>
-                    <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">520:</span> Double-Entry Verified Settlement Ledger</div>
+                    <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">520:</span> Proposed Double-Entry Settlement Ledger · NOT VERIFIED</div>
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">542:</span> Decentralized Blockchain Stablecoin Rails (USDC/USDT)</div>
                     <div className="p-2 rounded bg-slate-900 border border-slate-800"><span className="font-mono text-emerald-400 font-bold">544:</span> Regulated Fiat Banking Rails (ACH/SEPA/PayPal)</div>
                   </>
@@ -1176,7 +1177,7 @@ generate an interactive patent and legal defense interface displaying system arc
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <FileText className="w-4 h-4 text-emerald-400" />
-                  USPTO Patent Specification (Full Text)
+                  Draft Patent Specification · Filing status NOT VERIFIED
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
                   Conforming to 37 CFR § 1.77 (Standard arrangement for patent applications).
@@ -1232,16 +1233,16 @@ generate an interactive patent and legal defense interface displaying system arc
                 </p>
                 <ul className="list-disc pl-5 space-y-1.5 text-slate-300">
                   <li>
-                    <strong className="text-white">Dynamic Multi-Provider AI Orchestration:</strong> Continuously computes an objective Capability Score C(M) for each model family, tracks exponential moving average latency and success rates, elects an Executive Leader, and routes requests across a secondary pool seamlessly upon 503 errors.
+                    <strong className="text-white">Proposed Multi-Provider AI Orchestration:</strong> The design describes capability scoring and failover routing. Live scoring, latency measurement, leader election, and successful 503 failover are NOT VERIFIED.
                   </li>
                   <li>
-                    <strong className="text-white">Multi-Tier Mathematical Privacy Transformation:</strong> Calibrated Laplace/Gaussian differential privacy noise injection (Y ~ Lap(Δf / ε)), k-anonymity cohort partitioning, zk-SNARK attribute proofs, and generative synthetic twin modeling.
+                    <strong className="text-white">Proposed Privacy Transformation:</strong> Differential privacy, k-anonymity, zero-knowledge proofs, and synthetic-data processing are described as design concepts; production implementation and validation are NOT VERIFIED.
                   </li>
                   <li>
-                    <strong className="text-white">24/7 Autonomous Code Sentinel & Self-Healing:</strong> Diagnostic internal watchdog probes, multi-model unified diff synthesis (`diff --git`), strict protected-path gatekeeper (blocking `.env`, keys, workflows), and automated sandbox build verification before hot-patch deployment.
+                    <strong className="text-white">Proposed Code Sentinel & Self-Healing:</strong> Monitoring, patch synthesis, protected-path enforcement, sandbox testing, and deployment automation are intended design elements. Continuous operation and enforcement are NOT VERIFIED.
                   </li>
                   <li>
-                    <strong className="text-white">Cryptographic Evidence Preservation & Multi-Rail Settlement:</strong> Immutable SHA-256 hash chains for public brand observations, double-entry accounting ledger, and automated payout disbursement to stablecoins or fiat clearing.
+                    <strong className="text-white">Proposed Evidence & Settlement:</strong> Hashing, ledger reconciliation, and multi-rail payouts are design goals. Immutability, accounting reconciliation, and external settlement are NOT VERIFIED.
                   </li>
                 </ul>
               </section>
@@ -1395,14 +1396,14 @@ generate an interactive patent and legal defense interface displaying system arc
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-lg font-bold text-white tracking-tight">
-                      A.I. Bot: Patent Attorney & Chief IP Research Scientist
+                      AI Patent Research Assistant (not a lawyer)
                     </h3>
                     <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30 text-[10px] font-mono font-semibold uppercase">
-                      USPTO Bar &bull; Ph.D. AI / Crypto
+                      Credentials NOT VERIFIED · not a lawyer
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Dual-qualified AI agent specializing in 35 U.S.C. §§ 101/112 prosecution, mathematical differential privacy proofs, Alice/Mayo defenses, and prior art differentiation.
+                    AI research assistant for patent-draft exploration. It has no verified legal credentials; all legal conclusions and technical claims require independent review.
                   </p>
                 </div>
               </div>
@@ -1676,7 +1677,7 @@ generate an interactive patent and legal defense interface displaying system arc
                       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2 text-[11px]">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-purple-300">
-                            A.I. Bot Patent Attorney Scientist
+                            AI Patent Research Assistant (not a lawyer)
                           </span>
                           {msg.mode && (
                             <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20 font-mono text-[10px]">
@@ -1710,7 +1711,7 @@ generate an interactive patent and legal defense interface displaying system arc
               {isAiLoading && (
                 <div className="flex items-center gap-3 text-xs text-purple-400 font-mono py-3 px-4 rounded-xl bg-purple-950/20 border border-purple-500/20">
                   <Sparkles className="w-4 h-4 animate-spin text-purple-400" />
-                  <span>A.I. Bot Patent Attorney Scientist synthesizing 35 U.S.C. statutes, mathematical proofs, and claim limitations...</span>
+                  <span>AI Patent Research Assistant (not a lawyer) synthesizing 35 U.S.C. statutes, mathematical proofs, and claim limitations...</span>
                 </div>
               )}
             </div>
@@ -1722,7 +1723,7 @@ generate an interactive patent and legal defense interface displaying system arc
                   type="text"
                   value={aiQuestion}
                   onChange={(e) => setAiQuestion(e.target.value)}
-                  placeholder={`Ask the Patent Attorney Scientist (${specialtyMode.replace(/_/g, ' ')}) regarding 35 U.S.C. §§ 101/112, prior art, or claim scope...`}
+                  placeholder={`Ask the AI research assistant (${specialtyMode.replace(/_/g, ' ')}) regarding 35 U.S.C. §§ 101/112, prior art, or claim scope...`}
                   className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-purple-500 transition-colors placeholder:text-slate-500"
                 />
                 <button
@@ -1731,7 +1732,7 @@ generate an interactive patent and legal defense interface displaying system arc
                   className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 text-white font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all shadow-lg shadow-purple-950/50 flex-shrink-0"
                 >
                   <Send className="w-4 h-4" />
-                  <span className="hidden sm:inline">Consult Attorney Scientist</span>
+                  <span className="hidden sm:inline">Ask AI about this draft</span>
                   <span className="sm:hidden">Consult</span>
                 </button>
               </div>
@@ -1740,10 +1741,10 @@ generate an interactive patent and legal defense interface displaying system arc
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1.5 text-emerald-400 font-mono">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    USPTO Registered Bar & AI Research Core Online
+                    AI-assisted research · attorney credentials and USPTO registration NOT VERIFIED
                   </span>
                   <span>&bull;</span>
-                  <span>MPEP § 2106 & 37 CFR § 1.111 Grounded</span>
+                  <span>Legal references are informational; legal accuracy NOT independently verified</span>
                 </div>
                 <div>
                   Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">Enter</kbd> to submit consultation

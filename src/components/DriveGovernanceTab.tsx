@@ -42,7 +42,6 @@ interface DriveGovernanceTabProps {
 export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
   currentUser,
   onLogin,
-  onAddEarnings,
 }) => {
   const [loading, setLoading] = useState(false);
   const [files, setFiles] = useState<DriveAnalysisItem[]>([]);
@@ -81,11 +80,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
       const analyzed = rawFiles.map(analyzeDriveFileForSovereignty);
       setFiles(analyzed);
 
-      // Add compensation yield
-      const totalYield = analyzed.reduce((acc, curr) => acc + curr.estimatedYieldUsd, 0);
-      if (totalYield > 0) {
-        onAddEarnings(Number((totalYield * 0.25).toFixed(2)), 'Google Drive Data Footprint Audit');
-      }
+
     } catch (err: any) {
       console.error('Failed to sync Drive:', err);
       setError(err.message || 'Error connecting to Google Drive. Please sign in again.');
@@ -556,14 +551,14 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                     ) : (
                       <div className="p-2 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] flex items-center gap-1.5 mt-1">
                         <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-                        <span>Shield Verified: Zero PII detected in title/metadata.</span>
+                        <span>Local metadata scan: no configured PII patterns detected in the checked title/metadata. This is not a complete PII audit or privacy guarantee.</span>
                       </div>
                     )}
                   </div>
 
                   <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
                     <div>
-                      <span className="text-slate-400 text-[10px] block uppercase font-bold">Calculated Sovereign Yield</span>
+                      <span className="text-slate-400 text-[10px] block uppercase font-bold">Hypothetical estimated value · NOT REVENUE</span>
                       <span className="text-base font-bold text-emerald-400 font-mono">
                         ${selectedFile.estimatedYieldUsd.toFixed(2)} USD
                       </span>
@@ -592,14 +587,14 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                       <span>Delete File from Drive</span>
                     </button>
                     <p className="text-[10px] text-slate-500 text-center mt-1.5">
-                      Permanently removes file to revoke data broker access. Requires confirmation.
+                      Deletes the selected file from the connected Drive account if the provider accepts the request. It cannot revoke copies already downloaded or shared elsewhere. Requires confirmation.
                     </p>
                   </div>
                 </div>
               ) : (
                 <div className="py-12 text-center text-slate-500 text-xs space-y-2">
                   <EyeOff className="w-6 h-6 mx-auto text-slate-600" />
-                  <p>Select any cloud file from the list to view sensitivity analysis and cryptographic protections.</p>
+                  <p>Select a cloud file to view available sensitivity analysis. Cryptographic protections and actual data flow are NOT VERIFIED by this screen.</p>
                 </div>
               )}
             </div>
@@ -608,10 +603,10 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
             <div className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 text-[11px] text-slate-400 space-y-2">
               <span className="font-semibold text-slate-300 flex items-center gap-1.5">
                 <Lock className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Drive Enclave Zero-Raw Guarantee</span>
+                <span>Drive Data Handling · NOT VERIFIED</span>
               </span>
               <p>
-                Files stored on Google Drive are analyzed for high-level statistical indices only. Raw binary payloads, client contracts, and documents never leave your authenticated browser session.
+                Do not assume files stay in the browser or that only statistical indices are processed. Actual upload, processing, and provider data flows depend on the active integration and are NOT VERIFIED by this panel.
               </p>
             </div>
           </div>
@@ -695,7 +690,7 @@ export const DriveGovernanceTab: React.FC<DriveGovernanceTabProps> = ({
                 DataSovereign-Audit-Manifest.json
               </div>
               <p className="text-[11px] text-slate-400">
-                The manifest documents your verified CCPA / GDPR privacy status and Zero-Knowledge protection logs, stored securely in your own Google Drive root folder.
+                The manifest records the selected governance settings and available scan results. It does not certify CCPA/GDPR compliance or prove zero-knowledge protections. Google Drive storage success and access controls depend on the active integration.
               </p>
             </div>
 

@@ -252,11 +252,11 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
       w => w.address.toLowerCase() === newWalletAddress.trim().toLowerCase()
     );
     if (exists) {
-      setAddWalletError('This wallet address is already added to your verified list.');
+      setAddWalletError('This wallet address is already in your saved destinations; ownership is NOT VERIFIED.');
       return;
     }
 
-    setIsVerifyingNewWallet(true);
+    // Address format was checked locally; no ownership attestation is performed.
 
     // Wallet destinations remain session-scoped until real provider ownership attestation exists.
     // Adding an address is not cryptographic ownership verification.
@@ -399,7 +399,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
             </div>
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                Disburse Verified Data Earnings
+                Request Payout from Verified Balance
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   Governed Request
                 </span>
@@ -474,7 +474,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
             {payoutCategory === 'crypto' ? (
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">Verified Wallet</label>
+                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">Saved Wallet Destination · ownership NOT VERIFIED</label>
                   <select
                     value={walletAddress}
                     onChange={(e) => {
@@ -598,7 +598,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
 
             <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-left text-xs font-mono space-y-2.5">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500">Payout Yield:</span>
+                <span className="text-slate-500">Requested Amount:</span>
                 <span className="text-emerald-400 font-bold text-sm">
                   {settledReceipt.amountUsd.toFixed(2)} {settledReceipt.tokenSymbol}
                 </span>

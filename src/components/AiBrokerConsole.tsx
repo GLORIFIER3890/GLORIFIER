@@ -668,13 +668,13 @@ Choose an action to request a backend response. Any returned claim must be check
               <span className="text-emerald-400 font-mono capitalize">{policy.brokerMode}</span>
             </div>
             <div className="flex justify-between border-b border-slate-800/60 pb-1">
-              <span>Zero-Training Guarantee:</span>
-              <span className="text-emerald-300 font-mono">Enforced (API Terms)</span>
+              <span>Provider data-use / training policy:</span>
+              <span className="text-amber-300 font-mono">NOT VERIFIED · check active provider terms and account settings</span>
             </div>
             <div className="flex justify-between pt-0.5">
               <span>Negotiation Capability:</span>
               <span className="text-slate-200">
-                {selectedModel === 'all-models' ? 'Multi-Model Consensus & Counter-Offers' : 'Counter-offer policy settings (execution not verified)'}
+                {selectedModel === 'all-models' ? 'Multi-provider request path (participation and consensus NOT VERIFIED)' : 'Counter-offer policy settings (execution not verified)'}
               </span>
             </div>
           </div>

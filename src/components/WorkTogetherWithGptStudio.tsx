@@ -45,7 +45,7 @@ interface CoWorkingSession {
   gptContribution: string;
   geminiPeerReview: string;
   jointArtifact: string;
-  consensusScore: number;
+  consensusScore: number | null;
 }
 
 interface WorkTogetherWithGptStudioProps {
@@ -75,8 +75,8 @@ export const WorkTogetherWithGptStudio: React.FC<WorkTogetherWithGptStudioProps>
   const [applySuccessNotice, setApplySuccessNotice] = useState<string | null>(null);
 
   // 24/7 Autonomous Co-Working State
-  const [is247Enabled, setIs247Enabled] = useState(true);
-  const [cyclesCompleted, setCyclesCompleted] = useState(24);
+  const [is247Enabled, setIs247Enabled] = useState(false);
+  const [cyclesCompleted, setCyclesCompleted] = useState(0);
   const [lastCycleAt, setLastCycleAt] = useState<string | null>(null);
   const [isTriggering247, setIsTriggering247] = useState(false);
   const [show247Logs, setShow247Logs] = useState(false);
@@ -85,34 +85,9 @@ export const WorkTogetherWithGptStudio: React.FC<WorkTogetherWithGptStudioProps>
     timestamp: string;
     domain: string;
     task: string;
-    consensusScore: number;
+    consensusScore: number | null;
     summary: string;
-  }>>([
-    {
-      id: 'init-1',
-      timestamp: 'Continuous',
-      domain: 'code_engineering',
-      task: 'Sliding-Window Circuit Breaker & 503 HTTP Failover Guard',
-      consensusScore: 100,
-      summary: 'Verified 0 unhandled socket disconnects. Fallback route active with jittered backoff.'
-    },
-    {
-      id: 'init-2',
-      timestamp: 'Continuous',
-      domain: 'differential_privacy',
-      task: 'Continuous Laplace Scale Perturbation (ε = 0.30)',
-      consensusScore: 100,
-      summary: 'Re-identification bounds constrained to P ≤ 0.0004 for synthetic cohort exports.'
-    },
-    {
-      id: 'init-3',
-      timestamp: 'Continuous',
-      domain: 'monetization_strategy',
-      task: 'Frontier AI Dataset Licensing Minimum Floor ($40/mo)',
-      consensusScore: 100,
-      summary: 'Automated counter-offer rule enforced across all external dataset buyers.'
-    }
-  ]);
+  }>>([]);
 
   // Sync 24/7 background status from server
   useEffect(() => {
@@ -151,11 +126,14 @@ export const WorkTogetherWithGptStudio: React.FC<WorkTogetherWithGptStudioProps>
       });
       if (res.ok) {
         const data = await res.json();
-        setIs247Enabled(data.enabled);
-        setApplySuccessNotice(data.enabled ? '24/7 GPT Co-Working Autopilot RESUMED' : '24/7 GPT Co-Working Autopilot PAUSED');
+        setIs247Enabled(Boolean(data.enabled));
+        setApplySuccessNotice(data.enabled ? 'Backend accepted the configuration request; continuous execution NOT VERIFIED.' : 'Backend accepted the disable request; runtime state NOT VERIFIED.');
+      } else {
+        setApplySuccessNotice('Request failed. Background execution status remains NOT VERIFIED.');
       }
     } catch (err) {
       console.warn('Failed to toggle 24/7 co-working:', err);
+      setApplySuccessNotice('Request failed. Background execution status remains NOT VERIFIED.');
     }
   };
 
@@ -176,7 +154,7 @@ export const WorkTogetherWithGptStudio: React.FC<WorkTogetherWithGptStudioProps>
         if (data.deliverable) {
           setRecent247Deliverables(prev => [data.deliverable, ...prev.slice(0, 9)]);
         }
-        setApplySuccessNotice('24/7 Immediate Dual-Consensus cycle completed! All checks passed.');
+        setApplySuccessNotice('Backend returned a cycle result. Provider participation and check outcomes are NOT independently verified.');
       }
     } catch (err) {
       console.warn('Failed to trigger 24/7 cycle:', err);
@@ -188,55 +166,14 @@ export const WorkTogetherWithGptStudio: React.FC<WorkTogetherWithGptStudioProps>
   // Active or completed sessions
   const [sessions, setSessions] = useState<CoWorkingSession[]>([
     {
-      id: 'session-init',
-      timestamp: 'Session Active',
-      userGoal: 'Implement Autonomous 503 Circuit Breaker & Epsilon Floor Optimization',
+      id: 'sample-not-verified',
+      timestamp: 'SAMPLE · NOT VERIFIED',
+      userGoal: 'Example placeholder — no live AI collaboration session is verified.',
       domain: 'code_engineering',
-      gptContribution: `### OpenAI GPT-4o Proposal & Implementation
-\`\`\`typescript
-// Resilient Multi-Model Dynamic Circuit Breaker with Zero-Stall Fallback
-export async function executeMultiModelFailover<T>(
-  primaryExec: () => Promise<T>,
-  fallbackExec: () => Promise<T>,
-  opts: { maxRetries?: number; timeoutMs?: number } = {}
-): Promise<T> {
-  const timeoutMs = opts.timeoutMs ?? 4500;
-  try {
-    return await primaryExec();
-  } catch (err: any) {
-    console.warn('[GPT-4o Circuit Breaker] Upstream degraded, auto-routing to Gemini Flash-Lite enclave:', err.message);
-    return await fallbackExec();
-  }
-}
-\`\`\`
-**Architectural Key Invariants:**
-1. Atomic promise timeout prevents HTTP socket pool exhaustion on GCP.
-2. In-memory circuit trip counter auto-resets on healthy consecutive responses.`,
-      geminiPeerReview: `### Google Gemini 3.8 Flash Peer Review & Mathematical Verification
-**Cross-Validation Notes:**
-- **Differential Privacy Boundary:** Verified. The circuit breaker introduces 0 additional entropy or data leakage. State persistence maintains strict $\\varepsilon = ${policy.globalEpsilon || 0.30}$.
-- **Concurrency & Re-identification Risk:** Execution within local memory isolates tokens. No external PII leaks to unvetted logs.
-- **Concurrence:** Fully approved for hot-patching into \`server.ts\` and client handlers.`,
-      jointArtifact: `### Joint Co-Authored Solution (OpenAI GPT-4o & Google Gemini 3.8 Flash)
-**Objective:** High-Availability Circuit Breaker & Sovereign Privacy Preservation  
-**Deliberation:** 100% Agreement Attested  
-
-\`\`\`typescript
-// Production Hot-Patch: Unified Failover Guard
-export async function sovereignPairEngine(task: string) {
-  return executeMultiModelFailover(
-    () => callOpenAiGpt(task),
-    () => callGeminiFlashLite(task),
-    { timeoutMs: 3500 }
-  );
-}
-\`\`\`
-
-**Next Action Directives:**
-1. Enact passive minimum monthly compensation floor of $40.00/mo.
-2. Maintain differential privacy budget at $\\varepsilon = 0.30$.
-3. Deploy automated hot-patch to eliminate all 503 HTTP disconnects.`,
-      consensusScore: 100
+      gptContribution: 'Sample placeholder only. No live OpenAI provider response is attached.',
+      geminiPeerReview: 'Sample placeholder only. No live Gemini response or cryptographic review is attached.',
+      jointArtifact: 'Sample placeholder only. No joint artifact or model consensus has been verified.',
+      consensusScore: null
     }
   ]);
 
@@ -252,7 +189,7 @@ export async function sovereignPairEngine(task: string) {
 **Date:** ${new Date().toISOString()}  
 **Domain:** ${session.domain.toUpperCase()}  
 **Task Goal:** ${session.userGoal}  
-**Consensus Attestation:** ${session.consensusScore}% Concordance  
+**Consensus Attestation:** ${session.consensusScore === null ? 'NOT VERIFIED' : `${session.consensusScore}% backend-reported; not independently verified`}  
 **Active Epsilon Budget:** ε = ${policy.globalEpsilon}  
 **Active Compensation Floor:** $${policy.minimumMonthlyFloorUsd}/mo  
 
@@ -288,7 +225,7 @@ ${session.geminiPeerReview}
       aiModel: 'consensus' as any,
       autoNegotiateHighBids: true
     });
-    setApplySuccessNotice('Consensus directives applied! Global floor updated to $40/mo and ε calibrated to 0.30.');
+    setApplySuccessNotice('Configured policy values updated locally. Production enforcement and provider consensus are NOT VERIFIED.');
   };
 
   const handleRunCoWorking = async (overridePrompt?: string, overrideCode?: string) => {
@@ -320,10 +257,10 @@ ${session.geminiPeerReview}
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         userGoal: promptToRun,
         domain,
-        gptContribution: data.gptContribution || 'GPT-4o proposal generated.',
-        geminiPeerReview: data.geminiPeerReview || 'Gemini 3.8 Flash cross-validation complete.',
-        jointArtifact: data.jointArtifact || 'Joint solution synthesized.',
-        consensusScore: data.consensusScore || 100
+        gptContribution: data.gptContribution || 'NOT AVAILABLE — no OpenAI response was returned for this request.',
+        geminiPeerReview: data.geminiPeerReview || 'NOT AVAILABLE — no Gemini response was returned for this request.',
+        jointArtifact: data.jointArtifact || 'NOT AVAILABLE — the backend did not return a joint artifact.',
+        consensusScore: typeof data.consensusScore === 'number' ? data.consensusScore : null
       };
 
       setSessions(prev => [newSession, ...prev]);
@@ -455,7 +392,7 @@ ${session.geminiPeerReview}
             <button
               onClick={handleApplyDirectives}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 font-semibold text-xs transition-colors"
-              title="Apply consensus parameters (Floor $40/mo, Epsilon 0.30) to live app policy"
+              title="Apply proposed policy values; provider consensus and production enforcement are NOT VERIFIED"
             >
               <CheckCircle2 className="w-4 h-4" /> Apply Directives to Policy
             </button>
@@ -493,7 +430,7 @@ ${session.geminiPeerReview}
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                  24/7 Continuous Co-Working Autopilot (GPT-4o & Gemini)
+                  Background co-working setting · runtime NOT VERIFIED
                 </h3>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 ${
                   is247Enabled 
@@ -501,11 +438,11 @@ ${session.geminiPeerReview}
                     : 'bg-slate-800 border border-slate-700 text-slate-400'
                 }`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${is247Enabled ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'}`} />
-                  {is247Enabled ? '24/7 Autopilot Running' : 'Paused'}
+                  {is247Enabled ? 'Backend reports enabled · runtime NOT VERIFIED' : 'Disabled or paused · runtime NOT VERIFIED'}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                Continuously audits circuit breakers, calibrates ε bounds, negotiates dataset pricing floors, and coordinates with the GitHub Actions & Permanent Railway coding fleet.
+                This interface can request work cycles. Continuous operation, provider activity, automatic recovery, and scheduled execution are NOT VERIFIED.
               </p>
             </div>
           </div>
@@ -531,7 +468,7 @@ ${session.geminiPeerReview}
               }`}
             >
               <Power className="w-3.5 h-3.5" />
-              <span>{is247Enabled ? 'Pause 24/7 Autopilot' : 'Resume 24/7 Autopilot'}</span>
+              <span>{is247Enabled ? 'Request pause' : 'Request enable'}</span>
             </button>
             <button
               type="button"
@@ -549,20 +486,20 @@ ${session.geminiPeerReview}
           <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/50">
             <span className="text-slate-400 block text-[10px]">Autopilot Status</span>
             <span className="font-mono font-bold text-emerald-400">
-              {is247Enabled ? 'Active (Continuous)' : 'Paused'}
+              {is247Enabled ? 'Backend reports enabled · runtime NOT VERIFIED' : 'Disabled or paused · runtime NOT VERIFIED'}
             </span>
           </div>
           <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/50">
             <span className="text-slate-400 block text-[10px]">Cycles Executed</span>
-            <span className="font-mono font-bold text-white">{cyclesCompleted} Verified Cycles</span>
+            <span className="font-mono font-bold text-white">{cyclesCompleted} Server-reported cycles · NOT independently verified</span>
           </div>
           <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/50">
             <span className="text-slate-400 block text-[10px]">Cadence & Heartbeat</span>
-            <span className="font-mono font-bold text-cyan-400">Every 120s (24/7 Daemon)</span>
+            <span className="font-mono font-bold text-cyan-400">Schedule / heartbeat: NOT VERIFIED</span>
           </div>
           <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/50">
             <span className="text-slate-400 block text-[10px]">Consensus Concordance</span>
-            <span className="font-mono font-bold text-amber-400">100% Attestation</span>
+            <span className="font-mono font-bold text-amber-400">Consensus: NOT VERIFIED</span>
           </div>
         </div>
 
@@ -571,7 +508,7 @@ ${session.geminiPeerReview}
           <div className="mt-2 space-y-2 pt-2 border-t border-slate-800 animate-in fade-in">
             <div className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Recent 24/7 Autonomous Co-Working Deliverables (GPT-4o & Gemini):</span>
+              <span>Server-reported deliverables · provider participation NOT independently verified:</span>
             </div>
             <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
               {recent247Deliverables.map((d, i) => (
@@ -587,7 +524,7 @@ ${session.geminiPeerReview}
                   </div>
                   <div className="text-right flex-shrink-0">
                     <span className="text-[10px] text-slate-400 block font-mono">{d.timestamp}</span>
-                    <span className="text-[10px] text-emerald-400 font-bold font-mono">100% Concordance</span>
+                    <span className="text-[10px] text-amber-400 font-bold font-mono">Concordance: NOT VERIFIED</span>
                   </div>
                 </div>
               ))}
@@ -789,10 +726,10 @@ ${session.geminiPeerReview}
             <div className="flex items-center gap-3 text-xs text-slate-400">
               <span className="flex items-center gap-1 text-emerald-400 font-mono">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                OpenAI GPT-4o + Gemini 3.8 Flash Active
+                Provider pairing configured · live execution NOT VERIFIED
               </span>
               <span>&bull;</span>
-              <span>100% Agreement Attestation</span>
+              <span>Consensus attestation: NOT VERIFIED</span>
             </div>
 
             <button
@@ -823,9 +760,9 @@ ${session.geminiPeerReview}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
             <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <span>Co-Authored Session Result</span>
+              <span>{currentSession.id === 'sample-not-verified' ? 'Sample Session Placeholder' : 'Session Output · Provenance Not Independently Verified'}</span>
               <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono">
-                Consensus Score: {currentSession.consensusScore}%
+                Consensus Score: {currentSession.consensusScore === null ? 'NOT VERIFIED' : `${currentSession.consensusScore}% backend-reported; not independently verified`}
               </span>
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -873,8 +810,8 @@ ${session.geminiPeerReview}
             <div className="bg-slate-950 rounded-xl p-5 border border-slate-800/90 shadow-inner relative space-y-4 font-sans">
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 text-xs text-slate-400">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-emerald-400">Joint Consensus Artifact</span>
-                  <span className="font-mono text-[11px] text-slate-500">Co-Authored by GPT-4o & Gemini 3.8 Flash</span>
+                  <span className="font-bold text-emerald-400">{currentSession.id === 'sample-not-verified' ? 'Sample Artifact · NOT VERIFIED' : 'Backend-Returned Artifact · Consensus NOT VERIFIED'}</span>
+                  <span className="font-mono text-[11px] text-slate-500">{currentSession.id === 'sample-not-verified' ? 'No verified model authorship' : 'Provider authorship not independently verified'}</span>
                 </div>
                 <button
                   onClick={() => handleCopy(currentSession.jointArtifact, 'joint')}

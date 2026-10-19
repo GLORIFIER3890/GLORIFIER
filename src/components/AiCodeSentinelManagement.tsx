@@ -152,7 +152,7 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
       source: newErrorSource,
       severity: newErrorSeverity,
       status: 'active',
-      timestamp: 'Just now',
+      timestamp: new Date().toISOString(),
       occurrences: 1,
       rootCause: 'Manual watch record created in the interface; runtime detection has not been verified.',
       gptAnalysis: 'NOT RUN — no provider-backed analysis has been recorded.',
@@ -465,7 +465,7 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-slate-300">Synthesized Patch (Unified Diff)</span>
-                    <span className="text-[10px] text-emerald-400 font-mono">Verified Safe</span>
+                    <span className="text-[10px] text-emerald-400 font-mono">Safety assessment: NOT VERIFIED</span>
                   </div>
                   <pre className="text-[11px] font-mono bg-slate-950 p-3 rounded-lg border border-slate-800 text-emerald-300 overflow-x-auto whitespace-pre leading-normal">
                     {selectedError.patchDiff}
@@ -486,7 +486,7 @@ export const AiCodeSentinelManagement: React.FC<AiCodeSentinelManagementProps> =
                 ) : (
                   <div className="w-full py-2 px-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold text-center flex items-center justify-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Resolved & Verified in Production ({selectedError.autoFixedAt || 'Active'})</span>
+                    <span>Marked resolved in the issue record · production fix NOT VERIFIED ({selectedError.autoFixedAt || 'no verification timestamp'})</span>
                   </div>
                 )}
 

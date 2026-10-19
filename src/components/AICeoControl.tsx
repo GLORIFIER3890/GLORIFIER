@@ -92,11 +92,12 @@ export const AICeoControl: React.FC = () => {
               <div className="flex items-center gap-2">
                 <h2 className="text-2xl font-black tracking-tight text-white">GLORIFIER AI CEO</h2>
                 <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
-                  GPT Orchestration • Provider-Neutral
+                  Governed orchestration design · runtime NOT VERIFIED
                 </span>
               </div>
               <p className="text-sm text-slate-400">
                 Configured orchestration policy • Live provider execution NOT VERIFIED
+                Provider-routing design • live provider execution and enforcement NOT VERIFIED
               </p>
             </div>
           </div>
@@ -108,6 +109,7 @@ export const AICeoControl: React.FC = () => {
             >
               <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
               {isSyncing ? 'Refreshing Status Manifest...' : 'Refresh Status Manifest'}
+              {isSyncing ? 'Refreshing Registry Manifest...' : 'Refresh Registry Manifest'}
             </button>
             <button
               onClick={loadStatus}
@@ -130,8 +132,8 @@ export const AICeoControl: React.FC = () => {
           <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
             <UserCheck className="mb-2 h-5 w-5 text-emerald-400" />
             <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500">Final Authority</div>
-            <div className="mt-1 font-bold text-emerald-300">Human Owner (Supreme Rights)</div>
-            <p className="mt-1 text-xs text-slate-400">Deployment, merges, secrets & financial commitments require human approval.</p>
+            <div className="mt-1 font-bold text-emerald-300">Human Owner Policy (Configured)</div>
+            <p className="mt-1 text-xs text-slate-400">Configured policy says deployment, merges, secrets, and financial commitments require human approval; enforcement is NOT VERIFIED.</p>
           </div>
           <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4">
             <ShieldCheck className="mb-2 h-5 w-5 text-cyan-400" />
@@ -158,6 +160,8 @@ export const AICeoControl: React.FC = () => {
                 <h3 className="text-lg font-bold text-white">Global Synthesis & Synchronization Manifest</h3>
                 <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
                   Consensus: {manifest.consensusScore === null ? 'NOT MEASURED · NOT VERIFIED' : `${manifest.consensusScore}% · NOT VERIFIED`}
+                <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[11px] font-semibold text-slate-300">
+                  Consensus: NOT MEASURED · NOT VERIFIED
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">
@@ -167,6 +171,7 @@ export const AICeoControl: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-[11px] text-slate-400">
                 Registry metadata SHA-256: {manifest.evidenceDigestSha256.slice(0, 16)}...
+                Manifest metadata SHA-256: {manifest.evidenceDigestSha256 ? `${manifest.evidenceDigestSha256.slice(0, 16)}...` : 'UNAVAILABLE · NOT VERIFIED'}
               </span>
             </div>
           </div>
@@ -174,6 +179,7 @@ export const AICeoControl: React.FC = () => {
           {/* Executive Synthesis Summary */}
           <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-950/20 p-4">
             <div className="text-xs font-bold uppercase tracking-wider text-emerald-400">Registry Summary (not an independent audit)</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-300">Registry Summary · Not a Live Health Verdict</div>
             <p className="mt-1 text-sm leading-relaxed text-slate-200">
               {manifest.executiveSynthesis}
             </p>
@@ -192,8 +198,8 @@ export const AICeoControl: React.FC = () => {
                 <div key={agent.id} className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 hover:border-slate-700 transition">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-bold text-sm text-white">{agent.name}</span>
-                    <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                      {agent.status}
+                    <span className="rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] font-semibold text-slate-300">
+                      {agent.status === 'configured' ? 'CONFIGURED · NOT LIVE-VERIFIED' : `${agent.status} · NOT INDEPENDENTLY VERIFIED`}
                     </span>
                   </div>
                   <div className="mt-1 text-xs text-slate-400">{agent.role}</div>
@@ -218,6 +224,7 @@ export const AICeoControl: React.FC = () => {
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                 <Globe className="h-4 w-4 text-emerald-400" />
                 Registered Infrastructure References ({manifest.internetNodes.length}; live health NOT VERIFIED)
+                Registered Infrastructure References ({manifest.internetNodes.length}; live reachability NOT VERIFIED)
               </h4>
             </div>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -225,8 +232,8 @@ export const AICeoControl: React.FC = () => {
                 <div key={node.id} className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-semibold text-sm text-white">{node.name}</span>
-                    <span className="rounded-full bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 text-[10px] font-semibold text-cyan-400">
-                      {node.status}
+                    <span className="rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] font-semibold text-slate-300">
+                      {node.status === 'reachable' ? 'REACHABILITY NOT VERIFIED' : `${node.status.toUpperCase()} · NOT LIVE-VERIFIED`}
                     </span>
                   </div>
                   <a
@@ -240,6 +247,7 @@ export const AICeoControl: React.FC = () => {
                   <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
                     <span>Category: {node.category}</span>
                     <span>Live health: NOT VERIFIED</span>
+                    <span>Live reachability: NOT VERIFIED</span>
                   </div>
                 </div>
               ))}
@@ -289,6 +297,7 @@ export const AICeoControl: React.FC = () => {
         <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
           <Lock className="h-4 w-4 text-cyan-400" />
           Configured Governance Principles (runtime enforcement NOT VERIFIED)
+          Configured Executive Guardrails · runtime enforcement NOT VERIFIED
         </h3>
         <ul className="grid gap-2 md:grid-cols-2">
           {status.operatingPrinciples.map(item => (

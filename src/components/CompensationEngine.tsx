@@ -207,12 +207,12 @@ export const CompensationEngine: React.FC<CompensationEngineProps> = ({
             <div className="rounded-xl bg-slate-900 border border-slate-800 p-5 space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
                 <Info className="w-4 h-4 text-emerald-400" />
-                Why Shapley Value Eliminates Exploitation
+                Shapley-Value Allocation Model · Outcomes NOT VERIFIED
               </h4>
               <ul className="text-xs text-slate-400 space-y-2.5">
                 <li className="flex items-start gap-2">
                   <span className="text-emerald-400 font-bold">•</span>
-                  <span><strong>Fair Efficiency:</strong> 100% of the buyer's allocated data budget is distributed across contributors without platform skimming.</span>
+                  <span><strong>Allocation model:</strong> The configured Shapley-value model describes a proposed distribution method. Actual fees, contributor allocations, and settlements are NOT VERIFIED without transaction evidence.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-emerald-400 font-bold">•</span>
