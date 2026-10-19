@@ -139,13 +139,29 @@ export default function App() {
         const remote = payload.state;
         if (cancelled || !remote) return;
         if (remote.policy) setPolicy(remote.policy);
-        if (Array.isArray(remote.offers) && remote.offers.length) setOffers(remote.offers);
-        if (Array.isArray(remote.grants) && remote.grants.length) setGrants(remote.grants);
-        if (Array.isArray(remote.telemetryEvents)) setTelemetryEvents(remote.telemetryEvents);
+
+        // Drop known seeded demo IDs that may remain in older persisted app-state snapshots.
+        const sampleFootprintIds = new Set([
+          'fp-browsing', 'fp-ecommerce', 'fp-developer', 'fp-health', 'fp-social',
+          'fp-location', 'fp-financial', 'fp-gmail', 'fp-drive'
+        ]);
+        const sampleGrantIds = new Set(['grant-01', 'grant-02', 'grant-03', 'grant-04', 'grant-05']);
+        const sampleTelemetryIds = new Set(['telemetry-901', 'telemetry-902', 'telemetry-903', 'telemetry-904', 'telemetry-905']);
+        if (Array.isArray(remote.offers)) setOffers(remote.offers);
+        if (Array.isArray(remote.grants)) setGrants(remote.grants.filter((item: any) => !sampleGrantIds.has(String(item?.id))));
+        if (Array.isArray(remote.telemetryEvents)) setTelemetryEvents(remote.telemetryEvents.filter((item: any) => !sampleTelemetryIds.has(String(item?.id))));
         if (Array.isArray(remote.transactions)) setTransactions(remote.transactions);
-        if (Array.isArray(remote.footprints) && remote.footprints.length) setFootprints(remote.footprints);
+        if (Array.isArray(remote.footprints)) setFootprints(remote.footprints.filter((item: any) => !sampleFootprintIds.has(String(item?.id))));
         if (Array.isArray(remote.exposures)) setExposures(remote.exposures);
-        if (remote.sentinelState) setSentinelState(prev => ({ ...prev, ...remote.sentinelState }));
+        if (remote.sentinelState) {
+          setSentinelState(prev => ({
+            ...prev,
+            ...remote.sentinelState,
+            sentinelLogs: Array.isArray(remote.sentinelState.sentinelLogs)
+              ? remote.sentinelState.sentinelLogs.filter((item: any) => !['log-srv-1', 'log-srv-2'].includes(String(item?.id)))
+              : []
+          }));
+        }
         if (remote.stats) setStats(prev => ({ ...prev, ...remote.stats }));
       } catch (error) {
         console.error('Command Center state load failed:', error);
